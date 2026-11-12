@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as NURJASOSRouteImport } from './routes/NURJASOS'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as OurStoryRouteImport } from './routes/our-story'
@@ -17,6 +18,11 @@ import { Route as OurStoryRouteImport } from './routes/our-story'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NURJASOSRoute = NURJASOSRouteImport.update({
+  id: '/NURJASOS',
+  path: '/NURJASOS',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogRoute = BlogRouteImport.update({
@@ -37,12 +43,14 @@ const OurStoryRoute = OurStoryRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/NURJASOS': typeof NURJASOSRoute
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/our-story': typeof OurStoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/NURJASOS': typeof NURJASOSRoute
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/our-story': typeof OurStoryRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/NURJASOS': typeof NURJASOSRoute
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/our-story': typeof OurStoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/blog' | '/contact' | '/our-story'
+  fullPaths: '/' | '/NURJASOS' | '/blog' | '/contact' | '/our-story'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/blog' | '/contact' | '/our-story'
-  id: '__root__' | '/' | '/blog' | '/contact' | '/our-story'
+  to: '/' | '/NURJASOS' | '/blog' | '/contact' | '/our-story'
+  id: '__root__' | '/' | '/NURJASOS' | '/blog' | '/contact' | '/our-story'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  NURJASOSRoute: typeof NURJASOSRoute
   BlogRoute: typeof BlogRoute
   ContactRoute: typeof ContactRoute
   OurStoryRoute: typeof OurStoryRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/NURJASOS': {
+      id: '/NURJASOS'
+      path: '/NURJASOS'
+      fullPath: '/NURJASOS'
+      preLoaderRoute: typeof NURJASOSRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  NURJASOSRoute: NURJASOSRoute,
   BlogRoute: BlogRoute,
   ContactRoute: ContactRoute,
   OurStoryRoute: OurStoryRoute,

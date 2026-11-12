@@ -32,7 +32,7 @@ function NurjaApp() {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("home");
   return (
     <PhoneFrame>
-      <div className="flex justify-center gap-1 px-4 pt-3 md:absolute md:left-4 md:top-8 md:z-30 md:pt-0">
+      <div className="flex justify-center gap-1 px-4 pt-3 md:pt-9">
         {(["onboarding", "main"] as const).map((v) => (
           <button key={v} onClick={() => d.set({ appView: v })}
             className={cn("rounded-full px-3 py-1 text-[11px] font-bold transition", d.appView === v ? "bg-ink text-paper" : "bg-muted text-muted-foreground")}>
@@ -43,10 +43,10 @@ function NurjaApp() {
       {d.appView === "onboarding" ? <Onboarding /> : (
         <>
           <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
-            {tab === "home" && <HomeTab />}
-            {tab === "route" && <SafeRouteTab />}
-            {tab === "community" && <CommunityTab />}
-            {tab === "profile" && <ProfileTab />}
+            {(tab === "home" || d.sos) && <HomeTab />}
+            {!d.sos && tab === "route" && <SafeRouteTab />}
+            {!d.sos && tab === "community" && <CommunityTab />}
+            {!d.sos && tab === "profile" && <ProfileTab />}
           </div>
           {!d.sos && (
             <nav className="sticky bottom-0 grid grid-cols-4 border-t bg-card/95 px-2 pb-4 pt-2 backdrop-blur">
