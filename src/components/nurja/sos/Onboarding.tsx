@@ -1,3 +1,4 @@
+import { Slogan } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { ArrowLeft, Baby, Eye, EyeOff, KeyRound, Lock, Phone, ShieldCheck, UserRound } from "lucide-react";
 import { toast } from "sonner";
@@ -79,6 +80,7 @@ export function Onboarding() {
         </div>
         <div className="space-y-3 animate-rise">
           <img src={LOGOS.lettering} alt="NURJA" className="mx-auto h-12 object-contain" />
+          <p className="font-display text-base font-bold text-crimson"><Slogan /></p>
           <p className="text-muted-foreground">Your safety, one tap away. Police and verified volunteers nearby, always ready.</p>
         </div>
         <Button size="lg" className="h-14 w-full rounded-lg text-base shadow-sos" onClick={() => setStep(1)}>Get Started</Button>
@@ -96,6 +98,11 @@ export function Onboarding() {
           <div className="h-full rounded-full bg-crimson transition-all duration-500" style={{ width: `${(progress / totalSteps) * 100}%` }} />
         </div>
         <span className="text-xs font-bold text-muted-foreground">{step < 7 ? `${step}/7` : `7.${sub + 1}`}</span>
+      </div>
+      <div className="mt-4 flex items-center gap-2">
+        <img src={LOGOS.icon} alt="NURJA" className="h-7 w-7 rounded-md bg-paper object-contain" />
+        <span className="font-display text-sm font-extrabold text-plum">NURJA</span>
+        <Slogan className="text-[11px] font-semibold text-muted-foreground" />
       </div>
 
       <div key={`${step}-${sub}`} className="mt-8 flex-1 space-y-6 animate-rise">

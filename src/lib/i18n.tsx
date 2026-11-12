@@ -82,3 +82,10 @@ export function LanguageSetting({ dark }: { dark?: boolean }) {
     </div>
   );
 }
+
+/** Official NURJA brand slogan (bilingual). */
+export const SLOGAN = { en: "Safety • Confidence • Freedom", bn: "নিরাপত্তা • আত্মবিশ্বাস • স্বাধীনতা" } as const;
+export function Slogan({ className }: { className?: string }) {
+  const { lang } = useT();
+  return <span className={cn("tracking-wide", className)} data-no-tr>{lang === "bn" ? SLOGAN.bn : SLOGAN.en}</span>;
+}

@@ -1,3 +1,4 @@
+import { Slogan } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, Archive, Radio, ShieldCheck, Siren, Users, Video, Zap } from "lucide-react";
@@ -46,6 +47,7 @@ function Home() {
             <span className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-semibold">
               <span className="h-2 w-2 rounded-full bg-emerald animate-blink" /> Live across Dhaka & Narayanganj
             </span>
+            <p className="font-display text-sm font-bold uppercase tracking-[0.2em] text-crimson"><Slogan /></p>
             <h1 className="text-5xl font-extrabold leading-[1.02] sm:text-6xl lg:text-7xl">
               Help reaches her <span className="text-crimson">in minutes,</span> not hours.
             </h1>

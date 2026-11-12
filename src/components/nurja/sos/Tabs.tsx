@@ -10,7 +10,8 @@ import { cn } from "@/lib/utils";
 import { TacticalMap } from "../TacticalMap";
 import { PostCard } from "../PostCard";
 import { PinInput, PwaBadge } from "./ui";
-import { LanguageSetting, useT } from "@/lib/i18n";
+import { LanguageSetting, Slogan, useT } from "@/lib/i18n";
+import { NurjaMark } from "../Brand";
 
 function LangLabel() { const { tr } = useT(); return <>{tr("App Settings", "অ্যাপ সেটিংস")}</>; }
 
@@ -149,6 +150,11 @@ export function ProfileTab() {
         <div className="flex items-center justify-between rounded-2xl border bg-card p-4">
           <div><p className="text-sm font-bold">Offline mode</p><p className="text-xs text-muted-foreground">SOS SMS and video chunks work without internet</p></div>
           <PwaBadge compact />
+        </div>
+        <div className="flex flex-col items-center gap-1 rounded-2xl border bg-card p-4 text-center">
+          <NurjaMark />
+          <Slogan className="text-xs font-semibold text-crimson" />
+          <p className="text-[11px] text-muted-foreground">Women safety & rapid rescue network · v1.0</p>
         </div>
         <Button variant="ghost" className="w-full text-crimson" onClick={() => d.set({ appView: "onboarding" })}><LogOut /> Log out (restart wizard)</Button>
       </div>

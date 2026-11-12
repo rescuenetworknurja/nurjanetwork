@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { LangToggle } from "@/lib/i18n";
 import { NurjaMark } from "./Brand";
+import { Slogan } from "@/lib/i18n";
 import { VolunteerDialog } from "./VolunteerDialog";
 
 const LINKS = [
@@ -19,7 +20,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 pr-44 sm:px-6 sm:pr-60">
-          <Link to="/"><NurjaMark /></Link>
+          <Link to="/"><NurjaMark tagline taglineClassName="hidden sm:block" /></Link>
           <nav className="hidden flex-1 items-center gap-1 md:flex">
             {LINKS.map((l) => (
               <Link key={l.to} to={l.to} activeOptions={{ exact: true }}
@@ -46,6 +47,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
           <div className="space-y-3 md:col-span-2">
             <NurjaMark className="[&_span]:text-paper" />
+            <p className="font-display text-sm font-semibold text-crimson-soft"><Slogan /></p>
             <p className="max-w-sm text-sm text-paper/60">Women safety and rapid rescue network for Bangladesh. One tap connects you with police and verified volunteers nearby.</p>
             <div className="flex gap-2 pt-2">
               {[Facebook, Youtube, Mail].map((I, i) => <span key={i} className="grid h-9 w-9 place-items-center rounded-full bg-paper/10"><I className="h-4 w-4" /></span>)}

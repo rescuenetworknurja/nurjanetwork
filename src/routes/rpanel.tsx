@@ -40,7 +40,7 @@ function Panel() {
     <div className={cn("flex min-h-screen bg-background text-foreground", dark && "dark")}>
       <aside className={cn("sticky top-0 flex h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all", collapsed ? "w-[72px]" : "w-64")}>
         <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
-          <RescueMark label={collapsed ? "" : "NURJA Command"} />
+          <RescueMark label={collapsed ? "" : "NURJA Command"} tagline />
         </div>
         <nav className="flex-1 space-y-1 p-3">
           {NAV.map((n) => (
