@@ -10,6 +10,9 @@ import { cn } from "@/lib/utils";
 import { TacticalMap } from "../TacticalMap";
 import { PostCard } from "../PostCard";
 import { PinInput, PwaBadge } from "./ui";
+import { LanguageSetting, useT } from "@/lib/i18n";
+
+function LangLabel() { const { tr } = useT(); return <>{tr("App Settings", "অ্যাপ সেটিংস")}</>; }
 
 const SAFE: [number, number][] = [[18, 84], [24, 76], [30, 62], [34, 50], [40, 44], [44, 32], [50, 30], [62, 30], [72, 24], [84, 14]];
 const DIRECT: [number, number][] = [[18, 84], [40, 70], [58, 46], [70, 34], [84, 14]];
@@ -139,6 +142,10 @@ export function ProfileTab() {
           <button className="w-full" onClick={() => setPinOpen(true)}><Item icon={KeyRound} label="Reset Security PIN" value="Change" /></button>
           <Item icon={Fingerprint} label="Biometric unlock" value="On" />
         </Section>
+        <div className="rounded-2xl border bg-card p-4">
+          <p className="mb-3 text-xs font-bold uppercase text-muted-foreground"><LangLabel /></p>
+          <LanguageSetting />
+        </div>
         <div className="flex items-center justify-between rounded-2xl border bg-card p-4">
           <div><p className="text-sm font-bold">Offline mode</p><p className="text-xs text-muted-foreground">SOS SMS and video chunks work without internet</p></div>
           <PwaBadge compact />

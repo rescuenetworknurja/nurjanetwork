@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useConvergingUnits, useNow } from "@/components/nurja/sos/Home";
 import { useDemo } from "@/lib/demo-store";
 import { VICTIM_POS } from "@/lib/mock-data";
-import { LangToggle } from "@/lib/i18n";
+import { LanguageSetting, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/RescueTeam")({
@@ -68,7 +68,6 @@ function RescueApp() {
                 {t1 ? "TYPE 1 · POLICE PATROL" : "TYPE 2 · VOLUNTEER V-J75UN2"}
               </span>
             </div>
-            <LangToggle dark />
             <label className={cn("flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold", d.responderOnline ? "bg-emerald/20 text-emerald" : "bg-paper/10 text-paper/60")}>
               {d.responderOnline ? "Online" : "Offline"}
               <Switch checked={d.responderOnline} onCheckedChange={(v) => { d.set({ responderOnline: v }); toast(v ? "You're online and receiving alerts" : "You're offline"); }} className="data-[state=checked]:bg-emerald" />
@@ -209,6 +208,7 @@ function HistoryTab() {
 
 function ProfileT({ type1 }: { type1: boolean }) {
   const d = useDemo();
+  const { tr } = useT();
   const approved = d.volunteerApps.filter((a) => a.status === "approved");
   return (
     <div className="space-y-3 p-4">
@@ -227,6 +227,10 @@ function ProfileT({ type1 }: { type1: boolean }) {
       )}
       <div className="grid grid-cols-3 gap-2 text-center">
         {[{ l: "Rescues", v: 23 }, { l: "Avg ETA", v: "3.4m" }, { l: "Rating", v: "4.9" }].map((s) => <div key={s.l} className="rounded-2xl border bg-card p-3"><p className="font-display text-xl font-extrabold">{s.v}</p><p className="text-[10px] text-muted-foreground">{s.l}</p></div>)}
+      </div>
+      <div className="rounded-2xl border bg-card p-4">
+        <p className="mb-3 text-xs font-bold uppercase text-muted-foreground">{tr("Settings", "সেটিংস")}</p>
+        <LanguageSetting dark />
       </div>
     </div>
   );

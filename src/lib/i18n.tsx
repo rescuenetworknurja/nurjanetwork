@@ -61,3 +61,24 @@ export function LangToggle({ className, dark }: { className?: string; dark?: boo
     </div>
   );
 }
+
+/** Language row for in-app Profile settings (mobile apps). */
+export function LanguageSetting({ dark }: { dark?: boolean }) {
+  const { lang, setLang, tr } = useT();
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <p className="text-sm font-bold">{tr("Language", "ভাষা")}</p>
+        <p className={cn("text-xs", dark ? "text-paper/60" : "text-muted-foreground")}>{tr("App display language", "অ্যাপের প্রদর্শন ভাষা")}</p>
+      </div>
+      <div className={cn("inline-flex shrink-0 rounded-lg border p-0.5 text-xs font-bold", dark ? "border-paper/10 bg-paper/5" : "bg-muted")} role="group" aria-label="Language">
+        {(["bn", "en"] as const).map((l) => (
+          <button key={l} type="button" onClick={() => setLang(l)} aria-pressed={lang === l}
+            className={cn("rounded-md px-3 py-1.5 transition", lang === l ? "bg-crimson text-paper shadow-sm" : dark ? "text-paper/70" : "text-muted-foreground")}>
+            {l === "bn" ? "বাংলা" : "English"}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
