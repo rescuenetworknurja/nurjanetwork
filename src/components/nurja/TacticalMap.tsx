@@ -2,7 +2,7 @@ import { Building2, Car, Shield, Siren, User } from "lucide-react";
 import type { Zone } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
-export type MapUnit = { id: string; label: string; kind: "patrol" | "fari" | "station" | "volunteer" | "officer" | "self"; x: number; y: number; eta?: number | undefined };
+export type MapUnit = { id: string; label: string; kind: "patrol" | "fari" | "station" | "volunteer" | "officer" | "self"; x: number; y: number; eta?: number | undefined; gps?: "fixed" | "live" | undefined };
 
 const zoneColor = (r: number) => (r >= 5 ? "var(--zone-5)" : r >= 4 ? "color-mix(in oklab, var(--zone-5) 55%, var(--zone-3))" : r >= 3 ? "var(--zone-3)" : r >= 2 ? "color-mix(in oklab, var(--zone-3) 50%, var(--zone-1))" : "var(--zone-1)");
 const zoneOpacity = (r: number) => 0.3 + r * 0.08;
@@ -71,9 +71,15 @@ export function TacticalMap({
         const tone = u.kind === "volunteer" ? "bg-emerald" : u.kind === "self" ? "bg-plum" : "bg-navy";
         return (
           <div key={u.id} className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-1000" style={{ left: `${u.x}%`, top: `${u.y}%` }}>
-            <div className={cn("grid place-items-center rounded-full border-2 border-paper text-paper shadow-md", tone, u.kind === "volunteer" ? "h-5 w-5" : "h-7 w-7")}>
+            {u.gps === "live" && u.kind !== "volunteer" && <span className="absolute inset-0 rounded-full bg-crimson/40 animate-ripple" />}
+            <div className={cn("relative grid place-items-center rounded-full border-2 border-paper text-paper shadow-md", tone, u.kind === "volunteer" ? "h-5 w-5" : "h-7 w-7")}>
               <I className={u.kind === "volunteer" ? "h-2.5 w-2.5" : "h-3.5 w-3.5"} />
             </div>
+            {u.gps && u.kind !== "volunteer" && u.kind !== "self" && (
+              <span className={cn("absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded px-1 text-[8px] font-extrabold tracking-wide", u.eta !== undefined ? "top-full mt-3.5" : "top-full mt-0.5", u.gps === "fixed" ? "bg-navy/90 text-paper" : "bg-crimson/90 text-paper")}>
+                {u.gps === "fixed" ? "📍 FIXED" : "📡 LIVE"}
+              </span>
+            )}
             {u.eta !== undefined && u.kind !== "volunteer" && (
               <span className="absolute left-1/2 top-full mt-0.5 -translate-x-1/2 whitespace-nowrap rounded bg-ink/85 px-1 text-[9px] font-bold text-paper">{u.eta} min</span>
             )}

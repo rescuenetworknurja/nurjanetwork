@@ -6,7 +6,7 @@ import { VICTIM_POS } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { TacticalMap } from "../TacticalMap";
 import { CameraFeed } from "../CameraFeed";
-import { useConvergingUnits, useNow } from "../sos/Home";
+import { useNetworkUnits, useNow } from "../sos/Home";
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return <div className={cn("rounded-2xl border bg-card p-5 shadow-card", className)}>{children}</div>;
@@ -17,7 +17,7 @@ export function PageHead({ title, sub, children }: { title: string; sub: string;
 
 export function DashboardSection({ go }: { go: (s: string) => void }) {
   const d = useDemo();
-  const units = useConvergingUnits(d.sos?.startedAt, d.sos?.acceptedBy);
+  const units = useNetworkUnits(d.sos?.startedAt, d.sos?.acceptedBy, d.responders);
   const kpis = [
     { l: "Active SOS Alerts", v: d.sos ? 1 : 0, i: Siren, tone: "bg-crimson", hot: !!d.sos },
     { l: "Online Patrol Units", v: d.responders.filter((r) => r.online && ["patrol", "fari", "station"].includes(r.kind)).length + 38, i: Car, tone: "bg-navy-3" },
@@ -67,7 +67,7 @@ export function DashboardSection({ go }: { go: (s: string) => void }) {
 
 export function IncidentSection() {
   const d = useDemo();
-  const units = useConvergingUnits(d.sos?.startedAt, d.sos?.acceptedBy);
+  const units = useNetworkUnits(d.sos?.startedAt, d.sos?.acceptedBy, d.responders);
   const now = useNow();
   if (!d.sos)
     return (

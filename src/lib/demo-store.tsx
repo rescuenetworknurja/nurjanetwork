@@ -17,6 +17,7 @@ export type DemoState = {
   user: { name: string; phone: string; dob: string; adult: boolean; emergencyName: string; emergencyPhone: string; relation: string; pin: string };
   selfKycId: string;
   responderType: ResponderType;
+  responderId: string;
   responderOnline: boolean;
   sos: SosState | null;
   kyc: KycSubmission[];
@@ -36,6 +37,7 @@ const initial: DemoState = {
   user: { name: "Nadia Hossain", phone: "01712349876", dob: "1999-03-14", adult: true, emergencyName: "Rehana Hossain", emergencyPhone: "01819876543", relation: "Mother", pin: "123456" },
   selfKycId: "self",
   responderType: 2,
+  responderId: "r5",
   responderOnline: true,
   sos: null,
   kyc: [{ id: "self", name: "Nadia Hossain", phone: "01712349876", dob: "1999-03-14", type: "adult", status: "approved", submittedAt: "Just now" }, ...seedKyc],
@@ -137,7 +139,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
         const app = s.volunteerApps.find((a) => a.id === id);
         return {
           volunteerApps: s.volunteerApps.map((a) => (a.id === id ? { ...a, status: "approved", volunteerId: vid } : a)),
-          responders: app ? [...s.responders, { id: `r${Date.now()}`, name: app.name, kind: "volunteer", code: vid, area: app.address, phone: app.phone, online: false }] : s.responders,
+          responders: app ? [...s.responders, { id: `r${Date.now()}`, name: app.name, kind: "volunteer", code: vid, area: app.address, phone: app.phone, online: false, nid: app.nid, hasPhoto: app.hasPhoto, x: 30 + Math.random() * 40, y: 30 + Math.random() * 40 }] : s.responders,
         };
       });
       return vid;

@@ -9,9 +9,10 @@ import { CameraFeed } from "@/components/nurja/CameraFeed";
 import { PostCard } from "@/components/nurja/PostCard";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { useConvergingUnits, useNow } from "@/components/nurja/sos/Home";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useNetworkUnits, useNow } from "@/components/nurja/sos/Home";
 import { useDemo } from "@/lib/demo-store";
-import { VICTIM_POS } from "@/lib/mock-data";
+import { VICTIM_POS, isType1, type Responder } from "@/lib/mock-data";
 import { LanguageSetting, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -36,17 +37,26 @@ const TABS = [
 
 const ROUTE_TO_VICTIM: [number, number][] = [[30, 34], [35, 34], [35, 50], [50, 50]];
 
+const KIND_SHORT: Record<Responder["kind"], string> = { patrol: "POLICE PATROL", fari: "POLICE FARI", station: "POLICE STATION", volunteer: "VOLUNTEER", officer: "POLICE OFFICER" };
+
 function RescueApp() {
   const d = useDemo();
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("map");
   const [dismissed, setDismissed] = useState<string | null>(null);
   const [accepted, setAccepted] = useState<string | null>(null);
   const t1 = d.responderType === 1;
-  const myCode = t1 ? "PU-07" : "V-J75UN2";
+  const accounts = d.responders.filter((r) => (t1 ? isType1(r.kind) : !isType1(r.kind)));
+  const mine = accounts.find((r) => r.id === d.responderId) ?? accounts[0];
+  const myCode = mine?.code ?? "";
   const sos = d.sos && d.responderOnline && dismissed !== d.sos.id ? d.sos : null;
   const navigating = !!sos && (t1 || accepted === sos.id || sos.acceptedBy.includes(myCode));
 
-  useEffect(() => { if (d.sos && t1) d.acceptSos(myCode); }, [d.sos?.id, t1]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (d.sos && t1 && myCode) d.acceptSos(myCode); }, [d.sos?.id, t1, myCode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const switchType = (n: 1 | 2) => {
+    const first = d.responders.find((r) => (n === 1 ? isType1(r.kind) : !isType1(r.kind)));
+    d.set({ responderType: n, ...(first ? { responderId: first.id } : {}) });
+  };
 
   return (
     <PhoneFrame dark>
@@ -54,7 +64,7 @@ function RescueApp() {
         <div className="bg-navy px-4 pb-3 pt-4 md:pt-9">
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-navy-3 p-1">
             {[1, 2].map((n) => (
-              <button key={n} onClick={() => d.set({ responderType: n as 1 | 2 })}
+              <button key={n} onClick={() => switchType(n as 1 | 2)}
                 className={cn("rounded-lg px-2 py-1.5 text-[11px] font-bold leading-tight", d.responderType === n ? "bg-paper text-ink" : "text-paper/60")}>
                 {n === 1 ? "Type 1 · Station / Fari / Patrol" : "Type 2 · Volunteer / Officer"}
               </button>
@@ -63,10 +73,16 @@ function RescueApp() {
           <div className="mt-3 flex items-center gap-3">
             <RescueMark label="" />
             <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-sm font-bold text-paper">{t1 ? "Patrol Unit DMP-07" : "Rakibul Islam"}</p>
-              <span className={cn("inline-block rounded px-1.5 py-0.5 text-[10px] font-bold", t1 ? "bg-crimson text-paper" : "bg-emerald text-paper")}>
-                {t1 ? "TYPE 1 · POLICE PATROL" : "TYPE 2 · VOLUNTEER V-J75UN2"}
+              <Select value={mine?.id ?? ""} onValueChange={(id) => d.set({ responderId: id })}>
+                <SelectTrigger className="h-auto border-0 bg-transparent p-0 font-display text-sm font-bold text-paper shadow-none focus:ring-0 [&>svg]:text-paper/60"><SelectValue placeholder="Pick an account" /></SelectTrigger>
+                <SelectContent>
+                  {accounts.map((r) => <SelectItem key={r.id} value={r.id}>{r.name} · {r.code}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <span className={cn("mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-bold", t1 ? "bg-crimson text-paper" : "bg-emerald text-paper")}>
+                {mine ? `TYPE ${t1 ? "1" : "2"} · ${KIND_SHORT[mine.kind]} ${mine.code}` : "NO ACCOUNT"}
               </span>
+              {mine && <span className={cn("ml-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-bold", mine.fixed ? "bg-paper/15 text-paper" : "bg-crimson/60 text-paper")}>{mine.fixed ? "📍 FIXED GPS" : "📡 LIVE GPS"}</span>}
             </div>
             <label className={cn("flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold", d.responderOnline ? "bg-emerald/20 text-emerald" : "bg-paper/10 text-paper/60")}>
               {d.responderOnline ? "Online" : "Offline"}
@@ -76,10 +92,10 @@ function RescueApp() {
         </div>
 
         <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {tab === "map" && (navigating ? <Navigate type1={t1} /> : <DispatchHome onSim={() => { setDismissed(null); setAccepted(null); if (!d.sos) d.triggerSos(); else toast("An SOS is already active"); }} />)}
+          {tab === "map" && (navigating ? <Navigate type1={t1} /> : <DispatchHome mine={mine} onSim={() => { setDismissed(null); setAccepted(null); if (!d.sos) d.triggerSos(); else toast("An SOS is already active"); }} />)}
           {tab === "community" && <div className="space-y-4 p-4">{d.posts.filter((p) => p.targets.rescue && p.published !== false).map((p) => <PostCard key={p.id} post={p} compact dark />)}</div>}
           {tab === "history" && <HistoryTab />}
-          {tab === "profile" && <ProfileT type1={t1} />}
+          {tab === "profile" && <ProfileT type1={t1} mine={mine} />}
 
           {sos && !navigating && !t1 && (
             <div className="absolute inset-x-3 top-3 z-30 overflow-hidden rounded-3xl border border-crimson bg-card shadow-2xl animate-rise">
@@ -111,13 +127,14 @@ function RescueApp() {
   );
 }
 
-function DispatchHome({ onSim }: { onSim: () => void }) {
+function DispatchHome({ onSim, mine }: { onSim: () => void; mine: Responder | undefined }) {
   const d = useDemo();
   const online = d.responders.filter((r) => r.online);
+  const others = d.responders.filter((r) => r.id !== mine?.id && r.x !== undefined).map((r) => ({ id: r.id, label: r.name, kind: r.kind, x: r.x!, y: r.y!, gps: (r.fixed ? "fixed" : "live") as "fixed" | "live" }));
   return (
     <div className="relative flex flex-1 flex-col">
       <div aria-hidden className="pointer-events-none absolute inset-0 tactical-grid opacity-60" />
-      <TacticalMap className="relative h-72 tactical-grid shadow-card" zones={d.zones} units={[{ id: "me", label: "You", kind: d.responderType === 1 ? "patrol" : "volunteer", x: 30, y: 34 }]} />
+      <TacticalMap className="relative h-72 tactical-grid shadow-card" zones={d.zones} units={[...others, { id: "me", label: "You", kind: mine?.kind ?? (d.responderType === 1 ? "patrol" : "volunteer"), x: mine?.x ?? 30, y: mine?.y ?? 34, gps: mine?.fixed ? "fixed" : "live" }]} />
       <div className="relative space-y-3 p-4">
         <div className="grid grid-cols-3 gap-2">
           {[{ l: "Units online", v: online.length }, { l: "Active SOS", v: d.sos ? 1 : 0 }, { l: "My cases", v: d.cases.length }].map((s) => (
@@ -141,7 +158,7 @@ function Navigate({ type1 }: { type1: boolean }) {
   const d = useDemo();
   const sos = d.sos!;
   const now = useNow();
-  const units = useConvergingUnits(sos.startedAt, sos.acceptedBy);
+  const units = useNetworkUnits(sos.startedAt, sos.acceptedBy, d.responders);
   const progress = Math.min(1, (now - sos.startedAt) / 90000);
   const dist = (0.8 * (1 - progress)).toFixed(2);
   const steps = [
@@ -206,17 +223,19 @@ function HistoryTab() {
   );
 }
 
-function ProfileT({ type1 }: { type1: boolean }) {
+function ProfileT({ type1, mine }: { type1: boolean; mine: Responder | undefined }) {
   const d = useDemo();
   const { tr } = useT();
   const approved = d.volunteerApps.filter((a) => a.status === "approved");
+  const initials = mine ? mine.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase() : "?";
   return (
     <div className="space-y-3 p-4">
       <div className="rounded-3xl border bg-card p-5 text-center">
-        <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-navy-3 font-display text-2xl font-extrabold">{type1 ? "07" : "RI"}</div>
-        <p className="mt-3 font-display text-lg font-bold">{type1 ? "Patrol Unit DMP-07" : "Rakibul Islam"}</p>
-        <p className="text-sm text-muted-foreground">{type1 ? "Motijheel Division · Dhaka Metropolitan Police" : "Volunteer · Shantinagar"}</p>
-        <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-soft px-3 py-1 text-xs font-bold text-emerald"><BadgeCheck className="h-3.5 w-3.5" /> {type1 ? "Unit code PU-07" : "Volunteer ID V-J75UN2"}</span>
+        <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-navy-3 font-display text-2xl font-extrabold">{initials}</div>
+        <p className="mt-3 font-display text-lg font-bold">{mine?.name ?? "No account selected"}</p>
+        <p className="text-sm text-muted-foreground">{mine ? `${KIND_SHORT[mine.kind]} · ${mine.area}` : ""}{mine?.rank ? ` · ${mine.rank}` : ""}</p>
+        {mine && <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-soft px-3 py-1 text-xs font-bold text-emerald"><BadgeCheck className="h-3.5 w-3.5" /> {mine.kind === "volunteer" ? `Volunteer ID ${mine.code}` : mine.kind === "officer" ? `TaskForce ID ${mine.code}` : `Unit code ${mine.code}`}</span>}
+        {mine && <p className="mt-2 text-xs text-muted-foreground">{mine.fixed ? "📍 Fixed GPS installation — position set by Control Panel" : "📡 Live device GPS while Online"}{mine.station ? ` · ${mine.station}` : ""}{mine.vehicleNo ? ` · ${mine.vehicleNo}` : ""}</p>}
         {!type1 && <p className="mt-2 text-xs text-muted-foreground">Officers sign in with TaskForce ID (e.g. TF-902)</p>}
       </div>
       {approved.length > 0 && (

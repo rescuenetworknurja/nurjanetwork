@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Eye, FileImage, ImageIcon, KeyRound, Plus, Save, Trash2, UserPlus, X, Youtube } from "lucide-react";
+import { Check, Eye, FileImage, ImageIcon, KeyRound, MapPin, Plus, Satellite, Save, Trash2, UserPlus, X, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +10,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDemo } from "@/lib/demo-store";
-import { IMAGES, type KycSubmission, type Responder, type Zone } from "@/lib/mock-data";
+import { IMAGES, isType1, type KycSubmission, type Responder, type Zone } from "@/lib/mock-data";
 import { ageFromDob, generateVolunteerId } from "@/lib/ids";
 import { cn } from "@/lib/utils";
 import { TacticalMap } from "../TacticalMap";
@@ -99,28 +100,232 @@ export function KycSection() {
 }
 
 const KIND_LABEL: Record<Responder["kind"], string> = { patrol: "Patrolling Unit", fari: "Police Fari", station: "Police Station", volunteer: "Volunteer", officer: "Police Officer" };
+const KIND_LABEL_BN: Record<Responder["kind"], string> = { patrol: "পেট্রোলিং টিম", fari: "পুলিশ ফাঁড়ি", station: "থানা", volunteer: "ভলান্টিয়ার", officer: "পুলিশ অফিসার" };
 
-export function NetworkSection() {
+function GpsBadge({ fixed }: { fixed: boolean }) {
+  return (
+    <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold", fixed ? "bg-navy/10 text-navy dark:bg-paper/10 dark:text-paper" : "bg-crimson-soft text-crimson")}>
+      {fixed ? "📍 Fixed GPS" : "📡 Live GPS"}
+    </span>
+  );
+}
+
+const OnlineDot = ({ on }: { on: boolean }) => (
+  <span className={cn("flex items-center gap-1.5 text-xs font-semibold", on ? "text-emerald" : "text-muted-foreground")}>
+    <span className={cn("h-2 w-2 rounded-full", on ? "bg-emerald" : "bg-muted-foreground")} />{on ? "Online" : "Offline"}
+  </span>
+);
+
+/** "+ Add Type 1 Police Unit" — fixed GPS for Thana/Fari, live GPS for Patrolling Units. */
+function UnitForm({ onDone }: { onDone: () => void }) {
   const d = useDemo();
-  const [type, setType] = useState<"1" | "2">("1");
-  const [kind, setKind] = useState<Responder["kind"]>("patrol");
-  const [f, setF] = useState({ name: "", area: "", phone: "", code: "" });
-  const pending = d.volunteerApps.filter((a) => a.status === "pending");
+  const [kind, setKind] = useState<"station" | "fari" | "patrol">("station");
+  const [f, setF] = useState({ name: "", nameBn: "", code: "", area: "", inCharge: "", rank: "", phone: "", password: "", vehicleNo: "", patrolZone: "" });
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const fixed = kind !== "patrol";
 
-  const create = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const code = kind === "volunteer" ? generateVolunteerId() : kind === "officer" ? (f.code || `TF-${Math.floor(100 + Math.random() * 900)}`) : (f.code || `${kind === "station" ? "PS" : kind === "fari" ? "PF" : "PU"}-${Math.floor(10 + Math.random() * 90)}`);
-    d.addResponder({ name: f.name, kind, code, area: f.area, phone: f.phone, online: false });
-    toast.success(`Account created: ${code}`, { description: `${KIND_LABEL[kind]} · ${f.name}` });
-    setF({ name: "", area: "", phone: "", code: "" });
+    if (fixed && !pos) { toast.error("Pick the fixed location on the map"); return; }
+    const code = f.code || (kind === "station" ? `THANA-DHK-${String(d.responders.filter((r) => r.kind === "station").length + 1).padStart(2, "0")}` : kind === "fari" ? `FARI-NRG-${String(d.responders.filter((r) => r.kind === "fari").length + 1).padStart(2, "0")}` : `PATROL-${100 + d.responders.filter((r) => r.kind === "patrol").length + 1}`);
+    d.addResponder({
+      name: f.name, nameBn: f.nameBn || undefined, kind, code, area: f.area, phone: f.phone, online: false,
+      fixed, x: pos?.x ?? 30 + Math.random() * 40, y: pos?.y ?? 30 + Math.random() * 40,
+      inCharge: f.inCharge || undefined, rank: f.rank || undefined, password: f.password || undefined,
+      vehicleNo: kind === "patrol" ? f.vehicleNo || undefined : undefined,
+      patrolZone: kind === "patrol" ? f.patrolZone || undefined : undefined,
+    });
+    toast.success(`Police unit created: ${code}`, { description: `${KIND_LABEL[kind]} · ${fixed ? "Fixed GPS location saved" : "Live GPS from the Patrol App"}` });
+    onDone();
   };
 
   return (
+    <form onSubmit={submit} className="space-y-4">
+      <div className="space-y-1.5"><Label>Unit sub-type</Label>
+        <Select value={kind} onValueChange={(v) => { setKind(v as typeof kind); setPos(null); }}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="station">Police Station / Thana (থানা)</SelectItem>
+            <SelectItem value="fari">Police Fari (পুলিশ ফাঁড়ি)</SelectItem>
+            <SelectItem value="patrol">Patrolling Unit / Team (পেট্রোলিং টিম)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5"><Label>Unit / station name (English)</Label><Input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="e.g. Wari Police Station" /></div>
+        <div className="space-y-1.5"><Label>নাম (বাংলা)</Label><Input value={f.nameBn} onChange={(e) => setF({ ...f, nameBn: e.target.value })} placeholder="যেমন ওয়ারী থানা" /></div>
+        <div className="space-y-1.5"><Label>Unit code / call sign</Label><Input value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.toUpperCase() })} placeholder={kind === "station" ? "THANA-DHK-01" : kind === "fari" ? "FARI-NRG-02" : "PATROL-104"} /></div>
+        <div className="space-y-1.5"><Label>Jurisdiction area</Label><Input required value={f.area} onChange={(e) => setF({ ...f, area: e.target.value })} placeholder="e.g. Wari, Dhaka" /></div>
+        <div className="space-y-1.5"><Label>In-charge officer name</Label><Input required value={f.inCharge} onChange={(e) => setF({ ...f, inCharge: e.target.value })} /></div>
+        <div className="space-y-1.5"><Label>Rank</Label><Input value={f.rank} onChange={(e) => setF({ ...f, rank: e.target.value })} placeholder="e.g. Officer-in-Charge" /></div>
+        <div className="space-y-1.5"><Label>Official duty phone (login number)</Label><Input required value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="01XXXXXXXXX" /></div>
+        <div className="space-y-1.5"><Label>Login password</Label><Input required type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>
+      </div>
+
+      {fixed ? (
+        <div className="space-y-2 rounded-xl border p-4">
+          <p className="flex items-center gap-2 text-sm font-bold"><MapPin className="h-4 w-4 text-navy dark:text-paper" /> Fixed location (স্থায়ী অবস্থান — Fixed GPS)</p>
+          <p className="text-xs text-muted-foreground">Thana and Fari are stationary. Click the map to drop the pin — the unit shows as a fixed marker on every map.</p>
+          <TacticalMap className="h-48 rounded-lg border" zones={d.zones} units={pos ? [{ id: "new", label: f.name || "New unit", kind, x: pos.x, y: pos.y, gps: "fixed" }] : []} onMapClick={(x, y) => setPos({ x, y })} />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><Label>Latitude</Label><Input readOnly value={pos ? (23.6 + pos.y / 100 * 0.25).toFixed(4) : ""} placeholder="Pick on map" /></div>
+            <div className="space-y-1.5"><Label>Longitude</Label><Input readOnly value={pos ? (90.3 + pos.x / 100 * 0.25).toFixed(4) : ""} placeholder="Pick on map" /></div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4 rounded-xl border p-4">
+          <p className="flex items-center gap-2 text-sm font-bold"><Satellite className="h-4 w-4 text-crimson" /> Live moving location (লাইভ জিপিএস ট্র্যাকিং)</p>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-crimson-soft px-2.5 py-1 text-[11px] font-bold text-crimson"><span className="h-1.5 w-1.5 rounded-full bg-crimson animate-blink" /> 📡 Live GPS — updates automatically from the Patrol App</span>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5"><Label>Vehicle number (গাড়ির নাম্বার)</Label><Input required value={f.vehicleNo} onChange={(e) => setF({ ...f, vehicleNo: e.target.value })} placeholder="DHA-GA-17-4407" /></div>
+            <div className="space-y-1.5"><Label>Patrol zone</Label><Input required value={f.patrolZone} onChange={(e) => setF({ ...f, patrolZone: e.target.value })} placeholder="e.g. Motijheel–Paltan ring" /></div>
+          </div>
+        </div>
+      )}
+
+      <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">Dispatch rule: Type 1 units are mandatory auto-accept — the nearest 2 patrolling units, 1 Fari and 1 Station are dispatched on every SOS.</p>
+      <Button type="submit" className="w-full"><UserPlus /> Create police unit</Button>
+    </form>
+  );
+}
+
+/** "+ Add Type 2 Responder" — auto V-XXXXXX for volunteers, manual TaskForce ID for officers. */
+function ResponderForm({ onDone }: { onDone: () => void }) {
+  const d = useDemo();
+  const [kind, setKind] = useState<"volunteer" | "officer">("volunteer");
+  const [autoId] = useState(() => generateVolunteerId());
+  const [f, setF] = useState({ name: "", phone: "", password: "", nid: "", area: "", code: "", rank: "", station: "", photo: "" });
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = kind === "volunteer" ? autoId : f.code.toUpperCase();
+    d.addResponder({
+      name: f.name, kind, code, area: f.area, phone: f.phone, online: false,
+      nid: f.nid || undefined, password: f.password || undefined, hasPhoto: !!f.photo,
+      rank: kind === "officer" ? f.rank || undefined : undefined,
+      station: kind === "officer" ? f.station || undefined : undefined,
+      x: 30 + Math.random() * 40, y: 30 + Math.random() * 40,
+    });
+    toast.success(`Responder account created: ${code}`, { description: `${KIND_LABEL[kind]} · signs in to the Rescue Network app with ${f.phone}` });
+    onDone();
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div className="space-y-1.5"><Label>Responder sub-type</Label>
+        <Select value={kind} onValueChange={(v) => setKind(v as typeof kind)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="volunteer">Volunteer (ভলান্টিয়ার)</SelectItem>
+            <SelectItem value="officer">Police Officer (পুলিশ অফিসার)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {kind === "volunteer" ? (
+        <div className="flex items-center justify-between rounded-xl border border-emerald/30 bg-emerald-soft px-4 py-3">
+          <div><p className="text-xs text-muted-foreground">Volunteer ID</p><p className="font-mono text-lg font-extrabold text-emerald">{autoId}</p></div>
+          <span className="rounded-full bg-emerald/15 px-2.5 py-1 text-[11px] font-bold text-emerald">Auto-generated by system</span>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-1.5"><Label>TaskForce ID (Police ID / BP No.)</Label><Input required value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.toUpperCase() })} placeholder="TF-9042 or BP-8839201" /></div>
+          <div className="space-y-1.5"><Label>Officer rank</Label><Input required value={f.rank} onChange={(e) => setF({ ...f, rank: e.target.value })} placeholder="e.g. Sub-Inspector" /></div>
+          <div className="space-y-1.5"><Label>Assigned station / unit</Label><Input required value={f.station} onChange={(e) => setF({ ...f, station: e.target.value })} placeholder="e.g. Ramna Police Station" /></div>
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5"><Label>Full name</Label><Input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></div>
+        <div className="space-y-1.5"><Label>Phone number (Rescue app login)</Label><Input required value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="01XXXXXXXXX" /></div>
+        <div className="space-y-1.5"><Label>Login password</Label><Input required type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>
+        <div className="space-y-1.5"><Label>NID number</Label><Input required value={f.nid} onChange={(e) => setF({ ...f, nid: e.target.value })} /></div>
+        <div className="space-y-1.5"><Label>Present address / zone</Label><Input required value={f.area} onChange={(e) => setF({ ...f, area: e.target.value })} /></div>
+        <div className="space-y-1.5"><Label>Profile / NID photo</Label>
+          <label className="flex h-9 cursor-pointer items-center gap-2 rounded-md border border-dashed px-3 text-sm text-muted-foreground">
+            <ImageIcon className="h-4 w-4" />{f.photo || "Upload photo"}
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => setF({ ...f, photo: e.target.files?.[0]?.name ?? "" })} />
+          </label>
+        </div>
+      </div>
+
+      <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">Dispatch rule: Type 2 responders use live device GPS while their Rescue app is Online. During an SOS the nearest 10 online responders get an alert with Accept / Respond.</p>
+      <Button type="submit" className="w-full"><UserPlus /> Create responder account</Button>
+    </form>
+  );
+}
+
+export function NetworkSection() {
+  const d = useDemo();
+  const [dialog, setDialog] = useState<"unit" | "responder" | null>(null);
+  const pending = d.volunteerApps.filter((a) => a.status === "pending");
+  const type1 = d.responders.filter((r) => isType1(r.kind));
+  const type2 = d.responders.filter((r) => !isType1(r.kind));
+
+  return (
     <>
-      <PageHead title="Rescue Network & Volunteers" sub="Manage Type 1 police units and Type 2 volunteers/officers" />
-      <Tabs defaultValue="apps">
-        <TabsList><TabsTrigger value="apps">Volunteer applications {pending.length > 0 && <span className="ml-1.5 rounded-full bg-crimson px-1.5 text-[10px] text-paper">{pending.length}</span>}</TabsTrigger><TabsTrigger value="create">Create account</TabsTrigger><TabsTrigger value="roster">Roster</TabsTrigger></TabsList>
+      <PageHead title="Rescue Network & Volunteers" sub="Type 1 police units (fixed vs live GPS) and Type 2 volunteers & officers" />
+      <Tabs defaultValue="type1">
+        <TabsList>
+          <TabsTrigger value="type1">Type 1: Police Units</TabsTrigger>
+          <TabsTrigger value="type2">Type 2: Volunteers & Officers</TabsTrigger>
+          <TabsTrigger value="apps">Applications {pending.length > 0 && <span className="ml-1.5 rounded-full bg-crimson px-1.5 text-[10px] text-paper">{pending.length}</span>}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="type1" className="mt-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">Thana & Fari use 📍 fixed GPS; patrolling teams use 📡 live GPS from their vehicle device.</p>
+            <Button onClick={() => setDialog("unit")}><Plus /> Add Type 1 Police Unit</Button>
+          </div>
+          <Card className="p-0">
+            <Table>
+              <TableHeader><TableRow><TableHead>Unit</TableHead><TableHead>Code / call sign</TableHead><TableHead>Sub-type</TableHead><TableHead>Jurisdiction</TableHead><TableHead>In-charge</TableHead><TableHead>GPS</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {type1.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell><p className="font-semibold">{r.name}</p>{r.nameBn && <p className="text-xs text-muted-foreground">{r.nameBn}</p>}{r.vehicleNo && <p className="font-mono text-[11px] text-muted-foreground">{r.vehicleNo} · {r.patrolZone}</p>}</TableCell>
+                    <TableCell className="font-mono text-xs font-bold">{r.code}</TableCell>
+                    <TableCell>{KIND_LABEL[r.kind]}<span className="block text-[11px] text-muted-foreground">{KIND_LABEL_BN[r.kind]}</span></TableCell>
+                    <TableCell>{r.area}</TableCell>
+                    <TableCell className="text-xs">{r.inCharge}{r.rank && <span className="block text-muted-foreground">{r.rank}</span>}</TableCell>
+                    <TableCell><GpsBadge fixed={!!r.fixed} /></TableCell>
+                    <TableCell><OnlineDot on={r.online} /></TableCell>
+                  </TableRow>
+                ))}
+                {!type1.length && <TableRow><TableCell colSpan={7} className="py-10 text-center text-muted-foreground">No police units yet</TableCell></TableRow>}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="type2" className="mt-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">Volunteers get an auto V-XXXXXX ID; officers use their TaskForce / BP ID. All use live device GPS while online.</p>
+            <Button onClick={() => setDialog("responder")}><Plus /> Add Type 2 Responder</Button>
+          </div>
+          <Card className="p-0">
+            <Table>
+              <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>ID</TableHead><TableHead>Category</TableHead><TableHead>Area / zone</TableHead><TableHead>Phone</TableHead><TableHead>GPS</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {type2.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell><p className="font-semibold">{r.name}</p>{r.rank && <p className="text-xs text-muted-foreground">{r.rank}{r.station ? ` · ${r.station}` : ""}</p>}</TableCell>
+                    <TableCell className="font-mono text-xs font-bold">{r.code}</TableCell>
+                    <TableCell>{KIND_LABEL[r.kind]}<span className="block text-[11px] text-muted-foreground">{KIND_LABEL_BN[r.kind]}</span></TableCell>
+                    <TableCell>{r.area}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.phone}</TableCell>
+                    <TableCell><GpsBadge fixed={false} /></TableCell>
+                    <TableCell><OnlineDot on={r.online} /></TableCell>
+                  </TableRow>
+                ))}
+                {!type2.length && <TableRow><TableCell colSpan={7} className="py-10 text-center text-muted-foreground">No volunteers or officers yet</TableCell></TableRow>}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="apps" className="mt-4 space-y-3">
+          <p className="text-sm text-muted-foreground">Applications from the public website's "Become a Volunteer" form. Approving generates the V-XXXXXX ID and creates the Type 2 Rescue Network account.</p>
           {d.volunteerApps.map((a) => (
             <Card key={a.id} className="flex flex-wrap items-start gap-4">
               <div className="grid h-16 w-24 place-items-center rounded-lg bg-muted"><ImageIcon className="h-6 w-6 text-muted-foreground" /></div>
@@ -141,46 +346,17 @@ export function NetworkSection() {
             </Card>
           ))}
         </TabsContent>
-        <TabsContent value="create" className="mt-4">
-          <Card className="max-w-2xl">
-            <form onSubmit={create} className="space-y-4">
-              <div className="grid grid-cols-2 gap-2">
-                {(["1", "2"] as const).map((t) => (
-                  <button type="button" key={t} onClick={() => { setType(t); setKind(t === "1" ? "patrol" : "volunteer"); }}
-                    className={cn("rounded-xl border p-3 text-left", type === t && "border-primary bg-accent")}>
-                    <p className="font-bold">Type {t}</p><p className="text-xs text-muted-foreground">{t === "1" ? "Station / Fari / Patrol — mandatory dispatch" : "Volunteer / Officer — accept to respond"}</p>
-                  </button>
-                ))}
-              </div>
-              <div className="space-y-1.5"><Label>Account kind</Label>
-                <Select value={kind} onValueChange={(v) => setKind(v as Responder["kind"])}><SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{(type === "1" ? ["station", "fari", "patrol"] : ["volunteer", "officer"]).map((k) => <SelectItem key={k} value={k}>{KIND_LABEL[k as Responder["kind"]]}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5"><Label>Name</Label><Input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder={type === "1" ? "e.g. Patrol Unit DMP-21" : "Full name"} /></div>
-                <div className="space-y-1.5"><Label>Phone</Label><Input required value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="01XXXXXXXXX" /></div>
-                <div className="space-y-1.5"><Label>Area / jurisdiction</Label><Input required value={f.area} onChange={(e) => setF({ ...f, area: e.target.value })} /></div>
-                <div className="space-y-1.5"><Label>{kind === "volunteer" ? "Volunteer ID" : kind === "officer" ? "TaskForce ID" : "Unit code"}</Label>
-                  {kind === "volunteer" ? <Input disabled value="Auto-generated (V-XXXXXX)" /> : <Input value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.toUpperCase() })} placeholder={kind === "officer" ? "TF-902" : "Auto if empty"} />}
-                </div>
-              </div>
-              <Button type="submit"><UserPlus /> Create account</Button>
-            </form>
-          </Card>
-        </TabsContent>
-        <TabsContent value="roster" className="mt-4">
-          <Card className="p-0">
-            <Table>
-              <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>ID / Code</TableHead><TableHead>Area</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-              <TableBody>{d.responders.map((r) => (
-                <TableRow key={r.id}><TableCell className="font-semibold">{r.name}</TableCell><TableCell>{["patrol", "fari", "station"].includes(r.kind) ? "Type 1" : "Type 2"} · {KIND_LABEL[r.kind]}</TableCell><TableCell className="font-mono font-bold">{r.code}</TableCell><TableCell>{r.area}</TableCell>
-                  <TableCell><span className={cn("flex items-center gap-1.5 text-xs font-semibold", r.online ? "text-emerald" : "text-muted-foreground")}><span className={cn("h-2 w-2 rounded-full", r.online ? "bg-emerald" : "bg-muted-foreground")} />{r.online ? "Online" : "Offline"}</span></TableCell></TableRow>
-              ))}</TableBody>
-            </Table>
-          </Card>
-        </TabsContent>
       </Tabs>
+
+      <Dialog open={dialog !== null} onOpenChange={(o) => !o && setDialog(null)}>
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display">{dialog === "unit" ? "Add Type 1 Police Unit" : "Add Type 2 Responder"}</DialogTitle>
+            <DialogDescription>{dialog === "unit" ? "থানা / ফাঁড়ি / পেট্রোল টিম — the account can sign in to the Rescue Network app." : "ভলান্টিয়ার / পুলিশ অফিসার — the account can sign in to the Rescue Network app."}</DialogDescription>
+          </DialogHeader>
+          {dialog === "unit" ? <UnitForm onDone={() => setDialog(null)} /> : <ResponderForm onDone={() => setDialog(null)} />}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

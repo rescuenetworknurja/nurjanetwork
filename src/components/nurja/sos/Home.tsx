@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useDemo } from "@/lib/demo-store";
-import { DISPATCH_UNITS, VICTIM_POS, VOLUNTEER_POS } from "@/lib/mock-data";
+import { DISPATCH_UNITS, VICTIM_POS, VOLUNTEER_POS, isFixedUnit, type Responder } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { CameraFeed } from "../CameraFeed";
 import { TacticalMap, type MapUnit } from "../TacticalMap";
@@ -29,6 +29,36 @@ export function useConvergingUnits(startedAt: number | undefined, accepted: stri
       return { ...v, kind: "volunteer" as const, x: lerp(v.x, VICTIM_POS.x, k), y: lerp(v.y, VICTIM_POS.y, k), eta: Math.max(0, Math.ceil(v.eta * (1 - k))), dist: +(v.dist * (1 - k)).toFixed(1) };
     }),
   ];
+  return units;
+}
+
+/**
+ * Units built from the Rescue Network directory (demo store). Fixed units
+ * (Thana/Fari) stay put; patrols, officers and online volunteers converge on
+ * the victim during an active SOS. Pads volunteers up to 10 for the visual.
+ */
+export function useNetworkUnits(startedAt: number | undefined, accepted: string[] = [], responders: Responder[] = []) {
+  const now = useNow(1000);
+  const t = startedAt ? Math.min(1, (now - startedAt) / 90000) : 0;
+  const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
+  const placed = responders.filter((r) => r.x !== undefined && r.y !== undefined);
+  const units: (MapUnit & { dist: number })[] = placed.map((r, i) => {
+    const fixed = isFixedUnit(r.kind);
+    const isVol = r.kind === "volunteer" || r.kind === "officer";
+    const k = fixed ? 0 : isVol ? (accepted.includes(r.code) ? t * 0.9 : t * 0.2) : t * 0.85;
+    const baseEta = 2 + (i % 5);
+    return {
+      id: r.id, label: isVol ? r.code : r.name, kind: r.kind,
+      x: lerp(r.x!, VICTIM_POS.x, k), y: lerp(r.y!, VICTIM_POS.y, k),
+      eta: Math.max(0, Math.ceil(baseEta * (1 - k))), dist: +((0.5 + i * 0.22) * (1 - k * 0.85)).toFixed(1),
+      gps: fixed ? ("fixed" as const) : ("live" as const),
+    };
+  });
+  const volCount = units.filter((u) => u.kind === "volunteer").length;
+  VOLUNTEER_POS.slice(0, Math.max(0, 10 - volCount)).forEach((v, i) => {
+    const k = accepted.includes(v.label) ? t * 0.9 : t * 0.2;
+    units.push({ ...v, id: `vf${i}`, kind: "volunteer", x: lerp(v.x, VICTIM_POS.x, k), y: lerp(v.y, VICTIM_POS.y, k), eta: Math.max(0, Math.ceil(v.eta * (1 - k))), dist: +(v.dist * (1 - k)).toFixed(1), gps: "live" });
+  });
   return units;
 }
 
@@ -147,7 +177,7 @@ export function HomeTab() {
 function ActiveSos() {
   const d = useDemo();
   const sos = d.sos!;
-  const units = useConvergingUnits(sos.startedAt, sos.acceptedBy);
+  const units = useNetworkUnits(sos.startedAt, sos.acceptedBy, d.responders);
   const now = useNow(1000);
   const secs = Math.floor((now - sos.startedAt) / 1000);
   const [hold, setHold] = useState(0);
