@@ -28,12 +28,18 @@ const TABS = [
   { id: "profile", label: "Profile", icon: UserRound },
 ] as const;
 
+/** Signed-out view: splash with Login, or the Create-account wizard. */
+function SignedOutView() {
+  const d = useDemo();
+  return <PhoneFrame>{d.appView === "onboarding" ? <Onboarding /> : <SignedOutSplash />}</PhoneFrame>;
+}
+
 function NurjaApp() {
   const d = useDemo();
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("home");
   const locked = d.selfStatus !== "active";
   return (
-    <AuthGate redirectTo="/NURJASOS" signedOut={<PhoneFrame><SignedOutSplash /></PhoneFrame>}>
+    <AuthGate redirectTo="/NURJASOS" signedOut={<SignedOutView />}>
     <PhoneFrame>
       <div className="flex justify-center gap-1 px-4 pt-3 md:pt-9">
         {(["onboarding", "main"] as const).map((v) => (

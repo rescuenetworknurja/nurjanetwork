@@ -12,10 +12,13 @@ import { cn } from "@/lib/utils";
  */
 export function NurjaAuthForm({
   initialMode = "signin",
+  lockMode = false,
   onDone,
   onSignedUp,
 }: {
   initialMode?: "signin" | "signup";
+  /** Hide the signin/signup toggle (e.g. the splash sheet is login-only; signup goes through the wizard). */
+  lockMode?: boolean;
   onDone?: () => void;
   /** Called after a successful signup that returned a session (before onDone). */
   onSignedUp?: (() => void) | undefined;
@@ -84,21 +87,23 @@ export function NurjaAuthForm({
         <p className="text-sm text-muted-foreground">{t.sub}</p>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
-        {(["signin", "signup"] as const).map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setMode(m)}
-            className={cn(
-              "rounded-md py-2 text-sm font-bold transition",
-              mode === m ? "bg-card text-foreground shadow-sm" : "text-muted-foreground",
-            )}
-          >
-            {m === "signin" ? t.signin : t.signup}
-          </button>
-        ))}
-      </div>
+      {!lockMode && (
+        <div className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+          {(["signin", "signup"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={cn(
+                "rounded-md py-2 text-sm font-bold transition",
+                mode === m ? "bg-card text-foreground shadow-sm" : "text-muted-foreground",
+              )}
+            >
+              {m === "signin" ? t.signin : t.signup}
+            </button>
+          ))}
+        </div>
+      )}
 
       <form onSubmit={submit} className="space-y-4">
         {mode === "signup" && (
@@ -184,7 +189,7 @@ export function AuthSheet({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <NurjaAuthForm key={initialMode} initialMode={initialMode} onDone={onClose} onSignedUp={onSignedUp} />
+        <NurjaAuthForm key={initialMode} initialMode={initialMode} lockMode onDone={onClose} onSignedUp={onSignedUp} />
       </div>
     </div>
   );

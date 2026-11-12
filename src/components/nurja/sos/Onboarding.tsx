@@ -1,7 +1,7 @@
 import { Slogan } from "@/lib/i18n";
 import { AuthSheet } from "@/components/nurja/AuthSheet";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Baby, Eye, EyeOff, KeyRound, Lock, Phone, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, Baby, Eye, EyeOff, KeyRound, Loader2, Lock, Phone, ShieldCheck, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,13 +12,14 @@ import { LOGOS } from "../Brand";
 import { PinInput, UploadCard } from "./ui";
 import { useDemo } from "@/lib/demo-store";
 import { ageFromDob, isValidBdPhone } from "@/lib/ids";
+import { signUpWithPhone } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 const RELATIONS = ["Mother", "Father", "Sister", "Brother", "Husband", "Guardian", "Friend"];
 
 export function SignedOutSplash() {
   const d = useDemo();
-  const [auth, setAuth] = useState<"signin" | "signup" | null>(null);
+  const [auth, setAuth] = useState<"signin" | null>(null);
   return (
     <div className="relative flex flex-1 flex-col items-center justify-between overflow-hidden bg-hero px-8 pb-12 pt-24 text-center">
       <div className="relative mt-10">
@@ -33,13 +34,12 @@ export function SignedOutSplash() {
       </div>
       <div className="w-full space-y-3">
         <Button size="lg" className="h-14 w-full rounded-lg text-base shadow-sos" onClick={() => setAuth("signin")}>Login</Button>
-        <Button size="lg" variant="outline" className="h-14 w-full rounded-lg text-base" onClick={() => setAuth("signup")}>Create account</Button>
+        <Button size="lg" variant="outline" className="h-14 w-full rounded-lg text-base" onClick={() => d.set({ appView: "onboarding" })}>Create account</Button>
       </div>
       <AuthSheet
         open={auth !== null}
-        initialMode={auth ?? "signin"}
+        initialMode="signin"
         onClose={() => setAuth(null)}
-        onSignedUp={() => d.set({ appView: "onboarding" })}
       />
     </div>
   );
@@ -55,6 +55,7 @@ export function Onboarding() {
     birthReg: "", gName: "", gPhone: "", gRel: "", consent: false, gNid: null as string | null,
   });
   const [show, setShow] = useState(false);
+  const [busy, setBusy] = useState(false);
   const age = useMemo(() => (f.dob ? ageFromDob(f.dob) : null), [f.dob]);
   const adult = age !== null && age >= 18;
   const set = (p: Partial<typeof f>) => setF((x) => ({ ...x, ...p }));
@@ -87,17 +88,35 @@ export function Onboarding() {
     return null;
   };
 
-  const finish = () => {
-    d.set((s) => ({
-      appView: "main",
-      user: { name: f.name, phone: f.phone, dob: f.dob, adult, emergencyName: f.gName || "Family contact", emergencyPhone: f.ePhone, relation: f.eRel, pin: f.pin },
-      kyc: s.kyc.map((k) => k.id === s.selfKycId ? {
-        ...k, name: f.name, phone: f.phone, dob: f.dob, type: adult ? "adult" : "minor", status: "pending", submittedAt: "Just now",
-        ...(adult ? {} : { birthReg: f.birthReg, guardian: { name: f.gName, phone: f.gPhone, relation: f.gRel } }),
-      } : k),
-    }));
-    toast.success("KYC submitted for review", { description: "SOS unlocks as soon as the Control Panel approves you." });
-    setStep(0); setSub(0);
+  const finish = async () => {
+    setBusy(true);
+    try {
+      // Create the real account first; only then enter the app.
+      const data = await signUpWithPhone({ phone: f.phone, password: f.password, fullName: f.name.trim() });
+      if (!data.session) {
+        // No session (email confirmation on): back to the splash so they can log in.
+        toast.success("Account created! Now log in with your phone and password.");
+        d.set({ appView: "main" });
+        return;
+      }
+      d.set((s) => ({
+        appView: "main",
+        user: { name: f.name, phone: f.phone, dob: f.dob, adult, emergencyName: f.gName || "Family contact", emergencyPhone: f.ePhone, relation: f.eRel, pin: f.pin },
+        kyc: s.kyc.map((k) => k.id === s.selfKycId ? {
+          ...k, name: f.name, phone: f.phone, dob: f.dob, type: adult ? "adult" : "minor", status: "pending", submittedAt: "Just now",
+          ...(adult ? {} : { birthReg: f.birthReg, guardian: { name: f.gName, phone: f.gPhone, relation: f.gRel } }),
+        } : k),
+      }));
+      toast.success("KYC submitted for review", { description: "SOS unlocks as soon as the Control Panel approves you." });
+      setStep(0); setSub(0);
+    } catch (err) {
+      const msg = err instanceof Error && /already registered|already exists/i.test(err.message)
+        ? "This number already has an account. Log in instead."
+        : "Account could not be created. Check your connection and try again.";
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (step === 0)
@@ -113,7 +132,12 @@ export function Onboarding() {
           <p className="font-display text-base font-bold text-crimson"><Slogan /></p>
           <p className="text-muted-foreground">Your safety, one tap away. Police and verified volunteers nearby, always ready.</p>
         </div>
-        <Button size="lg" className="h-14 w-full rounded-lg text-base shadow-sos" onClick={() => setStep(1)}>Get Started</Button>
+        <div className="w-full space-y-3">
+          <Button size="lg" className="h-14 w-full rounded-lg text-base shadow-sos" onClick={() => setStep(1)}>Get Started</Button>
+          <button className="text-sm font-semibold text-muted-foreground" onClick={() => d.set({ appView: "main" })}>
+            Already have an account? <span className="text-crimson">Log in</span>
+          </button>
+        </div>
       </div>
     );
 
@@ -232,7 +256,8 @@ export function Onboarding() {
         )}
       </div>
 
-      <Button size="lg" className="mt-6 h-14 w-full rounded-lg text-base" onClick={next}>
+      <Button size="lg" className="mt-6 h-14 w-full rounded-lg text-base" onClick={next} disabled={busy}>
+        {busy && <Loader2 className="h-4 w-4 animate-spin" />}
         {step === 7 && sub === 2 ? "Submit for verification" : "Continue"}
       </Button>
     </div>
