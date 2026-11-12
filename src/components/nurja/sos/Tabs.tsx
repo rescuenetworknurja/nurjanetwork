@@ -29,7 +29,8 @@ export function SafeRouteTab() {
   const [busy, setBusy] = useState(false);
   const [opts, setOpts] = useState<{ ranked: Scored[]; fastest: Scored | null; ends: [LatLng, LatLng] } | null>(null);
   const [pick, setPick] = useState(0);
-  const res = opts ? { ...opts.ranked[pick], ends: opts.ends } : null;
+  const chosen = opts?.ranked[pick];
+  const res = opts && chosen ? { ...chosen, ends: opts.ends } : null;
 
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
@@ -56,7 +57,7 @@ export function SafeRouteTab() {
       const r = await findSafeRoutes(a, b, zones);
       if (!r.ranked.length) { toast.error("No route found"); return; }
       setOpts({ ...r, ends: [a, b] }); setPick(0);
-      if (r.ranked[0].crossings > 0) toast.warning("No safer alternative available — route passes a high-risk zone");
+      if (r.ranked[0]!.crossings > 0) toast.warning("No safer alternative available — route passes a high-risk zone");
       else toast.success("Safe route found");
     } catch {
       toast.error("Route service unavailable, try again");
@@ -100,7 +101,7 @@ export function SafeRouteTab() {
                 </div>
                 <div className="text-right"><p className="font-display text-lg font-extrabold">{Math.round(res.seconds / 60)} min</p><p className="text-[11px] text-muted-foreground">{(res.meters / 1000).toFixed(1)} km</p></div>
               </div>
-              {opts.ranked[0].crossings > 0 && (
+              {opts.ranked[0]!.crossings > 0 && (
                 <p className="rounded-lg bg-crimson/10 p-2 text-xs font-semibold text-crimson">No safer alternative available. Stay alert, share live location, and keep SOS ready.</p>
               )}
               {pick === 0 && opts.fastest && opts.fastest.crossings > res.crossings && (

@@ -18,9 +18,9 @@ export function distM(a: LatLng, b: LatLng): number {
 export function pathDistance(path: LatLng[], p: LatLng): number {
   let min = Infinity;
   for (let i = 0; i < path.length; i++) {
-    min = Math.min(min, distM(path[i], p));
+    min = Math.min(min, distM(path[i]!, p));
     if (i > 0) for (let t = 0.25; t < 1; t += 0.25) {
-      const a = path[i - 1], b = path[i];
+      const a = path[i - 1]!, b = path[i]!;
       min = Math.min(min, distM([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t], p));
     }
   }
@@ -80,8 +80,8 @@ export async function findSafeRoutes(from: LatLng, to: LatLng, zones: Zone[]): P
   const base = await osrm([from, to], true);
   if (!base.length) return { ranked: [], fastest: null };
   let ranked = rankRoutes(base, zones);
-  const fastest = rankRoutes([base[0]], zones)[0];
-  if (ranked[0].crossings > 0) {
+  const fastest = rankRoutes([base[0]!], zones)[0] ?? null;
+  if (ranked[0] && ranked[0].crossings > 0) {
     const crossed = highRiskCrossings(ranked[0].hits).slice(0, 2).map((h) => h.zone);
     const detours = await Promise.all(crossed.flatMap((z) => detourPoints(z, from, to).map((w) => osrm([from, w, to], false).catch(() => []))));
     ranked = rankRoutes([...base, ...detours.flat()], zones);
