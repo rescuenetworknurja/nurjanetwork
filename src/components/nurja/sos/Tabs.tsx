@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useDemo } from "@/lib/demo-store";
+import { signOut } from "@/lib/auth";
+import { useNavigate } from "@tanstack/react-router";
 import { ageFromDob } from "@/lib/ids";
 import { cn } from "@/lib/utils";
 import { TacticalMap } from "../TacticalMap";
@@ -89,6 +91,7 @@ export function CommunityTab() {
 
 export function ProfileTab() {
   const d = useDemo();
+  const navigate = useNavigate();
   const [pinOpen, setPinOpen] = useState(false);
   const [step, setStep] = useState<"old" | "new">("old");
   const [pin, setPin] = useState("");
@@ -156,7 +159,8 @@ export function ProfileTab() {
           <Slogan className="text-xs font-semibold text-crimson" />
           <p className="text-[11px] text-muted-foreground">Women safety & rapid rescue network · v1.0</p>
         </div>
-        <Button variant="ghost" className="w-full text-crimson" onClick={() => d.set({ appView: "onboarding" })}><LogOut /> Log out (restart wizard)</Button>
+        <Button variant="ghost" className="w-full text-crimson" onClick={async () => { await signOut(); void navigate({ to: "/auth", search: { redirect: "/NURJASOS" } }); }}><LogOut /> Sign out</Button>
+        <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => d.set({ appView: "onboarding" })}>Restart onboarding wizard (demo)</Button>
       </div>
 
       <Dialog open={pinOpen} onOpenChange={(o) => { setPinOpen(o); setStep("old"); setPin(""); }}>

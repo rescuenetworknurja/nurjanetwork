@@ -7,6 +7,7 @@ import { HazardSection, KycSection, NetworkSection, PublisherSection, SettingsSe
 import { UsersSection } from "@/components/nurja/panel/Users";
 import { WebsiteCmsSection } from "@/components/nurja/panel/WebsiteCms";
 import { useDemo } from "@/lib/demo-store";
+import { AuthGate } from "@/components/nurja/AuthGate";
 import { LangToggle } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +44,7 @@ function Panel() {
   const [collapsed, setCollapsed] = useState(false);
   const badge = (id: string) => id === "kyc" ? d.kyc.filter((k) => k.status === "pending").length : id === "users" ? d.users.filter((u) => u.status !== "active").length : id === "network" ? d.volunteerApps.filter((a) => a.status === "pending").length : id === "website" ? d.inquiries.filter((q) => q.status === "new").length : id === "incident" && d.sos ? 1 : 0;
   return (
+    <AuthGate requireRole="admin" redirectTo="/rpanel">
     <div className={cn("flex min-h-screen bg-background text-foreground", dark && "dark")}>
       <aside className={cn("sticky top-0 flex h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all", collapsed ? "w-[72px]" : "w-64")}>
         <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
@@ -77,5 +79,6 @@ function Panel() {
         {sec === "settings" && <SettingsSection />}
       </main>
     </div>
+    </AuthGate>
   );
 }

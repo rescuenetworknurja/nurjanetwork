@@ -6,6 +6,7 @@ import { Onboarding } from "@/components/nurja/sos/Onboarding";
 import { HomeTab } from "@/components/nurja/sos/Home";
 import { CommunityTab, ProfileTab, SafeRouteTab } from "@/components/nurja/sos/Tabs";
 import { useDemo } from "@/lib/demo-store";
+import { AuthGate } from "@/components/nurja/AuthGate";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/NURJASOS")({
@@ -32,6 +33,7 @@ function NurjaApp() {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("home");
   const locked = d.selfStatus !== "active";
   return (
+    <AuthGate redirectTo="/NURJASOS">
     <PhoneFrame>
       <div className="flex justify-center gap-1 px-4 pt-3 md:pt-9">
         {(["onboarding", "main"] as const).map((v) => (
@@ -81,5 +83,6 @@ function NurjaApp() {
         </>
       )}
     </PhoneFrame>
+    </AuthGate>
   );
 }

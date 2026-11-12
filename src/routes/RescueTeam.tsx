@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNetworkUnits, useNow } from "@/components/nurja/sos/Home";
 import { useDemo } from "@/lib/demo-store";
+import { AuthGate } from "@/components/nurja/AuthGate";
+import { useSession } from "@/lib/auth";
 import { VICTIM_POS, findAccount, isType1, type Responder } from "@/lib/mock-data";
 import { LanguageSetting, Slogan, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -45,6 +47,16 @@ const KIND_SHORT: Record<Responder["kind"], string> = { patrol: "POLICE PATROL",
 
 function RescueApp() {
   const d = useDemo();
+  const session = useSession();
+  // A real signed-in account skips the demo splash/login and must hold the
+  // responder role; without a session the demo login flow stays available.
+  if (session.user) {
+    return (
+      <AuthGate requireRole="responder" redirectTo="/RescueTeam">
+        <Shell />
+      </AuthGate>
+    );
+  }
   if (d.rescueAuth === "splash") return <Splash />;
   if (d.rescueAuth === "login") return <Login />;
   return <Shell />;
@@ -130,6 +142,10 @@ function Login() {
             </div>
           </div>
           <Button type="submit" size="lg" className="h-12 w-full rounded-lg text-base font-bold"><LogIn /> Sign in to Dispatch</Button>
+          <a href="/auth?redirect=/RescueTeam"
+            className="flex items-center justify-center gap-2 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2.5 text-xs font-bold text-emerald transition hover:bg-emerald/20">
+            <ShieldCheck className="h-4 w-4" /> Sign in with your NURJA account (phone + password)
+          </a>
           <div className="space-y-2 pt-1">
             <p className="text-center text-[10px] font-bold uppercase tracking-wider text-paper/40">Quick demo login</p>
             <div className="grid gap-1.5">
