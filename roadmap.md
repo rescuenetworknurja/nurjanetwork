@@ -1,6 +1,9 @@
 # Roadmap
 
 ## Done
+- Victim Camera: fullscreen, landscape, exit controls and navigation-free viewing on phone/tablet/desktop
+
+## Done
 - RescueTeam: reserve navigation space outside the scroll area so the full Victim Camera clears the bottom menu and device safe area
 - RescueTeam: two-column tablet/desktop Community, Victim Cam below mobile/tablet dispatch, Online/Offline control in Profile only
 

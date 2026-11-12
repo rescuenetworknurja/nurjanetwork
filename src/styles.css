@@ -229,6 +229,19 @@
 @utility animate-noise { animation: noise .4s steps(2) infinite; }
 
 /* Bangla typography: Hind Siliguri whenever the Bangla language is active */
+.camera-viewer { width: 100%; height: 100%; }
+.camera-viewer-layout { width: 100%; height: 100%; }
+@media (orientation: portrait) {
+  .camera-viewer[data-landscape="true"] .camera-viewer-layout {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100dvh;
+    height: 100dvw;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+}
+
 html[lang="bn"] body, html[lang="bn"] body *:not(.font-mono):not(code) {
   font-family: "Hind Siliguri", "Manrope", ui-sans-serif, system-ui, sans-serif;
 }

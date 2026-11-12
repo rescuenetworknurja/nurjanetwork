@@ -4,7 +4,7 @@ import { ArrowUp, BadgeCheck, Building2, Car, CornerUpLeft, CornerUpRight, Eye, 
 import { toast } from "sonner";
 import { RescueMark } from "@/components/nurja/Brand";
 import { TacticalMap } from "@/components/nurja/TacticalMap";
-import { CameraFeed } from "@/components/nurja/CameraFeed";
+import { VictimCamera } from "@/components/nurja/VictimCamera";
 import { PostCard } from "@/components/nurja/PostCard";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -292,18 +292,6 @@ function SosAlertCard({ sosId, victim, area, onDecline, onAccept }: { sosId: str
 }
 
 /* ---------------- Desktop right panel ---------------- */
-
-function VictimCamera({ camera }: { camera: "back" | "front" }) {
-  return (
-    <section>
-      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Victim live camera</p>
-      <div className="relative overflow-hidden rounded-lg border-2 border-crimson">
-        <CameraFeed camera={camera} className="aspect-video rounded-none" label=" " />
-        <span className="absolute inset-x-0 bottom-0 bg-crimson py-1 text-center text-[10px] font-bold text-paper"><Video className="mr-1 inline h-3 w-3" />VICTIM CAM · {camera === "back" ? "Back" : "Front"}</span>
-      </div>
-    </section>
-  );
-}
 
 function SidePanel({ alert, navigating }: { alert: React.ReactNode; navigating: boolean }) {
   const d = useDemo();

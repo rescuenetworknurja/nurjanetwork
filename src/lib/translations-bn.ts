@@ -3,6 +3,9 @@
  * Keys are the exact English text as rendered (whitespace-trimmed).
  */
 export const BN: Record<string, string> = {
+  "Fullscreen camera": "ক্যামেরা পূর্ণপর্দায় দেখুন",
+  "Landscape view": "ল্যান্ডস্কেপ দেখুন",
+  "Exit fullscreen": "পূর্ণপর্দা বন্ধ করুন",
   "Website CMS & CRM": "ওয়েবসাইট ও সিআরএম",
   "Police units connected": "সংযুক্ত পুলিশ ইউনিট",
   "Our mission": "আমাদের মিশন",
