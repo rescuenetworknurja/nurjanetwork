@@ -18,7 +18,6 @@ import { NurjaMark } from "../Brand";
 function LangLabel() { const { tr } = useT(); return <>{tr("App Settings", "অ্যাপ সেটিংস")}</>; }
 
 const SAFE: [number, number][] = [[18, 84], [24, 76], [30, 62], [34, 50], [40, 44], [44, 32], [50, 30], [62, 30], [72, 24], [84, 14]];
-const DIRECT: [number, number][] = [[18, 84], [40, 70], [58, 46], [70, 34], [84, 14]];
 
 export function SafeRouteTab() {
   const { zones } = useDemo();
@@ -27,17 +26,9 @@ export function SafeRouteTab() {
   const [go, setGo] = useState(true);
   return (
     <div className="relative flex flex-1 flex-col">
-      <LiveMapLazy className="flex-1" zones={zones} route={go ? SAFE : undefined} showLabels={false}>
-        {go && (
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full">
-            <polyline points={DIRECT.map((p) => p.join(",")).join(" ")} fill="none" stroke="var(--crimson)" strokeWidth="3" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" opacity=".45" />
-          </svg>
-        )}
-        <Pin x={18} y={84} tone="bg-ink" />
-        <Pin x={84} y={14} tone="bg-emerald" />
-      </LiveMapLazy>
+      <LiveMapLazy className="min-h-[60vh] flex-1" zones={zones} route={go ? SAFE : undefined} showLabels={false} />
 
-      <div className="absolute inset-x-3 top-11 rounded-3xl border bg-card p-3 shadow-card">
+      <div className="absolute inset-x-3 top-3 z-[500] rounded-3xl border bg-card p-3 shadow-card">
         <div className="flex items-center gap-2">
           <div className="flex flex-col items-center gap-1 px-1"><Circle className="h-3 w-3 fill-ink text-ink" /><span className="h-5 w-px bg-border" /><MapPin className="h-4 w-4 text-emerald" /></div>
           <div className="flex-1 space-y-1.5">
@@ -48,7 +39,7 @@ export function SafeRouteTab() {
         </div>
       </div>
 
-      <div className="absolute inset-x-3 bottom-3 space-y-2">
+      <div className="absolute inset-x-3 bottom-3 z-[500] space-y-2">
         <div className="flex items-center justify-between rounded-2xl bg-card/95 px-3 py-2 text-[10px] font-semibold shadow-card">
           <span>Risk</span>
           <div className="mx-2 h-2 flex-1 rounded-full" style={{ background: "linear-gradient(90deg, var(--zone-1), var(--zone-3), var(--zone-5))" }} />
@@ -72,10 +63,6 @@ export function SafeRouteTab() {
       </div>
     </div>
   );
-}
-
-function Pin({ x, y, tone }: { x: number; y: number; tone: string }) {
-  return <span className={cn("absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-paper shadow", tone)} style={{ left: `${x}%`, top: `${y}%` }} />;
 }
 
 export function CommunityTab() {

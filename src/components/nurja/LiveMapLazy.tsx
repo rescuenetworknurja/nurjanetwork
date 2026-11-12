@@ -32,11 +32,13 @@ function MapFallback({ className }: { className?: string | undefined }) {
 export function LiveMapLazy({ className, children, ...props }: LiveMapProps) {
   return (
     <div className={cn("relative overflow-hidden", className)}>
-      <ClientOnly fallback={<MapFallback className="h-full w-full" />}>
-        <Suspense fallback={<MapFallback className="h-full w-full" />}>
-          <LiveMap {...props} />
-        </Suspense>
-      </ClientOnly>
+      <div className="absolute inset-0">
+        <ClientOnly fallback={<MapFallback className="h-full w-full" />}>
+          <Suspense fallback={<MapFallback className="h-full w-full" />}>
+            <LiveMap {...props} />
+          </Suspense>
+        </ClientOnly>
+      </div>
       {children}
     </div>
   );

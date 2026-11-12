@@ -41,14 +41,6 @@ function NurjaApp() {
   return (
     <AuthGate redirectTo="/NURJASOS" signedOut={<SignedOutView />}>
     <PhoneFrame>
-      <div className="flex justify-center gap-1 px-4 pt-3 md:pt-9">
-        {(["onboarding", "main"] as const).map((v) => (
-          <button key={v} onClick={() => d.set({ appView: v })}
-            className={cn("rounded-full px-3 py-1 text-[11px] font-bold transition", d.appView === v ? "bg-ink text-paper" : "bg-muted text-muted-foreground")}>
-            {v === "onboarding" ? "Onboarding Wizard" : "Main App Screen"}
-          </button>
-        ))}
-      </div>
       {locked ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
           <span className="relative grid h-24 w-24 place-items-center rounded-full bg-crimson text-paper shadow-sos">
