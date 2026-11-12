@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Loader2, Lock, Phone, ShieldCheck, UserRound, X } from "lucide-react";
 import { toast } from "sonner";
-import { NurjaMark } from "@/components/nurja/Brand";
 import { useDemo } from "@/lib/demo-store";
 import { isEmailInput, isValidBdPhone, signInWithPhone, signUpWithPhone } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -37,7 +36,6 @@ export function NurjaAuthForm({
     phone: bn ? "মোবাইল নম্বর বা ইমেইল" : "Phone number or email",
     password: bn ? "পাসওয়ার্ড" : "Password",
     name: bn ? "পুরো নাম" : "Full name",
-    phoneHint: bn ? "উদাহরণ: 01XXXXXXXXX" : "Example: 01XXXXXXXXX",
     submitIn: bn ? "সাইন ইন করুন" : "Sign in",
     submitUp: bn ? "অ্যাকাউন্ট তৈরি করুন" : "Create account",
     badPhone: bn ? "সঠিক বাংলাদেশি মোবাইল নম্বর দিন (01XXXXXXXXX)" : "Enter a valid Bangladeshi mobile number (01XXXXXXXXX)",
@@ -82,7 +80,6 @@ export function NurjaAuthForm({
   return (
     <div className="w-full">
       <div className="mb-6 flex flex-col items-center gap-3 text-center">
-        <NurjaMark tagline />
         <h1 className="font-display text-2xl font-extrabold text-foreground">{t.welcome}</h1>
         <p className="text-sm text-muted-foreground">{t.sub}</p>
       </div>
@@ -128,7 +125,6 @@ export function NurjaAuthForm({
             inputMode="tel"
             autoComplete="tel"
           />
-          <p className="mt-1 pl-1 text-[11px] text-muted-foreground">{t.phoneHint}</p>
         </div>
         <div className="relative">
           <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
