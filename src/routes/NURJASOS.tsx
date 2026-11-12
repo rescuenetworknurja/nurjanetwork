@@ -61,19 +61,21 @@ function NurjaApp() {
         </div>
       ) : d.appView === "onboarding" ? <Onboarding /> : (
         <>
-          <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto pb-24">
             {(tab === "home" || d.sos) && <HomeTab />}
             {!d.sos && tab === "route" && <SafeRouteTab />}
             {!d.sos && tab === "community" && <CommunityTab />}
             {!d.sos && tab === "profile" && <ProfileTab />}
           </div>
           {!d.sos && (
-            <nav className="sticky bottom-0 grid grid-cols-4 border-t bg-card/95 px-2 pb-4 pt-2 backdrop-blur">
-              {TABS.map((t) => (
-                <button key={t.id} onClick={() => setTab(t.id)} className={cn("flex flex-col items-center gap-1 rounded-lg py-1.5 text-[11px] font-semibold", tab === t.id ? "text-crimson" : "text-muted-foreground")}>
-                  <t.icon className="h-5 w-5" />{t.label}
-                </button>
-              ))}
+            <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 shadow-lg backdrop-blur-md">
+              <div className="mx-auto grid max-w-[430px] grid-cols-4 px-2 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                {TABS.map((t) => (
+                  <button key={t.id} onClick={() => setTab(t.id)} className={cn("flex flex-col items-center gap-1 rounded-lg py-1.5 text-[11px] font-semibold", tab === t.id ? "text-crimson" : "text-muted-foreground")}>
+                    <t.icon className="h-5 w-5" />{t.label}
+                  </button>
+                ))}
+              </div>
             </nav>
           )}
         </>

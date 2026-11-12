@@ -245,7 +245,7 @@ function Shell() {
         </div>
 
         {/* Content */}
-        <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto pb-24 md:pb-0">
           {tab === "map" && (
             <div className="flex min-h-full flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_380px]">
               <div className="flex min-w-0 flex-col">{navigating ? <Navigate type1={t1} /> : <DispatchHome mine={mine} onSim={onSim} />}</div>
@@ -260,8 +260,8 @@ function Shell() {
           {alertCard && <div className="absolute inset-x-3 top-3 z-30 lg:hidden">{alertCard}</div>}
         </div>
 
-        {/* Mobile bottom nav */}
-        <nav className="grid grid-cols-4 border-t bg-navy px-2 pb-4 pt-2 md:hidden">
+        {/* Mobile bottom nav — fixed, glass, safe-area aware */}
+        <nav className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-4 border-t border-paper/10 bg-navy/95 px-2 pt-2 shadow-lg backdrop-blur-md md:hidden pb-[max(1rem,env(safe-area-inset-bottom))]">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)} className={cn("flex flex-col items-center gap-1 py-1.5 text-[10px] font-semibold", tab === t.id ? "text-crimson" : "text-paper/50")}>
               <t.icon className="h-5 w-5" />{t.label}
