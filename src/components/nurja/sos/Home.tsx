@@ -82,7 +82,7 @@ export function HomeTab() {
       <CityWatermark />
       <header className="relative mx-3 mt-3 flex items-center justify-between rounded-b-[28px] rounded-t-xl border border-border/70 bg-accent/60 px-4 pb-4 pt-9 shadow-card backdrop-blur-sm">
         <div>
-          <p className="text-xs text-muted-foreground">Assalamu alaikum,</p>
+          <p className="text-xs text-muted-foreground">Welcome</p>
           <p className="font-display text-lg font-bold">{d.user.name.split(" ")[0]}</p>
           <Slogan className="mt-0.5 block text-[10px] font-semibold text-crimson/80" />
         </div>
