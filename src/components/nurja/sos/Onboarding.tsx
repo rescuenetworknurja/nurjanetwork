@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import { Slogan } from "@/lib/i18n";
+import { AuthSheet } from "@/components/nurja/AuthSheet";
 import { useMemo, useState } from "react";
 import { ArrowLeft, Baby, Eye, EyeOff, KeyRound, Lock, Phone, ShieldCheck, UserRound } from "lucide-react";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 const RELATIONS = ["Mother", "Father", "Sister", "Brother", "Husband", "Guardian", "Friend"];
 
 export function SignedOutSplash() {
+  const [auth, setAuth] = useState<"signin" | "signup" | null>(null);
   return (
     <div className="relative flex flex-1 flex-col items-center justify-between overflow-hidden bg-hero px-8 pb-12 pt-24 text-center">
       <div className="relative mt-10">
@@ -30,13 +31,10 @@ export function SignedOutSplash() {
         <p className="text-muted-foreground">Your safety, one tap away. Police and verified volunteers nearby, always ready.</p>
       </div>
       <div className="w-full space-y-3">
-        <Button asChild size="lg" className="h-14 w-full rounded-lg text-base shadow-sos">
-          <Link to="/auth" search={{ redirect: "/NURJASOS" }}>Login</Link>
-        </Button>
-        <Button asChild size="lg" variant="outline" className="h-14 w-full rounded-lg text-base">
-          <Link to="/auth" search={{ redirect: "/NURJASOS", mode: "signup" }}>Create account</Link>
-        </Button>
+        <Button size="lg" className="h-14 w-full rounded-lg text-base shadow-sos" onClick={() => setAuth("signin")}>Login</Button>
+        <Button size="lg" variant="outline" className="h-14 w-full rounded-lg text-base" onClick={() => setAuth("signup")}>Create account</Button>
       </div>
+      <AuthSheet open={auth !== null} initialMode={auth ?? "signin"} onClose={() => setAuth(null)} />
     </div>
   );
 }
