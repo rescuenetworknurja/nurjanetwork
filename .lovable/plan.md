@@ -1,9 +1,9 @@
-# NURJA: move from demo to a live backend (Lovable Cloud)
+# NURJA: move from demo to a live backend (your own Supabase project)
 
 The data currently stays in each browser. This plan moves it to one shared backend in four phases, so the public site, NURJA app, Rescue app and Control Panel work for real users on any device. Each phase is tested before the next starts.
 
 ## Phase 1: Logins, accounts and roles
-- Turn on Lovable Cloud.
+- Use your own connected Supabase project, not Lovable Cloud. All tables, logins and files live in your Supabase account.
 - **NURJA users:** sign up and sign in with a phone number and an SMS OTP sent through your Bulk SMS BD account, then set a 6-digit PIN. Profile, emergency contacts and KYC are saved to the backend.
 - **Responders:** sign in with a phone number, Unit Code, Volunteer ID or TaskForce ID plus a password. Only the Control Panel can create these accounts.
 - **Control Panel:** admin login only. The first admin is set up once.
@@ -29,6 +29,7 @@ The data currently stays in each browser. This plan moves it to one shared backe
 - PDF reports work as they do now, using the stored frames.
 
 ## What I need from you
+- **Supabase connection:** this project doesn't show a connection yet. Go to Project Settings → General → External Supabase and click Connect, then approve. If you already did, it may need a moment to appear.
 - **Bulk SMS BD details:** your API key and approved Sender ID. You'll enter them in a secure form; I won't ask you to paste them in chat. You also need to confirm the API address from your Bulk SMS BD panel.
 - **First admin:** the email or phone number of the first Control Panel admin.
 
