@@ -9,7 +9,7 @@ import { isEmailInput, isValidBdPhone, signInWithPhone, signUpWithPhone, useSess
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { redirect: string; mode?: "signup" } => ({
     redirect: typeof search["redirect"] === "string" ? search["redirect"] : "/NURJASOS",
     mode: search["mode"] === "signup" ? ("signup" as const) : undefined,
   }),
