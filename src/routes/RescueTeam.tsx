@@ -1,19 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowUp, BadgeCheck, CornerUpLeft, CornerUpRight, History, Map as MapIcon, Navigation, Phone, Radio, Siren, UserRound, Users, Video, X } from "lucide-react";
+import { ArrowUp, BadgeCheck, Building2, Car, CornerUpLeft, CornerUpRight, Eye, EyeOff, History, KeyRound, LogIn, LogOut, Map as MapIcon, Navigation, Phone, Radio, Shield, ShieldCheck, Siren, UserRound, Users, Video, X } from "lucide-react";
 import { toast } from "sonner";
-import { PhoneFrame } from "@/components/nurja/PhoneFrame";
 import { RescueMark } from "@/components/nurja/Brand";
 import { TacticalMap } from "@/components/nurja/TacticalMap";
 import { CameraFeed } from "@/components/nurja/CameraFeed";
 import { PostCard } from "@/components/nurja/PostCard";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNetworkUnits, useNow } from "@/components/nurja/sos/Home";
 import { useDemo } from "@/lib/demo-store";
-import { VICTIM_POS, isType1, type Responder } from "@/lib/mock-data";
-import { LanguageSetting, useT } from "@/lib/i18n";
+import { VICTIM_POS, findAccount, isType1, type Responder } from "@/lib/mock-data";
+import { LanguageSetting, Slogan, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/RescueTeam")({
@@ -41,6 +42,115 @@ const KIND_SHORT: Record<Responder["kind"], string> = { patrol: "POLICE PATROL",
 
 function RescueApp() {
   const d = useDemo();
+  if (d.rescueAuth === "splash") return <Splash />;
+  if (d.rescueAuth === "login") return <Login />;
+  return <Shell />;
+}
+
+/* ---------------- Step 0: Tactical splash ---------------- */
+
+function Splash() {
+  const d = useDemo();
+  return (
+    <div className="dark relative grid min-h-screen place-items-center overflow-hidden bg-navy px-6 text-paper">
+      <div aria-hidden className="pointer-events-none absolute inset-0 tactical-grid opacity-70" />
+      <span aria-hidden className="absolute left-1/2 top-1/2 h-[540px] w-[540px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-emerald/15" />
+      <span aria-hidden className="absolute left-1/2 top-1/2 h-[380px] w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-emerald/20" />
+      <span aria-hidden className="absolute left-1/2 top-1/2 h-[220px] w-[220px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-emerald/25" />
+      <div className="relative flex w-full max-w-sm flex-col items-center text-center">
+        <RescueMark label="" className="scale-[1.8]" />
+        <p className="mt-8 font-display text-2xl font-extrabold tracking-wide">Rescue Network</p>
+        <Slogan className="mt-1 text-xs text-paper/60" />
+        <p className="mt-8 flex items-center gap-2 rounded-full bg-paper/5 px-4 py-2 font-mono text-[11px] text-emerald">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald animate-blink" />
+          Connecting to Central Dispatch & GPS Satellite…
+        </p>
+        <Button size="lg" className="mt-6 h-13 w-full rounded-lg text-base font-bold" onClick={() => d.set({ rescueAuth: "login" })}>
+          <ShieldCheck /> Proceed to Responder Login
+        </Button>
+        <p className="mt-4 text-[11px] text-paper/40">NURJA Emergency Response & Women Safety Ecosystem</p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Step 1: Responder login ---------------- */
+
+const QUICK_LOGINS = [
+  { label: "Type 1: Police Station / Fari (Fixed GPS)", icon: Building2, match: (r: Responder) => r.kind === "station" },
+  { label: "Type 1: Patrolling Unit (Live GPS)", icon: Car, match: (r: Responder) => r.kind === "patrol" },
+  { label: "Type 2: Volunteer (V-J75UN2)", icon: Shield, match: (r: Responder) => r.code === "V-J75UN2" },
+  { label: "Type 2: Police Officer (TaskForce ID)", icon: BadgeCheck, match: (r: Responder) => r.kind === "officer" },
+];
+
+function Login() {
+  const d = useDemo();
+  const [id, setId] = useState("");
+  const [pw, setPw] = useState("");
+  const [show, setShow] = useState(false);
+
+  const signInAs = (r: Responder | undefined) => {
+    if (!r) { toast.error("No such account — create it in the Control Panel first"); return; }
+    d.set({ responderType: isType1(r.kind) ? 1 : 2, responderId: r.id, rescueAuth: "app" });
+    toast.success(`Signed in as ${r.name}`, { description: `${KIND_SHORT[r.kind]} · ${r.code}` });
+  };
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pw) { toast.error("Enter your password"); return; }
+    const acc = findAccount(d.responders, id);
+    if (!acc) { toast.error("Account not found", { description: "Check the ID / phone, or ask the Control Panel to issue an account." }); return; }
+    signInAs(acc);
+  };
+
+  return (
+    <div className="dark relative grid min-h-screen place-items-center overflow-hidden bg-navy px-4 py-10 text-paper">
+      <div aria-hidden className="pointer-events-none absolute inset-0 tactical-grid opacity-60" />
+      <div className="relative w-full max-w-md">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <RescueMark label="" className="scale-125" />
+          <p className="mt-5 font-display text-xl font-extrabold">Rescue Network Login</p>
+          <Slogan className="mt-1 text-[11px] text-paper/50" />
+        </div>
+        <form onSubmit={submit} className="space-y-4 rounded-2xl border border-paper/10 bg-navy-3/80 p-6 shadow-2xl backdrop-blur">
+          <div className="space-y-1.5">
+            <Label className="text-paper/80">Duty phone / Unit code / Volunteer or TaskForce ID</Label>
+            <Input required value={id} onChange={(e) => setId(e.target.value)} placeholder="01XXXXXXXXX · THANA-NRG-01 · V-J75UN2 · TF-9042" className="border-paper/15 bg-navy font-mono text-paper placeholder:text-paper/30" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-paper/80">Password</Label>
+            <div className="relative">
+              <Input required type={show ? "text" : "password"} value={pw} onChange={(e) => setPw(e.target.value)} placeholder="••••••••" className="border-paper/15 bg-navy pr-10 text-paper placeholder:text-paper/30" />
+              <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-paper/50 hover:text-paper" aria-label="Show password">
+                {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <Button type="submit" size="lg" className="h-12 w-full rounded-lg text-base font-bold"><LogIn /> Sign in to Dispatch</Button>
+          <div className="space-y-2 pt-1">
+            <p className="text-center text-[10px] font-bold uppercase tracking-wider text-paper/40">Quick demo login</p>
+            <div className="grid gap-1.5">
+              {QUICK_LOGINS.map((q) => (
+                <button type="button" key={q.label} onClick={() => signInAs(d.responders.find(q.match))}
+                  className="flex items-center gap-2.5 rounded-lg border border-paper/10 bg-paper/5 px-3 py-2.5 text-left text-xs font-semibold text-paper/80 transition hover:border-emerald/40 hover:bg-emerald/10 hover:text-paper">
+                  <q.icon className="h-4 w-4 shrink-0 text-emerald" />{q.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="border-t border-paper/10 pt-3 text-center text-[11px] leading-relaxed text-paper/40">
+            Accounts are issued and managed exclusively by the Central Control Panel (/rpanel).
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Authenticated shell (responsive) ---------------- */
+
+function Shell() {
+  const d = useDemo();
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("map");
   const [dismissed, setDismissed] = useState<string | null>(null);
   const [accepted, setAccepted] = useState<string | null>(null);
@@ -57,11 +167,54 @@ function RescueApp() {
     const first = d.responders.find((r) => (n === 1 ? isType1(r.kind) : !isType1(r.kind)));
     d.set({ responderType: n, ...(first ? { responderId: first.id } : {}) });
   };
+  const onSim = () => { setDismissed(null); setAccepted(null); if (!d.sos) d.triggerSos(); else toast("An SOS is already active"); };
+
+  const alertCard = sos && !navigating && !t1 && (
+    <SosAlertCard sosId={sos.id} victim={sos.victim} area={sos.area} onDecline={() => setDismissed(sos.id)} onAccept={() => { setAccepted(sos.id); d.acceptSos(myCode); toast.success("Accepted. Navigation started."); }} />
+  );
 
   return (
-    <PhoneFrame dark>
-      <div className="dark flex min-h-0 flex-1 flex-col bg-background text-foreground">
-        <div className="bg-navy px-4 pb-3 pt-4 md:pt-9">
+    <div className="dark flex h-screen overflow-hidden bg-background text-foreground">
+      {/* Tablet rail / desktop sidebar */}
+      <aside className="hidden w-20 shrink-0 flex-col bg-navy md:flex lg:w-72">
+        <div className="flex h-16 items-center justify-center border-b border-paper/10 lg:justify-start lg:px-5">
+          <RescueMark label="" />
+          <div className="ml-3 hidden lg:block">
+            <p className="font-display text-sm font-extrabold text-paper">Rescue Network</p>
+            <p className="text-[10px] text-paper/50">{mine ? `${KIND_SHORT[mine.kind]} · ${mine.code}` : "No account"}</p>
+          </div>
+        </div>
+        <nav className="flex-1 space-y-1 p-2 lg:p-3">
+          {TABS.map((t) => (
+            <button key={t.id} onClick={() => setTab(t.id)} title={t.label}
+              className={cn("flex w-full items-center justify-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition lg:justify-start",
+                tab === t.id ? "bg-crimson text-paper" : "text-paper/60 hover:bg-paper/5 hover:text-paper")}>
+              <t.icon className="h-5 w-5 shrink-0" /><span className="hidden lg:inline">{t.label}</span>
+              {t.id === "map" && sos && <span className="hidden h-2 w-2 rounded-full bg-paper animate-blink lg:inline" />}
+            </button>
+          ))}
+        </nav>
+        <div className="hidden space-y-3 border-t border-paper/10 p-4 lg:block">
+          <div className="rounded-xl bg-navy-3 p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-paper/40">Unit status</p>
+            <p className="mt-1 truncate text-sm font-bold text-paper">{mine?.name}</p>
+            <p className="mt-0.5 text-[11px] text-paper/50">{mine?.fixed ? "📍 Fixed GPS installation" : "📡 Live device GPS"}{mine?.vehicleNo ? ` · ${mine.vehicleNo}` : ""}</p>
+            <label className={cn("mt-2 flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-bold", d.responderOnline ? "bg-emerald/15 text-emerald" : "bg-paper/5 text-paper/50")}>
+              {d.responderOnline ? "Online — receiving alerts" : "Offline"}
+              <Switch checked={d.responderOnline} onCheckedChange={(v) => { d.set({ responderOnline: v }); toast(v ? "You're online and receiving alerts" : "You're offline"); }} className="data-[state=checked]:bg-emerald" />
+            </label>
+          </div>
+          <Button variant="outline" className="w-full border-paper/15 bg-transparent text-paper/70 hover:bg-paper/5 hover:text-paper" onClick={() => d.set({ rescueAuth: "login" })}><LogOut /> Logout</Button>
+        </div>
+        <div className="border-t border-paper/10 p-2 lg:hidden">
+          <button onClick={() => d.set({ rescueAuth: "login" })} title="Logout" className="grid w-full place-items-center rounded-xl py-2.5 text-paper/60 hover:bg-paper/5"><LogOut className="h-5 w-5" /></button>
+        </div>
+      </aside>
+
+      {/* Main column */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Mobile header */}
+        <div className="bg-navy px-4 pb-3 pt-4 md:hidden">
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-navy-3 p-1">
             {[1, 2].map((n) => (
               <button key={n} onClick={() => switchType(n as 1 | 2)}
@@ -91,31 +244,24 @@ function RescueApp() {
           </div>
         </div>
 
+        {/* Content */}
         <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {tab === "map" && (navigating ? <Navigate type1={t1} /> : <DispatchHome mine={mine} onSim={() => { setDismissed(null); setAccepted(null); if (!d.sos) d.triggerSos(); else toast("An SOS is already active"); }} />)}
-          {tab === "community" && <div className="space-y-4 p-4">{d.posts.filter((p) => p.targets.rescue && p.published !== false).map((p) => <PostCard key={p.id} post={p} compact dark />)}</div>}
-          {tab === "history" && <HistoryTab />}
-          {tab === "profile" && <ProfileT type1={t1} mine={mine} />}
-
-          {sos && !navigating && !t1 && (
-            <div className="absolute inset-x-3 top-3 z-30 overflow-hidden rounded-3xl border border-crimson bg-card shadow-2xl animate-rise">
-              <div className="flex items-center gap-2 bg-crimson px-4 py-2.5 text-paper"><Siren className="h-4 w-4 animate-blink" /><p className="flex-1 text-xs font-extrabold uppercase tracking-wider">Incoming SOS alert</p><span className="font-mono text-[11px]">{sos.id}</span></div>
-              <div className="space-y-3 p-4">
-                <div className="flex items-end justify-between">
-                  <div><p className="text-xs text-muted-foreground">Victim distance</p><p className="font-display text-4xl font-extrabold text-crimson">0.8 km away</p></div>
-                  <p className="text-right text-xs text-muted-foreground">~3 min<br />on foot 9 min</p>
-                </div>
-                <p className="text-sm"><b>{sos.victim.split(" ")[0]}</b> · {sos.area}</p>
-                <div className="grid grid-cols-[auto_1fr] gap-2">
-                  <Button variant="outline" className="h-12 rounded-lg" onClick={() => setDismissed(sos.id)}><X /> Decline</Button>
-                  <Button className="h-12 rounded-lg bg-emerald text-base font-bold hover:bg-emerald/90" onClick={() => { setAccepted(sos.id); d.acceptSos(myCode); toast.success("Accepted. Navigation started."); }}>Accept / Respond</Button>
-                </div>
-              </div>
+          {tab === "map" && (
+            <div className="flex min-h-full flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_380px]">
+              <div className="flex min-w-0 flex-col">{navigating ? <Navigate type1={t1} /> : <DispatchHome mine={mine} onSim={onSim} />}</div>
+              <SidePanel alert={alertCard} navigating={navigating} />
             </div>
           )}
+          {tab === "community" && <div className="mx-auto w-full max-w-2xl space-y-4 p-4">{d.posts.filter((p) => p.targets.rescue && p.published !== false).map((p) => <PostCard key={p.id} post={p} compact dark />)}</div>}
+          {tab === "history" && <div className="mx-auto w-full max-w-2xl"><HistoryTab /></div>}
+          {tab === "profile" && <div className="mx-auto w-full max-w-2xl"><ProfileT type1={t1} mine={mine} /></div>}
+
+          {/* Mobile / tablet incoming alert overlay */}
+          {alertCard && <div className="absolute inset-x-3 top-3 z-30 lg:hidden">{alertCard}</div>}
         </div>
 
-        <nav className="grid grid-cols-4 border-t bg-navy px-2 pb-4 pt-2">
+        {/* Mobile bottom nav */}
+        <nav className="grid grid-cols-4 border-t bg-navy px-2 pb-4 pt-2 md:hidden">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)} className={cn("flex flex-col items-center gap-1 py-1.5 text-[10px] font-semibold", tab === t.id ? "text-crimson" : "text-paper/50")}>
               <t.icon className="h-5 w-5" />{t.label}
@@ -123,9 +269,83 @@ function RescueApp() {
           ))}
         </nav>
       </div>
-    </PhoneFrame>
+    </div>
   );
 }
+
+/* ---------------- Incoming SOS alert card (shared) ---------------- */
+
+function SosAlertCard({ sosId, victim, area, onDecline, onAccept }: { sosId: string; victim: string; area: string; onDecline: () => void; onAccept: () => void }) {
+  return (
+    <div className="overflow-hidden rounded-3xl border border-crimson bg-card shadow-2xl animate-rise">
+      <div className="flex items-center gap-2 bg-crimson px-4 py-2.5 text-paper"><Siren className="h-4 w-4 animate-blink" /><p className="flex-1 text-xs font-extrabold uppercase tracking-wider">Incoming SOS alert</p><span className="font-mono text-[11px]">{sosId}</span></div>
+      <div className="space-y-3 p-4">
+        <div className="flex items-end justify-between">
+          <div><p className="text-xs text-muted-foreground">Victim distance</p><p className="font-display text-4xl font-extrabold text-crimson">0.8 km away</p></div>
+          <p className="text-right text-xs text-muted-foreground">~3 min<br />on foot 9 min</p>
+        </div>
+        <p className="text-sm"><b>{victim.split(" ")[0]}</b> · {area}</p>
+        <div className="grid grid-cols-[auto_1fr] gap-2">
+          <Button variant="outline" className="h-12 rounded-lg" onClick={onDecline}><X /> Decline</Button>
+          <Button className="h-12 rounded-lg bg-emerald text-base font-bold hover:bg-emerald/90" onClick={onAccept}>Accept / Respond</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Desktop right panel ---------------- */
+
+function SidePanel({ alert, navigating }: { alert: React.ReactNode; navigating: boolean }) {
+  const d = useDemo();
+  const sos = d.sos;
+  const units = useNetworkUnits(sos?.startedAt, sos?.acceptedBy ?? [], d.responders);
+  const enRoute = units.filter((u) => u.kind !== "volunteer").slice(0, 4);
+  return (
+    <aside className="hidden border-l bg-card/50 lg:flex lg:flex-col lg:gap-4 lg:overflow-y-auto lg:p-4">
+      <div>
+        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Live SOS alert queue</p>
+        {alert ?? (sos ? (
+          <div className="rounded-2xl border border-crimson/40 bg-crimson-soft p-4">
+            <p className="flex items-center gap-2 text-sm font-bold text-crimson"><Siren className="h-4 w-4 animate-blink" /> {sos.id} — dispatch in progress</p>
+            <p className="mt-1 text-xs text-muted-foreground">{sos.victim} · {sos.area}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{sos.acceptedBy.length} responders accepted{navigating ? " · you are en route" : ""}</p>
+          </div>
+        ) : (
+          <div className="rounded-2xl border bg-card p-4 text-sm text-muted-foreground">No active alerts. The queue updates in real time when a user triggers SOS.</div>
+        ))}
+      </div>
+      {sos && (
+        <>
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Victim live camera</p>
+            <div className="relative overflow-hidden rounded-2xl border-2 border-crimson">
+              <CameraFeed camera={sos.camera} className="aspect-video rounded-none" label=" " />
+              <span className="absolute inset-x-0 bottom-0 bg-crimson py-1 text-center text-[10px] font-bold text-paper"><Video className="mr-1 inline h-3 w-3" />VICTIM CAM · {sos.camera === "back" ? "Back" : "Front"}</span>
+            </div>
+          </div>
+          <div className="rounded-2xl border bg-card p-4 text-sm">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Victim & emergency contact</p>
+            <p className="font-bold">{sos.victim}</p>
+            <p className="font-mono text-xs text-muted-foreground">{sos.phone}</p>
+            <p className="mt-2 text-xs text-muted-foreground">Emergency: <b className="text-foreground">{d.user.emergencyName}</b> ({d.user.relation}) · <span className="font-mono">{d.user.emergencyPhone}</span></p>
+          </div>
+          <div className="rounded-2xl border bg-card p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Dispatch telemetry</p>
+            <div className="space-y-1.5">
+              {enRoute.map((u) => (
+                <p key={u.id} className="flex items-center justify-between text-xs"><span className="truncate">{u.label}</span><span className="font-mono font-bold text-emerald">{u.eta} min</span></p>
+              ))}
+            </div>
+            <p className="mt-2 border-t pt-2 text-[11px] text-muted-foreground">2 patrols · 1 fari · 1 station auto-dispatched · {units.filter((u) => u.kind === "volunteer").length} volunteers alerted</p>
+          </div>
+        </>
+      )}
+    </aside>
+  );
+}
+
+/* ---------------- Tabs ---------------- */
 
 function DispatchHome({ onSim, mine }: { onSim: () => void; mine: Responder | undefined }) {
   const d = useDemo();
@@ -134,7 +354,7 @@ function DispatchHome({ onSim, mine }: { onSim: () => void; mine: Responder | un
   return (
     <div className="relative flex flex-1 flex-col">
       <div aria-hidden className="pointer-events-none absolute inset-0 tactical-grid opacity-60" />
-      <TacticalMap className="relative h-72 tactical-grid shadow-card" zones={d.zones} units={[...others, { id: "me", label: "You", kind: mine?.kind ?? (d.responderType === 1 ? "patrol" : "volunteer"), x: mine?.x ?? 30, y: mine?.y ?? 34, gps: mine?.fixed ? "fixed" : "live" }]} />
+      <TacticalMap className="relative h-72 tactical-grid shadow-card lg:h-full lg:min-h-[420px]" zones={d.zones} units={[...others, { id: "me", label: "You", kind: mine?.kind ?? (d.responderType === 1 ? "patrol" : "volunteer"), x: mine?.x ?? 30, y: mine?.y ?? 34, gps: mine?.fixed ? "fixed" : "live" }]} />
       <div className="relative space-y-3 p-4">
         <div className="grid grid-cols-3 gap-2">
           {[{ l: "Units online", v: online.length }, { l: "Active SOS", v: d.sos ? 1 : 0 }, { l: "My cases", v: d.cases.length }].map((s) => (
@@ -178,16 +398,16 @@ function Navigate({ type1 }: { type1: boolean }) {
       )}
       <div className="flex items-center gap-3 bg-emerald px-4 py-3 text-paper">
         <S.i className="h-9 w-9" />
-        <div className="flex-1"><p className="font-display text-lg font-bold leading-tight">{S.t}</p><p className="text-xs opacity-80">then {steps[Math.min(2, cur + 1)]!.t.toLowerCase()}</p></div>
-        <p className="font-display text-xl font-extrabold">{S.d}</p>
+        <div className="min-w-0 flex-1"><p className="truncate font-display text-lg font-bold leading-tight">{S.t}</p><p className="truncate text-xs opacity-80">then {steps[Math.min(2, cur + 1)]!.t.toLowerCase()}</p></div>
+        <p className="shrink-0 font-display text-xl font-extrabold">{S.d}</p>
       </div>
       <div className="relative">
-        <TacticalMap className="h-64 tactical-grid" victim={VICTIM_POS} route={ROUTE_TO_VICTIM} units={units.filter((u) => u.kind !== "volunteer" || u.id === "v0")} zones={d.zones} />
+        <TacticalMap className="h-64 tactical-grid lg:h-full lg:min-h-[380px]" victim={VICTIM_POS} route={ROUTE_TO_VICTIM} units={units.filter((u) => u.kind !== "volunteer" || u.id === "v0")} zones={d.zones} />
         <div className="absolute bottom-3 left-3 rounded-xl bg-navy/90 px-3 py-2 text-paper">
           <p className="text-[10px] uppercase opacity-60">Distance to victim</p>
           <p className="font-display text-xl font-extrabold">{dist} km · {Math.max(0, Math.ceil(3 * (1 - progress)))} min</p>
         </div>
-        <div className="absolute right-3 top-3 w-28 overflow-hidden rounded-xl border-2 border-crimson">
+        <div className="absolute right-3 top-3 w-28 overflow-hidden rounded-xl border-2 border-crimson lg:hidden">
           <CameraFeed camera={sos.camera} className="aspect-[3/4] rounded-none" label=" " />
           <span className="absolute inset-x-0 bottom-0 bg-crimson py-0.5 text-center text-[9px] font-bold text-paper"><Video className="mr-0.5 inline h-2.5 w-2.5" />VICTIM CAM</span>
         </div>
@@ -251,6 +471,9 @@ function ProfileT({ type1, mine }: { type1: boolean; mine: Responder | undefined
         <p className="mb-3 text-xs font-bold uppercase text-muted-foreground">{tr("Settings", "সেটিংস")}</p>
         <LanguageSetting dark />
       </div>
+      <Button variant="outline" className="w-full border-crimson/40 text-crimson hover:bg-crimson/10" onClick={() => { d.set({ rescueAuth: "login" }); toast("Signed out"); }}>
+        <LogOut /> {tr("Logout", "লগআউট")}
+      </Button>
     </div>
   );
 }

@@ -20,6 +20,7 @@ export type DemoState = {
   responderType: ResponderType;
   responderId: string;
   responderOnline: boolean;
+  rescueAuth: "splash" | "login" | "app";
   sos: SosState | null;
   kyc: KycSubmission[];
   volunteerApps: VolunteerApp[];
@@ -41,6 +42,7 @@ const initial: DemoState = {
   responderType: 2,
   responderId: "r5",
   responderOnline: true,
+  rescueAuth: "splash",
   sos: null,
   kyc: [{ id: "self", name: "Nadia Hossain", phone: "01712349876", dob: "1999-03-14", type: "adult", status: "approved", submittedAt: "Just now" }, ...seedKyc],
   volunteerApps: seedVolunteerApps,

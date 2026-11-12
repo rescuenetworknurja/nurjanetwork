@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isFixedUnit, isType1, seedResponders } from "./mock-data";
+import { findAccount, isFixedUnit, isType1, seedResponders } from "./mock-data";
 
 describe("Responder GPS rules", () => {
   it("Thana and Fari are fixed installations; patrols, volunteers and officers are live GPS", () => {
@@ -36,5 +36,18 @@ describe("Responder GPS rules", () => {
   it("volunteer codes follow V-XXXXXX and officer codes follow TF-XXX", () => {
     for (const r of seedResponders.filter((x) => x.kind === "volunteer")) expect(r.code).toMatch(/^V-[A-Z2-9]{6}$/);
     for (const r of seedResponders.filter((x) => x.kind === "officer")) expect(r.code).toMatch(/^TF-\d+$/);
+  });
+});
+
+describe("findAccount (responder login)", () => {
+  it("finds accounts by unit code, volunteer ID, TaskForce ID and phone", () => {
+    expect(findAccount(seedResponders, "THANA-DHK-01")?.id).toBe("r4");
+    expect(findAccount(seedResponders, "v-j75un2")?.id).toBe("r5");
+    expect(findAccount(seedResponders, "TF-902")?.id).toBe("r6");
+    expect(findAccount(seedResponders, "01320000007")?.id).toBe("r1");
+  });
+  it("returns undefined for unknown or empty credentials", () => {
+    expect(findAccount(seedResponders, "V-XXXXXX")).toBeUndefined();
+    expect(findAccount(seedResponders, "  ")).toBeUndefined();
   });
 });

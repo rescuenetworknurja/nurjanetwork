@@ -33,6 +33,12 @@ export type Responder = {
 /** Type 1 sub-types with a fixed installation location (vs live-moving GPS). */
 export const isFixedUnit = (k: Responder["kind"]) => k === "station" || k === "fari";
 export const isType1 = (k: Responder["kind"]) => k === "station" || k === "fari" || k === "patrol";
+/** Responder login lookup: duty phone number, unit code, Volunteer ID or TaskForce ID. */
+export const findAccount = (rs: Responder[], q: string) => {
+  const s = q.trim().toLowerCase();
+  if (!s) return undefined;
+  return rs.find((r) => r.code.toLowerCase() === s || r.phone === s);
+};
 export type CaseRecord = { id: string; victim: string; area: string; date: string; outcome: string; duration: string };
 
 export const IMAGES = { volunteers, patrol, workshop, hero };
