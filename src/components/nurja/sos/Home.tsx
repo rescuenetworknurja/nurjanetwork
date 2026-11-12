@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { CameraFeed } from "../CameraFeed";
 import { LiveMapLazy } from "../LiveMapLazy";
 import type { MapUnit } from "../TacticalMap";
-import { PinInput, PwaBadge } from "./ui";
+import { PinInput } from "./ui";
 import { Slogan } from "@/lib/i18n";
 
 export function useNow(ms = 1000) {
@@ -141,7 +141,6 @@ export function HomeTab() {
             </div>
           ))}
         </div>
-        <div className="flex justify-center"><PwaBadge compact /></div>
       </div>
 
       {count !== null && (
