@@ -47,7 +47,7 @@ export function SignedOutSplash() {
 
 export function Onboarding() {
   const d = useDemo();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(1);
   const [sub, setSub] = useState(0);
   const [f, setF] = useState({
     phone: "", otp: "", password: "", confirm: "", pin: "", pin2: "", name: "", dob: "", eName: "", ePhone: "", eRel: "",
@@ -60,7 +60,7 @@ export function Onboarding() {
   const adult = age !== null && age >= 18;
   const set = (p: Partial<typeof f>) => setF((x) => ({ ...x, ...p }));
 
-  const back = () => (step === 7 && sub > 0 ? setSub(sub - 1) : setStep(Math.max(0, step - 1)));
+  const back = () => (step === 7 && sub > 0 ? setSub(sub - 1) : step > 1 ? setStep(step - 1) : d.set({ appView: "main" }));
   const next = () => {
     const err = validate();
     if (err) return toast.error(err);
@@ -108,7 +108,7 @@ export function Onboarding() {
         } : k),
       }));
       toast.success("KYC submitted for review", { description: "SOS unlocks as soon as the Control Panel approves you." });
-      setStep(0); setSub(0);
+      setStep(1); setSub(0);
     } catch (err) {
       const msg = err instanceof Error && /already registered|already exists/i.test(err.message)
         ? "This number already has an account. Log in instead."
@@ -118,28 +118,6 @@ export function Onboarding() {
       setBusy(false);
     }
   };
-
-  if (step === 0)
-    return (
-      <div className="relative flex flex-1 flex-col items-center justify-between overflow-hidden bg-hero px-8 pb-12 pt-24 text-center">
-        <div className="relative mt-10">
-          <span className="absolute inset-0 rounded-full bg-crimson/20 animate-ripple" />
-          <span className="absolute inset-0 rounded-full bg-crimson/20 animate-ripple [animation-delay:1.2s]" />
-          <img src={LOGOS.icon} alt="NURJA" className="relative h-40 w-40 rounded-full bg-paper object-contain p-4 shadow-sos animate-breathe" />
-        </div>
-        <div className="space-y-3 animate-rise">
-          <img src={LOGOS.lettering} alt="NURJA" className="mx-auto h-12 object-contain" />
-          <p className="font-display text-base font-bold text-crimson"><Slogan /></p>
-          <p className="text-muted-foreground">Your safety, one tap away. Police and verified volunteers nearby, always ready.</p>
-        </div>
-        <div className="w-full space-y-3">
-          <Button size="lg" className="h-14 w-full rounded-lg text-base shadow-sos" onClick={() => setStep(1)}>Get Started</Button>
-          <button className="text-sm font-semibold text-muted-foreground" onClick={() => d.set({ appView: "main" })}>
-            Already have an account? <span className="text-crimson">Log in</span>
-          </button>
-        </div>
-      </div>
-    );
 
   const totalSteps = 9; // 1..6 + 3 KYC sub-steps
   const progress = step < 7 ? step : 6 + sub + 1;
