@@ -199,7 +199,7 @@ function ActiveSos() {
   const submitPin = (v: string) => {
     setPin(v);
     if (v.length < 6) return;
-    if (v === d.user.pin) { d.stopSos("Rescued safely — SOS stopped with PIN"); setPinOpen(false); toast.success("SOS deactivated", { description: "Evidence has been archived. Stay safe." }); }
+    if (v === d.user.pin) { d.stopSos("SOS stopped by user with PIN"); setPinOpen(false); toast.success("SOS deactivated", { description: "Evidence has been archived. Stay safe." }); }
     else { toast.error("Wrong PIN. SOS is still active."); setTimeout(() => setPin(""), 300); }
   };
 

@@ -244,7 +244,7 @@ function Shell() {
           {tab === "map" && (
             <div className="flex min-h-full shrink-0 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_380px]">
               <div className="flex min-w-0 flex-col">
-                {navigating ? <Navigate type1={t1} /> : <DispatchHome mine={mine} onSim={onSim} />}
+                {navigating ? <Navigate type1={t1} myCode={myCode} /> : <DispatchHome mine={mine} onSim={onSim} />}
                 {d.sos && <div className="px-4 pb-4 lg:hidden"><VictimCamera camera={d.sos.camera} /></div>}
               </div>
               <SidePanel alert={alertCard} navigating={navigating} />
@@ -366,11 +366,13 @@ function DispatchHome({ onSim, mine }: { onSim: () => void; mine: Responder | un
   );
 }
 
-function Navigate({ type1 }: { type1: boolean }) {
+function Navigate({ type1, myCode }: { type1: boolean; myCode: string }) {
   const d = useDemo();
-  const sos = d.sos!;
   const now = useNow();
-  const units = useNetworkUnits(sos.startedAt, sos.acceptedBy, d.responders);
+  const sos = d.sos;
+  const units = useNetworkUnits(sos?.startedAt, sos?.acceptedBy ?? [], d.responders);
+  if (!sos) return null;
+  const arrived = sos.arrivedBy?.some((r) => r.code === myCode) ?? false;
   const progress = Math.min(1, (now - sos.startedAt) / 90000);
   const dist = (0.8 * (1 - progress)).toFixed(2);
   const steps = [
@@ -408,7 +410,7 @@ function Navigate({ type1 }: { type1: boolean }) {
         </div>
         <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" className="h-12 rounded-lg" onClick={() => toast("Calling control room…")}><Phone /> Control room</Button>
-          <Button className="h-12 rounded-lg bg-emerald hover:bg-emerald/90" onClick={() => { d.stopSos("Rescued safely — responder on scene"); toast.success("Marked as rescued. Case archived."); }}><Navigation /> Arrived · Rescued</Button>
+          <Button className="h-12 rounded-lg bg-emerald hover:bg-emerald/90" disabled={arrived || !sos.acceptedBy.includes(myCode)} onClick={() => { d.markArrived(myCode); toast.success("Arrival recorded. SOS remains active."); }}><Navigation /> {arrived ? "Arrived" : "Mark arrived"}</Button>
         </div>
       </div>
     </div>

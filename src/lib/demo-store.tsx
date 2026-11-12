@@ -8,11 +8,13 @@ import { seedUsers, type AccountStatus, type AppUser } from "./users";
 import { seedInquiries, seedWebsite, type Inquiry, type WebsiteContent } from "./website-content";
 import { appendIncidentEvidence, updateEvidenceTags, type IncidentEvidence } from "./evidence";
 import { persistEvidenceState } from "./demo-persistence";
+import { updateIncidentStatus } from "./incident-status";
 
 export type ResponderType = 1 | 2;
 export type SosState = {
   id: string; startedAt: number; camera: "back" | "front"; victim: string; phone: string; area: string;
   acceptedBy: string[];
+  arrivedBy?: { code: string; arrivedAt: string }[];
 };
 export type DemoState = {
   lang: "bn" | "en";
@@ -69,6 +71,8 @@ type Ctx = DemoState & {
   setAdult: (adult: boolean) => void;
   triggerSos: () => void;
   stopSos: (outcome?: string) => void;
+  markArrived: (code: string) => void;
+  markRescued: () => void;
   saveEvidence: (record: IncidentEvidence) => Promise<"saved" | "incident" | "storage">;
   setEvidenceTags: (id: string, tags: string[]) => Promise<boolean>;
   switchCamera: () => void;
@@ -159,7 +163,15 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
           victim: s.user.name, phone: s.user.phone, area: "Toyenbee Circular Rd, Motijheel, Dhaka", acceptedBy: [] },
         users: s.users.map((u) => (u.id === "self" ? { ...u, sosCount: u.sosCount + 1 } : u)),
       })),
-    stopSos: (outcome = "Rescued safely") =>
+    markArrived: (code) => set((s) => s.sos ? { sos: updateIncidentStatus(s.sos, { interface: "RescueTeam", status: "arrived", code }) } : {}),
+    markRescued: () => set((s) => {
+      if (!s.sos) return {};
+      const secs = Math.max(1, Math.round((Date.now() - s.sos.startedAt) / 1000));
+      const rec: CaseRecord = { id: s.sos.id, victim: s.sos.victim, area: "Motijheel", date: "Just now", outcome: "Rescued safely — confirmed by control room",
+        duration: `${Math.floor(secs / 60)}m ${String(secs % 60).padStart(2, "0")}s` };
+      return { sos: updateIncidentStatus(s.sos, { interface: "rpanel", status: "rescued" }), cases: [rec, ...s.cases] };
+    }),
+    stopSos: (outcome = "SOS deactivated") =>
       set((s) => {
         if (!s.sos) return {};
         const secs = Math.max(1, Math.round((Date.now() - s.sos.startedAt) / 1000));

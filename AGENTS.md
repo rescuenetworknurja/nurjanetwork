@@ -37,3 +37,4 @@ use the editor.
 - Captured demo evidence lives in the shared store keyed by incident ID, independent of active SOS lifetime; saving verifies the incident and browser persistence before reporting success.
 - Evidence reports generate in the browser from every frame in an incident, rasterize bilingual metadata for font fidelity, and require a separate download click to preserve mobile user activation.
 - Evidence persistence recovers quota failures by compacting legacy PNG images without removing records; new captures use JPEG to reduce browser storage use.
+- Incident workflow transitions use `src/lib/incident-status.ts`: responder arrival retains the active SOS; only the panel completion action archives a rescued case. This is a prototype UI boundary, not server authorization.

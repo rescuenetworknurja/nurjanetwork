@@ -17,6 +17,8 @@ export const Route = createFileRoute("/rpanel")({
       { name: "description", content: "Central command for live SOS incidents, dispatch, KYC approvals, volunteers, hazard zones and publishing." },
       { property: "og:title", content: "Control Panel — NURJA Command Center" },
       { property: "og:description", content: "Central command for live SOS incidents, dispatch, KYC approvals and volunteers." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Panel,

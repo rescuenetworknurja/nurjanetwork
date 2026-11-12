@@ -1,6 +1,9 @@
 # Roadmap
 
 ## Done
+- RescueTeam records arrival without closing SOS; rpanel alone marks rescued and archives the incident
+
+## Done
 - Download all incident evidence as a PDF with capture times, tags and responder information
 - Track evidence gallery searches, successful tag edits and evidence opens
 - Fix evidence-save failures: smaller captures, recover storage space from previous PNG frames without deleting evidence, and specific error messages

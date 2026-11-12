@@ -125,11 +125,18 @@ export function IncidentSection() {
                 </div>
               ))}
             </div>
+            {(s.arrivedBy ?? []).map((arrival) => (
+              <div key={arrival.code} className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-emerald-soft px-3 py-2 text-sm">
+                <span className="font-semibold">{d.responders.find((r) => r.code === arrival.code)?.name ?? arrival.code} · {arrival.code}</span>
+                <span className="text-emerald">Arrived · {new Date(arrival.arrivedAt).toLocaleTimeString(d.lang === "bn" ? "bn-BD" : "en-GB")}</span>
+              </div>
+            ))}
             <div className="mt-4 grid grid-cols-2 gap-2">
               <Button variant="outline" onClick={() => dl("Evidence video")}><Download /> Download Evidence Video</Button>
               <Button variant="outline" onClick={() => dl("Route summary")}><Download /> Download Route Summary</Button>
             </div>
-            <Button variant="ghost" className="mt-2 w-full text-emerald" onClick={() => { d.stopSos("Closed by control room"); toast.success("Incident closed and archived"); }}>Close incident</Button>
+            <Button className="mt-3 w-full bg-emerald hover:bg-emerald/90" onClick={() => { d.markRescued(); toast.success("Marked as rescued. Case archived."); }}>Mark rescued</Button>
+            <Button variant="ghost" className="mt-2 w-full text-muted-foreground" onClick={() => { d.stopSos("Closed by control room"); toast.success("Incident closed and archived"); }}>Close incident</Button>
           </Card>
         </div>
       </div>
