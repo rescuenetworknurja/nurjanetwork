@@ -56,7 +56,6 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           <div className="space-y-2 text-sm">
             <p className="font-display font-bold">Explore</p>
             {LINKS.map((l) => <Link key={l.to} to={l.to} className="block text-paper/60 hover:text-paper">{l.label}</Link>)}
-            <Link to="/NURJASOS" className="block text-paper/60 hover:text-paper">Open NURJA app</Link>
           </div>
           <div className="space-y-2 text-sm text-paper/60">
             <p className="font-display font-bold text-paper">Emergency</p>

@@ -4,6 +4,7 @@
  */
 export const BN: Record<string, string> = {
   "Safety • Confidence • Freedom": "নিরাপত্তা • আত্মবিশ্বাস • স্বাধীনতা",
+  "How It Works": "কীভাবে কাজ করে",
   "Women safety & rapid rescue network · v1.0": "নারী নিরাপত্তা ও দ্রুত উদ্ধার নেটওয়ার্ক · সংস্করণ ১.০",
   // ---------- Shared / navigation ----------
   "Coverage Zone: Active": "কভারেজ জোন: সক্রিয়", "2 Patrols": "২টি টহল দল", "10 Volunteers": "১০ জন ভলান্টিয়ার", "Dual-Cam": "ডুয়াল-ক্যাম", "& Audio Ready": "ও অডিও প্রস্তুত", "0.6 km": "০.৬ কিমি",

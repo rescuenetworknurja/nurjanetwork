@@ -56,7 +56,7 @@ function Home() {
             </p>
             <div className="flex flex-wrap gap-3">
               <VolunteerDialog><Button size="lg" className="h-12 rounded-lg px-6 shadow-sos">Become a Volunteer <ArrowRight /></Button></VolunteerDialog>
-              <Button asChild size="lg" variant="outline" className="h-12 rounded-lg px-6"><Link to="/NURJASOS">Try the NURJA app</Link></Button>
+              <Button asChild size="lg" variant="outline" className="h-12 rounded-lg px-6"><a href="#how-it-works" onClick={(e) => { e.preventDefault(); document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" }); }}>How It Works</a></Button>
             </div>
             <div className="grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
               <Stat label="Women protected" value={rescued.toLocaleString()} />
@@ -79,7 +79,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20">
+      <section id="how-it-works" className="mx-auto max-w-7xl scroll-mt-20 px-6 py-20">
         <div className="max-w-2xl">
           <p className="text-sm font-bold uppercase tracking-widest text-crimson">How this system works</p>
           <h2 className="mt-2 text-4xl font-extrabold">From one tap to a safe rescue</h2>
