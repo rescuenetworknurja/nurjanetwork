@@ -141,8 +141,7 @@ export function Onboarding() {
         {step === 1 && <Head icon={Phone} title="Your phone number" text="We'll send a 6-digit code to verify it." />}
         {step === 1 && (
           <div className="flex items-center gap-2 rounded-lg border bg-card px-4">
-            <span className="font-semibold text-muted-foreground">🇧🇩 +88</span>
-            <Input className="h-14 border-0 text-lg shadow-none focus-visible:ring-0" placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={11} value={f.phone} onChange={(e) => set({ phone: e.target.value.replace(/\D/g, "") })} autoFocus />
+            <Input className="h-14 border-0 px-0 text-lg shadow-none focus-visible:ring-0" placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={11} value={f.phone} onChange={(e) => set({ phone: e.target.value.replace(/\D/g, "") })} autoFocus />
           </div>
         )}
 
