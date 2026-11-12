@@ -29,3 +29,9 @@
 
 ## Done
 - Fix bottom navigation bars in /NURJASOS and /RescueTeam: fixed bottom-0 z-50, glassmorphism, iOS safe-area padding, content bottom spacing so lists never hide behind the bar
+
+## Live backend (user's own Supabase)
+- [ ] Phase 1: logins, accounts, roles (blocked: Supabase not connected yet)
+- [ ] Phase 2: real-time SOS and dispatch
+- [ ] Phase 3: website CMS and CRM
+- [ ] Phase 4: evidence storage and reports
