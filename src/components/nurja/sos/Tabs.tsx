@@ -9,7 +9,7 @@ import { signOut } from "@/lib/auth";
 import { useNavigate } from "@tanstack/react-router";
 import { ageFromDob } from "@/lib/ids";
 import { cn } from "@/lib/utils";
-import { TacticalMap } from "../TacticalMap";
+import { LiveMapLazy } from "../LiveMapLazy";
 import { PostCard } from "../PostCard";
 import { PinInput, PwaBadge } from "./ui";
 import { LanguageSetting, Slogan, useT } from "@/lib/i18n";
@@ -27,7 +27,7 @@ export function SafeRouteTab() {
   const [go, setGo] = useState(true);
   return (
     <div className="relative flex flex-1 flex-col">
-      <TacticalMap className="flex-1" zones={zones} route={go ? SAFE : undefined} showLabels={false}>
+      <LiveMapLazy className="flex-1" zones={zones} route={go ? SAFE : undefined} showLabels={false}>
         {go && (
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full">
             <polyline points={DIRECT.map((p) => p.join(",")).join(" ")} fill="none" stroke="var(--crimson)" strokeWidth="3" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" opacity=".45" />
@@ -35,7 +35,7 @@ export function SafeRouteTab() {
         )}
         <Pin x={18} y={84} tone="bg-ink" />
         <Pin x={84} y={14} tone="bg-emerald" />
-      </TacticalMap>
+      </LiveMapLazy>
 
       <div className="absolute inset-x-3 top-11 rounded-3xl border bg-card p-3 shadow-card">
         <div className="flex items-center gap-2">

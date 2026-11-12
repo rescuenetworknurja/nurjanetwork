@@ -209,6 +209,9 @@
 }
 
 @keyframes sos-ripple { 0% { transform: scale(1); opacity: .55 } 100% { transform: scale(1.9); opacity: 0 } }
+@keyframes nurja-ripple { 0% { transform: scale(1); opacity: .55 } 100% { transform: scale(1.9); opacity: 0 } }
+.nurja-map-icon { background: none; border: none; }
+.leaflet-container { font: inherit; z-index: 0; }
 @keyframes sos-breathe { 0%,100% { transform: scale(1) } 50% { transform: scale(1.04) } }
 @keyframes flash-red { 0%,100% { background-color: var(--crimson) } 50% { background-color: oklch(0.35 0.14 15) } }
 @keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: .25 } }

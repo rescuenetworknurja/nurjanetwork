@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useDemo } from "@/lib/demo-store";
 import { VICTIM_POS } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
-import { TacticalMap } from "../TacticalMap";
+import { LiveMapLazy } from "../LiveMapLazy";
 import { CameraFeed } from "../CameraFeed";
 import { useNetworkUnits, useNow } from "../sos/Home";
 
@@ -45,7 +45,7 @@ export function DashboardSection({ go }: { go: (s: string) => void }) {
       <div className="mt-4 grid gap-4 xl:grid-cols-[2fr_1fr]">
         <Card className="overflow-hidden p-0">
           <div className="flex items-center justify-between p-4"><p className="font-display font-bold">Live overview map</p><span className="flex items-center gap-1.5 text-xs text-emerald"><span className="h-2 w-2 rounded-full bg-emerald animate-blink" />Realtime</span></div>
-          <TacticalMap className="h-[420px]" zones={d.zones} victim={d.sos ? VICTIM_POS : undefined} units={units} />
+          <LiveMapLazy className="h-[420px]" zones={d.zones} victim={d.sos ? VICTIM_POS : undefined} units={units} />
         </Card>
         <Card>
           <p className="font-display font-bold">Activity feed</p>
@@ -93,7 +93,7 @@ export function IncidentSection() {
       </PageHead>
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="overflow-hidden p-0">
-          <TacticalMap className="h-[520px]" victim={{ x: 50, y: 50 }} units={units} zones={d.zones} />
+          <LiveMapLazy className="h-[520px]" victim={{ x: 50, y: 50 }} units={units} zones={d.zones} />
           <div className="grid grid-cols-5 gap-px border-t bg-border text-center text-xs">
             {[{ l: "Patrol", v: 2, i: Car }, { l: "Fari", v: 1, i: Siren }, { l: "Station", v: 1, i: Building2 }, { l: "Volunteers", v: 10, i: User }, { l: "SMS sent", v: 5, i: Activity }].map((x) => (
               <div key={x.l} className="bg-card p-3"><x.i className="mx-auto h-4 w-4 text-muted-foreground" /><p className="font-display text-lg font-extrabold">{x.v}</p><p className="text-muted-foreground">{x.l}</p></div>

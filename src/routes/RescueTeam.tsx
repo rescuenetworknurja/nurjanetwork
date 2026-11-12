@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowUp, BadgeCheck, Building2, Car, CornerUpLeft, CornerUpRight, Eye, EyeOff, History, KeyRound, LogIn, LogOut, Map as MapIcon, Navigation, Phone, Radio, Shield, ShieldCheck, Siren, UserRound, Users, Video, X } from "lucide-react";
 import { toast } from "sonner";
 import { RescueMark } from "@/components/nurja/Brand";
-import { TacticalMap } from "@/components/nurja/TacticalMap";
+import { LiveMapLazy } from "@/components/nurja/LiveMapLazy";
 import { VictimCamera } from "@/components/nurja/VictimCamera";
 import { IncidentEvidenceGallery } from "@/components/nurja/IncidentEvidenceGallery";
 import { PostCard } from "@/components/nurja/PostCard";
@@ -362,7 +362,7 @@ function DispatchHome({ onSim, mine }: { onSim: () => void; mine: Responder | un
   return (
     <div className="relative flex flex-1 flex-col">
       <div aria-hidden className="pointer-events-none absolute inset-0 tactical-grid opacity-60" />
-      <TacticalMap className="relative h-72 tactical-grid shadow-card lg:h-full lg:min-h-[420px]" zones={d.zones} units={[...others, { id: "me", label: "You", kind: mine?.kind ?? (d.responderType === 1 ? "patrol" : "volunteer"), x: mine?.x ?? 30, y: mine?.y ?? 34, gps: mine?.fixed ? "fixed" : "live" }]} />
+      <LiveMapLazy className="relative h-72 tactical-grid shadow-card lg:h-full lg:min-h-[420px]" zones={d.zones} units={[...others, { id: "me", label: "You", kind: mine?.kind ?? (d.responderType === 1 ? "patrol" : "volunteer"), x: mine?.x ?? 30, y: mine?.y ?? 34, gps: mine?.fixed ? "fixed" : "live" }]} />
       <div className="relative space-y-3 p-4">
         <div className="grid grid-cols-3 gap-2">
           {[{ l: "Units online", v: online.length }, { l: "Active SOS", v: d.sos ? 1 : 0 }, { l: "My cases", v: d.cases.length }].map((s) => (
@@ -412,7 +412,7 @@ function Navigate({ type1, myCode }: { type1: boolean; myCode: string }) {
         <p className="shrink-0 font-display text-xl font-extrabold">{S.d}</p>
       </div>
       <div className="relative">
-        <TacticalMap className="h-64 tactical-grid lg:h-full lg:min-h-[380px]" victim={VICTIM_POS} route={ROUTE_TO_VICTIM} units={units.filter((u) => u.kind !== "volunteer" || u.id === "v0")} zones={d.zones} />
+        <LiveMapLazy className="h-64 tactical-grid lg:h-full lg:min-h-[380px]" victim={VICTIM_POS} route={ROUTE_TO_VICTIM} units={units.filter((u) => u.kind !== "volunteer" || u.id === "v0")} zones={d.zones} />
         <div className="absolute bottom-3 left-3 rounded-xl bg-navy/90 px-3 py-2 text-paper">
           <p className="text-[10px] uppercase opacity-60">Distance to victim</p>
           <p className="font-display text-xl font-extrabold">{dist} km · {Math.max(0, Math.ceil(3 * (1 - progress)))} min</p>

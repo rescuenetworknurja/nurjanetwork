@@ -7,7 +7,8 @@ import { useDemo } from "@/lib/demo-store";
 import { DISPATCH_UNITS, VICTIM_POS, VOLUNTEER_POS, isFixedUnit, type Responder } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { CameraFeed } from "../CameraFeed";
-import { TacticalMap, type MapUnit } from "../TacticalMap";
+import { LiveMapLazy } from "../LiveMapLazy";
+import type { MapUnit } from "../TacticalMap";
 import { PinInput, PwaBadge } from "./ui";
 import { Slogan } from "@/lib/i18n";
 
@@ -231,7 +232,7 @@ function ActiveSos() {
         </div>
 
         <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
-          <TacticalMap className="h-56" victim={VICTIM_POS} units={units} />
+          <LiveMapLazy className="h-56" victim={VICTIM_POS} units={units} />
           <div className="divide-y">
             <p className="px-3.5 py-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Incoming responders</p>
             {police.map((u) => { const I = KIcon[u.kind as keyof typeof KIcon] ?? Car; return (

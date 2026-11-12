@@ -17,7 +17,7 @@ import { IMAGES, isType1, type KycSubmission, type Responder, type Zone } from "
 import { fmtCoord, geoToMap, isLat, isLng, mapToGeo, parseCoordPair } from "@/lib/geo";
 import { ageFromDob, generateVolunteerId } from "@/lib/ids";
 import { cn } from "@/lib/utils";
-import { TacticalMap } from "../TacticalMap";
+import { LiveMapLazy } from "../LiveMapLazy";
 import { PostCard } from "../PostCard";
 import { Card, PageHead } from "./Dashboard";
 
@@ -190,7 +190,7 @@ function UnitForm({ onDone }: { onDone: () => void }) {
         <div className="space-y-2 rounded-xl border p-4">
           <p className="flex items-center gap-2 text-sm font-bold"><MapPin className="h-4 w-4 text-navy dark:text-paper" /> Fixed location (স্থায়ী অবস্থান — Fixed GPS)</p>
           <p className="text-xs text-muted-foreground">Thana and Fari are stationary. Type the exact coordinates, paste a combined <span className="font-mono">23.6384699,90.4354191</span> string into either box, or click the map to drop the pin.</p>
-          <TacticalMap className="h-48 rounded-lg border" zones={d.zones} units={pos ? [{ id: "new", label: f.name || "New unit", kind, x: pos.x, y: pos.y, gps: "fixed" }] : []} onMapClick={pickOnMap} />
+          <LiveMapLazy className="h-48 rounded-lg border" zones={d.zones} units={pos ? [{ id: "new", label: f.name || "New unit", kind, x: pos.x, y: pos.y, gps: "fixed" }] : []} onMapClick={pickOnMap} />
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>Latitude (অক্ষাংশ)</Label><Input required={fixed} inputMode="decimal" className="font-mono" value={geo.lat} onChange={(e) => onCoordChange("lat", e.target.value)} placeholder="23.6384699" /></div>
             <div className="space-y-1.5"><Label>Longitude (দ্রাঘিমাংশ)</Label><Input required={fixed} inputMode="decimal" className="font-mono" value={geo.lng} onChange={(e) => onCoordChange("lng", e.target.value)} placeholder="90.4354191" /></div>
@@ -402,7 +402,7 @@ export function HazardSection() {
       <PageHead title="Safe Route Hazard Manager" sub="Click anywhere on the map to add an unsafe zone. Changes show in the NURJA Safe Route map instantly." />
       <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
         <Card className="overflow-hidden p-0">
-          <TacticalMap className="h-[560px]" zones={d.zones} selectedZone={sel ?? undefined} onMapClick={add} showLabels />
+          <LiveMapLazy className="h-[560px]" zones={d.zones} selectedZone={sel ?? undefined} onMapClick={add} showLabels />
         </Card>
         <div className="space-y-4">
           <Card>
