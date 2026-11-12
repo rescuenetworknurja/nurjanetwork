@@ -176,7 +176,7 @@ function Shell() {
   );
 
   return (
-    <div className="dark flex h-screen overflow-hidden bg-background text-foreground">
+    <div className="dark flex h-dvh overflow-hidden bg-background text-foreground">
       {/* Tablet rail / desktop sidebar */}
       <aside className="hidden w-20 shrink-0 flex-col bg-navy md:flex lg:w-72">
         <div className="flex h-16 items-center justify-center border-b border-paper/10 lg:justify-start lg:px-5">
@@ -210,9 +210,9 @@ function Shell() {
       </aside>
 
       {/* Main column */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))] md:pb-0">
         {/* Mobile header */}
-        <div className="bg-navy px-4 pb-3 pt-4 md:hidden">
+        <div className="shrink-0 bg-navy px-4 pb-3 pt-4 md:hidden">
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-navy-3 p-1">
             {[1, 2].map((n) => (
               <button key={n} onClick={() => switchType(n as 1 | 2)}
@@ -239,9 +239,9 @@ function Shell() {
         </div>
 
         {/* Content */}
-        <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto pb-24 md:pb-0">
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
           {tab === "map" && (
-            <div className="flex min-h-full flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="flex min-h-full shrink-0 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_380px]">
               <div className="flex min-w-0 flex-col">
                 {navigating ? <Navigate type1={t1} /> : <DispatchHome mine={mine} onSim={onSim} />}
                 {d.sos && <div className="px-4 pb-4 lg:hidden"><VictimCamera camera={d.sos.camera} /></div>}
