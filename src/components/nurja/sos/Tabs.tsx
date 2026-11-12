@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { geocode, type LatLng } from "@/lib/routing";
 import { findSafeRoutes, type Scored } from "@/lib/safe-route";
-import { Share2, MessageSquare, ArrowUpDown, Circle, Clock, Fingerprint, KeyRound, LogOut, MapPin, Phone, Route as RouteIcon, ShieldCheck, ShieldAlert, Lock, UserRound, Users } from "lucide-react";
+import { useTripShare, trackUrl } from "@/lib/trip-share";
+import { Radio, Share2, MessageSquare, ArrowUpDown, Circle, Clock, Fingerprint, KeyRound, LogOut, MapPin, Phone, Route as RouteIcon, ShieldCheck, ShieldAlert, Lock, UserRound, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export function SafeRouteTab() {
   const [opts, setOpts] = useState<{ ranked: Scored[]; fastest: Scored | null; ends: [LatLng, LatLng] } | null>(null);
   const [pick, setPick] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
+  const trip = useTripShare(me);
   const chosen = opts?.ranked[pick];
   const res = opts && chosen ? { ...chosen, ends: opts.ends } : null;
 
@@ -130,23 +132,29 @@ export function SafeRouteTab() {
           <Button disabled={busy} className="mt-2 h-11 w-full rounded-lg bg-emerald hover:bg-emerald/90" onClick={start}>{busy ? "Finding route…" : "Start safe navigation"}</Button>
         </div>
       </div>
-      <ShareTripDialog open={shareOpen} onOpenChange={setShareOpen} me={me} dest={res?.ends[1]} destLabel={to} minutes={res ? Math.round(res.seconds / 60) : undefined} />
+      {trip.id && (
+        <div className="absolute inset-x-3 top-[118px] z-[500] flex items-center justify-between gap-2 rounded-xl border border-emerald bg-card px-3 py-2 text-xs shadow-card">
+          <span className="font-bold text-emerald">● Live location sharing on</span>
+          <Button size="sm" variant="destructive" className="h-7 rounded-lg" onClick={async () => { await trip.stop(); window.__lovableEvents?.track?.("project.trip_share_stopped", {}); toast.success("Sharing stopped"); }}>Stop sharing</Button>
+        </div>
+      )}
+      <ShareTripDialog trip={trip} open={shareOpen} onOpenChange={setShareOpen} me={me} dest={res?.ends[1]} destLabel={to} minutes={res ? Math.round(res.seconds / 60) : undefined} />
     </div>
   );
 }
 
 const mapsLink = (p: LatLng) => `https://www.google.com/maps?q=${p[0].toFixed(6)},${p[1].toFixed(6)}`;
 
-function ShareTripDialog({ open, onOpenChange, me, dest, destLabel, minutes }: { open: boolean; onOpenChange: (o: boolean) => void; me?: LatLng | undefined; dest?: LatLng | undefined; destLabel: string; minutes?: number | undefined }) {
+function ShareTripDialog({ trip, open, onOpenChange, me, dest, destLabel, minutes }: { trip: ReturnType<typeof useTripShare>; open: boolean; onOpenChange: (o: boolean) => void; me?: LatLng | undefined; dest?: LatLng | undefined; destLabel: string; minutes?: number | undefined }) {
   const { user } = useDemo();
   const [who, setWho] = useState<"emergency" | "custom">("emergency");
   const [phone, setPhone] = useState("");
-  const [live, setLive] = useState(false);
   const meRef = useRef(me);
   meRef.current = me;
   const target = who === "emergency" ? user.emergencyPhone : phone.trim();
   const message = () => {
     const parts = [`NURJA: ${user.name} is sharing their trip with you.`];
+    if (trip.id) parts.push(`Live tracking: ${trackUrl(trip.id)}`);
     if (meRef.current) parts.push(`Current location: ${mapsLink(meRef.current)}`);
     if (dest) parts.push(`Going to: ${destLabel || "destination"} ${mapsLink(dest)}${minutes ? ` (~${minutes} min)` : ""}`);
     return parts.join("\n");
@@ -155,17 +163,12 @@ function ShareTripDialog({ open, onOpenChange, me, dest, destLabel, minutes }: {
     if (!meRef.current) { toast.error("Your location is not available yet"); return; }
     if (!/^01\d{9}$/.test(target)) { toast.error("Enter a valid 01XXXXXXXXX number"); return; }
     const text = message();
-    window.__lovableEvents?.track?.("project.trip_shared", { channel, contact: who, has_route: !!dest, live });
+    window.__lovableEvents?.track?.("project.trip_shared", { channel, contact: who, has_route: !!dest, live: !!trip.id });
     if (channel === "system" && navigator.share) { try { await navigator.share({ text }); } catch { return; } }
     else if (channel === "whatsapp") { const w = window.open(`https://wa.me/88${target}?text=${encodeURIComponent(text)}`, "_blank"); if (w) w.opener = null; if (!w) { await navigator.clipboard?.writeText(text).catch(() => {}); toast.info("WhatsApp could not open here — message copied, paste it in WhatsApp"); return; } }
     else window.location.href = `sms:+88${target}?body=${encodeURIComponent(text)}`;
     toast.success("Trip shared");
   };
-  useEffect(() => {
-    if (!live) return;
-    const id = window.setInterval(() => toast.info("Send a live location update to your trusted contact", { action: { label: "Send", onClick: () => void send("sms") } }), 5 * 60 * 1000);
-    return () => window.clearInterval(id);
-  }, [live, target]);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
@@ -176,7 +179,17 @@ function ShareTripDialog({ open, onOpenChange, me, dest, destLabel, minutes }: {
           </button>
           <button onClick={() => setWho("custom")} className={cn("w-full rounded-lg border p-3 text-left text-sm", who === "custom" && "border-emerald bg-emerald/10")}><b>Another person</b></button>
           {who === "custom" && <Input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))} inputMode="numeric" placeholder="01XXXXXXXXX" className="h-10 rounded-lg" />}
-          <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={live} onChange={(e) => setLive(e.target.checked)} /> Remind me every 5 min to send a location update</label>
+          {trip.id ? (
+            <div className="flex items-center justify-between gap-2 rounded-lg bg-emerald/10 p-2 text-xs">
+              <span className="font-semibold text-emerald">Live tracking link is on</span>
+              <Button size="sm" variant="ghost" className="h-7 text-crimson" onClick={async () => { await trip.stop(); window.__lovableEvents?.track?.("project.trip_share_stopped", {}); toast.success("Sharing stopped"); }}>Stop sharing</Button>
+            </div>
+          ) : (
+            <Button variant="outline" className="w-full rounded-lg" onClick={async () => {
+              try { await trip.start({ name: user.name, dest, destLabel }); window.__lovableEvents?.track?.("project.trip_share_started", { has_route: !!dest }); toast.success("Live tracking link created — now send it"); }
+              catch (e) { toast.error(e instanceof Error ? e.message : "Could not start sharing"); }
+            }}><Radio className="h-4 w-4" /> Create live tracking link</Button>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-2">
           <Button className="rounded-lg" onClick={() => void send("sms")}><MessageSquare className="h-4 w-4" /> SMS</Button>

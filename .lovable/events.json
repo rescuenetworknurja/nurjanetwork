@@ -140,6 +140,39 @@
         }
       }
     },
+    "project.trip_share_started": {
+      "event_schema_version": 1,
+      "description": "User creates a live tracking link.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "has_route"
+        ],
+        "properties": {
+          "has_route": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "project.trip_share_stopped": {
+      "event_schema_version": 1,
+      "description": "User stops live location sharing.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+      }
+    },
     "project.trip_shared": {
       "event_schema_version": 1,
       "description": "User sends their route and current location to a trusted person.",
