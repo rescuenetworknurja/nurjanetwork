@@ -11,6 +11,7 @@ export type SosState = {
   acceptedBy: string[];
 };
 export type DemoState = {
+  lang: "bn" | "en";
   appView: "onboarding" | "main";
   user: { name: string; phone: string; dob: string; adult: boolean; emergencyName: string; emergencyPhone: string; relation: string; pin: string };
   selfKycId: string;
@@ -27,6 +28,7 @@ export type DemoState = {
 };
 
 const initial: DemoState = {
+  lang: "bn",
   appView: "main",
   user: { name: "Nadia Hossain", phone: "01712349876", dob: "1999-03-14", adult: true, emergencyName: "Rehana Hossain", emergencyPhone: "01819876543", relation: "Mother", pin: "123456" },
   selfKycId: "self",
@@ -136,7 +138,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     },
     rejectVolunteer: (id) => set((s) => ({ volunteerApps: s.volunteerApps.map((a) => (a.id === id ? { ...a, status: "rejected" } : a)) })),
     addResponder: (r) => set((s) => ({ responders: [...s.responders, { ...r, id: `r${Date.now()}` }] })),
-    reset: () => setState(initial),
+    reset: () => setState((s) => ({ ...initial, lang: s.lang })),
   };
 
   return <StoreCtx.Provider value={ctx}>{children}</StoreCtx.Provider>;

@@ -193,3 +193,8 @@
 @utility animate-count { animation: count-pop .9s cubic-bezier(.2,.8,.2,1) both; }
 @utility animate-dash { animation: dash 1.2s linear infinite; }
 @utility animate-noise { animation: noise .4s steps(2) infinite; }
+
+/* Bangla typography: Hind Siliguri whenever the Bangla language is active */
+html[lang="bn"] body, html[lang="bn"] body *:not(.font-mono):not(code) {
+  font-family: "Hind Siliguri", "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
