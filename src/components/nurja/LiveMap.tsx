@@ -146,8 +146,8 @@ export default function LiveMap({
       {victim && <Marker position={toLatLng(victim.x, victim.y)} icon={victimIcon} zIndexOffset={1000} />}
       {path && path.length > 1 && (
         <>
-          <Polyline positions={path} pathOptions={{ color: "#10b981", weight: 9, opacity: 0.3, lineJoin: "round" }} />
-          <Polyline positions={path} pathOptions={{ color: "#059669", weight: 4, lineJoin: "round" }} />
+          <Polyline positions={path} pathOptions={{ color: routeTone === "crimson" ? "#e11d48" : "#10b981", weight: 9, opacity: 0.3, lineJoin: "round" }} />
+          <Polyline positions={path} pathOptions={{ color: routeTone === "crimson" ? "#be123c" : "#059669", weight: 4, lineJoin: "round" }} />
         </>
       )}
       {endpoints && <><Marker position={endpoints[0]} icon={pinIcon("#0f172a")} /><Marker position={endpoints[1]} icon={pinIcon("#10b981")} /></>}

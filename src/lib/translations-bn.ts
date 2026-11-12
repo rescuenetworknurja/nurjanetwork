@@ -168,6 +168,11 @@ export const BN: Record<string, string> = {
   "Accepted": "গ্রহণ করেছেন", "Responding": "রেসপন্ড করছেন", "Arrived": "পৌঁছেছেন",
 
   // ---------- NURJA app: tabs ----------
+  "Safest": "সবচেয়ে নিরাপদ", "Caution route": "সতর্কতার রুট", "Alternative route": "বিকল্প রুট",
+  "Passes through a high-risk zone": "উচ্চ ঝুঁকিপূর্ণ জোনের ভেতর দিয়ে যায়", "Avoids marked high-risk zones": "চিহ্নিত উচ্চ ঝুঁকিপূর্ণ জোন এড়িয়ে যায়",
+  "No safer alternative available. Stay alert, share live location, and keep SOS ready.": "নিরাপদ বিকল্প রুট নেই। সতর্ক থাকুন, লাইভ লোকেশন শেয়ার করুন এবং SOS প্রস্তুত রাখুন।",
+  "Nearby safety concerns": "আশেপাশের নিরাপত্তা ঝুঁকি", "Route passes through": "রুট ভেতর দিয়ে যায়", "Safe route found": "নিরাপদ রুট পাওয়া গেছে",
+  "No safer alternative available — route passes a high-risk zone": "নিরাপদ বিকল্প নেই — রুটটি উচ্চ ঝুঁকিপূর্ণ জোন দিয়ে যায়",
   "Risk": "ঝুঁকি", "High": "উচ্চ", "Safest Route": "সবচেয়ে নিরাপদ রুট", "Avoids 2 high-risk zones · via Nayapaltan & Kakrail": "২টি উচ্চ ঝুঁকিপূর্ণ জোন এড়িয়ে · নয়াপল্টন ও কাকরাইল হয়ে",
   "Safety score 92": "নিরাপত্তা স্কোর ৯২", "Fastest route: 19 min, 3 danger zones": "দ্রুততম রুট: ১৯ মিনিট, ৩টি ঝুঁকিপূর্ণ জোন",
   "Start safe navigation": "নিরাপদ পথ খুঁজুন", "Navigation started on safest route": "সবচেয়ে নিরাপদ রুটে নেভিগেশন শুরু হয়েছে",
@@ -392,4 +397,9 @@ export const BN_PATTERNS: [RegExp, string][] = [
   [/^Live on: (.+)$/, "প্রকাশিত: $1"],
   [/^Back camera · 720p · (.+)$/, "ব্যাক ক্যামেরা · 720p · $1"],
   [/^Front camera · 720p · (.+)$/, "ফ্রন্ট ক্যামেরা · 720p · $1"],
+  [/^Option (\d+)$/, "বিকল্প $1"],
+  [/^(\d+) m away$/, "$1 মি. দূরে"],
+  [/^(\d+) min · Avoids high-risk$/, "$1 মিনিট · ঝুঁকি এড়ায়"],
+  [/^(\d+) min · (\d+) high-risk$/, "$1 মিনিট · $2টি ঝুঁকি"],
+  [/^Fastest road crosses (\d+) high-risk zone\(s\) — this route adds (\d+) min to avoid it\.$/, "দ্রুততম রাস্তা $1টি উচ্চ ঝুঁকিপূর্ণ জোন অতিক্রম করে — এড়াতে এই রুটে $2 মিনিট বেশি লাগে।"],
 ];

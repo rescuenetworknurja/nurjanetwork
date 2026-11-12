@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { geocode, route, type LatLng } from "@/lib/routing";
+import { geocode, type LatLng } from "@/lib/routing";
+import { findSafeRoutes, type Scored } from "@/lib/safe-route";
 import { ArrowUpDown, Circle, Clock, Fingerprint, KeyRound, LogOut, MapPin, Phone, Route as RouteIcon, ShieldCheck, ShieldAlert, Lock, UserRound, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,9 @@ export function SafeRouteTab() {
   const [to, setTo] = useState("");
   const [me, setMe] = useState<LatLng | undefined>();
   const [busy, setBusy] = useState(false);
-  const [res, setRes] = useState<{ path: LatLng[]; meters: number; seconds: number; ends: [LatLng, LatLng] } | null>(null);
+  const [opts, setOpts] = useState<{ ranked: Scored[]; fastest: Scored | null; ends: [LatLng, LatLng] } | null>(null);
+  const [pick, setPick] = useState(0);
+  const res = opts ? { ...opts.ranked[pick], ends: opts.ends } : null;
 
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
@@ -50,10 +53,11 @@ export function SafeRouteTab() {
       const [a, b] = await Promise.all([resolve(from), resolve(to)]);
       if (!a) { toast.error(from === MY_LOC ? "Your location is not available yet" : "Start place not found"); return; }
       if (!b) { toast.error("Destination not found"); return; }
-      const r = await route(a, b);
-      if (!r) { toast.error("No route found"); return; }
-      setRes({ ...r, ends: [a, b] });
-      toast.success("Navigation started on safest route");
+      const r = await findSafeRoutes(a, b, zones);
+      if (!r.ranked.length) { toast.error("No route found"); return; }
+      setOpts({ ...r, ends: [a, b] }); setPick(0);
+      if (r.ranked[0].crossings > 0) toast.warning("No safer alternative available — route passes a high-risk zone");
+      else toast.success("Safe route found");
     } catch {
       toast.error("Route service unavailable, try again");
     } finally { setBusy(false); }
@@ -61,7 +65,7 @@ export function SafeRouteTab() {
 
   return (
     <div className="relative flex flex-1 flex-col">
-      <LiveMapLazy className="min-h-[60vh] flex-1" zones={zones} showLabels={false} me={me} path={res?.path} endpoints={res?.ends} />
+      <LiveMapLazy className="min-h-[60vh] flex-1" zones={zones} showLabels={false} me={me} path={res?.path} endpoints={res?.ends} routeTone={res?.crossings ? "crimson" : "emerald"} />
 
       <div className="absolute inset-x-3 top-3 z-[500] rounded-3xl border bg-card p-3 shadow-card">
         <div className="flex items-center gap-2">
@@ -76,14 +80,43 @@ export function SafeRouteTab() {
 
       <div className="absolute inset-x-3 bottom-3 z-[500] space-y-2">
         <div className="rounded-3xl border bg-card p-4 shadow-card">
-          {res ? (
-            <div className="flex items-start gap-3">
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald text-paper"><RouteIcon className="h-5 w-5" /></div>
-              <div className="flex-1">
-                <p className="font-display font-bold">Safest Route</p>
-                <p className="text-xs text-muted-foreground">Route shown on map</p>
+          {res && opts ? (
+            <div className="space-y-2.5">
+              {opts.ranked.length > 1 && (
+                <div className="flex gap-1.5">
+                  {opts.ranked.map((o, i) => (
+                    <button key={i} onClick={() => setPick(i)} className={cn("flex-1 rounded-lg border px-2 py-1.5 text-left text-[11px]", pick === i ? "border-emerald bg-emerald/10" : "bg-muted")}>
+                      <span className="block font-bold">{i === 0 ? "Safest" : `Option ${i + 1}`}</span>
+                      <span className="text-muted-foreground">{Math.round(o.seconds / 60)} min · {o.crossings ? `${o.crossings} high-risk` : "Avoids high-risk"}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-start gap-3">
+                <div className={cn("grid h-11 w-11 place-items-center rounded-2xl text-paper", res.crossings ? "bg-crimson" : "bg-emerald")}>{res.crossings ? <ShieldAlert className="h-5 w-5" /> : <RouteIcon className="h-5 w-5" />}</div>
+                <div className="flex-1">
+                  <p className="font-display font-bold">{res.crossings ? "Caution route" : pick === 0 ? "Safest Route" : "Alternative route"}</p>
+                  <p className="text-xs text-muted-foreground">{res.crossings ? "Passes through a high-risk zone" : "Avoids marked high-risk zones"}</p>
+                </div>
+                <div className="text-right"><p className="font-display text-lg font-extrabold">{Math.round(res.seconds / 60)} min</p><p className="text-[11px] text-muted-foreground">{(res.meters / 1000).toFixed(1)} km</p></div>
               </div>
-              <div className="text-right"><p className="font-display text-lg font-extrabold">{Math.round(res.seconds / 60)} min</p><p className="text-[11px] text-muted-foreground">{(res.meters / 1000).toFixed(1)} km</p></div>
+              {opts.ranked[0].crossings > 0 && (
+                <p className="rounded-lg bg-crimson/10 p-2 text-xs font-semibold text-crimson">No safer alternative available. Stay alert, share live location, and keep SOS ready.</p>
+              )}
+              {pick === 0 && opts.fastest && opts.fastest.crossings > res.crossings && (
+                <p className="text-[11px] text-muted-foreground">Fastest road crosses {opts.fastest.crossings} high-risk zone(s) — this route adds {Math.max(0, Math.round((res.seconds - opts.fastest.seconds) / 60))} min to avoid it.</p>
+              )}
+              {res.hits.length > 0 && (
+                <div className="max-h-24 space-y-1 overflow-y-auto">
+                  <p className="text-[11px] font-bold uppercase text-muted-foreground">Nearby safety concerns</p>
+                  {res.hits.map((h) => (
+                    <div key={h.zone.id} className="flex items-center justify-between rounded-lg bg-muted px-2 py-1 text-xs">
+                      <span className="flex items-center gap-1.5"><span className={cn("h-2 w-2 rounded-full", h.zone.rating >= 4 ? "bg-crimson" : "bg-amber")} />{h.zone.name}</span>
+                      <span className="text-muted-foreground">{h.inside ? "Route passes through" : `${h.meters} m away`} · {h.zone.rating}/5</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-xs text-muted-foreground">Enter a destination to see the safest route</p>
