@@ -87,7 +87,6 @@ export function HomeTab() {
           <Slogan className="mt-0.5 block text-[10px] font-semibold text-crimson/80" />
         </div>
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-full border border-emerald/30 bg-emerald-soft px-2.5 py-1 text-[10px] font-bold text-emerald"><span className="h-1.5 w-1.5 rounded-full bg-emerald animate-blink" />Coverage Zone: Active</span>
           <button className="relative grid h-10 w-10 place-items-center rounded-lg border bg-card shadow-sm"><Bell className="h-5 w-5" /><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-crimson" /></button>
         </div>
       </header>
