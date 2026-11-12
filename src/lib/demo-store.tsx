@@ -4,6 +4,7 @@ import {
   type CaseRecord, type KycStatus, type KycSubmission, type Post, type Responder, type VolunteerApp, type Zone,
 } from "./mock-data";
 import { generateVolunteerId } from "./ids";
+import { seedUsers, type AccountStatus, type AppUser } from "./users";
 import { seedInquiries, seedWebsite, type Inquiry, type WebsiteContent } from "./website-content";
 
 export type ResponderType = 1 | 2;
@@ -29,6 +30,7 @@ export type DemoState = {
   apiKeys: Record<string, string>;
   websiteContent: WebsiteContent;
   inquiries: Inquiry[];
+  users: AppUser[];
 };
 
 const initial: DemoState = {
@@ -49,6 +51,7 @@ const initial: DemoState = {
   apiKeys: {},
   websiteContent: seedWebsite,
   inquiries: seedInquiries,
+  users: seedUsers,
 };
 
 const KEY = "nurja-demo-v1";
@@ -68,6 +71,11 @@ type Ctx = DemoState & {
   rejectVolunteer: (id: string) => void;
   addResponder: (r: Omit<Responder, "id">) => void;
   submitInquiry: (q: Pick<Inquiry, "name" | "contact" | "subject" | "message">) => void;
+  selfStatus: AccountStatus;
+  selfBanReason: string | undefined;
+  setUserStatus: (id: string, status: AccountStatus, reason?: string) => void;
+  setUserKyc: (id: string, kyc: KycStatus) => void;
+  markUserFalseSos: (id: string) => void;
   reset: () => void;
 };
 
@@ -119,6 +127,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
       set((s) => ({
         sos: { id: `SOS-2611-${Math.floor(1000 + Math.random() * 8999)}`, startedAt: Date.now(), camera: "back",
           victim: s.user.name, phone: s.user.phone, area: "Toyenbee Circular Rd, Motijheel, Dhaka", acceptedBy: [] },
+        users: s.users.map((u) => (u.id === "self" ? { ...u, sosCount: u.sosCount + 1 } : u)),
       })),
     stopSos: (outcome = "Rescued safely") =>
       set((s) => {
@@ -147,6 +156,12 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     rejectVolunteer: (id) => set((s) => ({ volunteerApps: s.volunteerApps.map((a) => (a.id === id ? { ...a, status: "rejected" } : a)) })),
     addResponder: (r) => set((s) => ({ responders: [...s.responders, { ...r, id: `r${Date.now()}` }] })),
     submitInquiry: (q) => set((s) => ({ inquiries: [{ ...q, id: `q${Date.now()}`, at: new Date().toISOString().slice(0, 16).replace("T", " "), status: "new", notes: "" }, ...s.inquiries] })),
+    selfStatus: state.users.find((u) => u.id === "self")?.status ?? "active",
+    selfBanReason: state.users.find((u) => u.id === "self")?.banReason,
+    setUserStatus: (id, status, reason) =>
+      set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, status, banReason: status === "active" ? undefined : reason ?? u.banReason } : u)) })),
+    setUserKyc: (id, kyc) => set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, kyc } : u)) })),
+    markUserFalseSos: (id) => set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, falseCount: u.falseCount + 1 } : u)) })),
     reset: () => setState((s) => ({ ...initial, lang: s.lang })),
   };
 

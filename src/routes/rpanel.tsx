@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Globe, ChevronsLeft, FileCheck2, LayoutDashboard, Map, Moon, Newspaper, Settings, Siren, Sun, Users } from "lucide-react";
+import { Globe, ChevronsLeft, FileCheck2, LayoutDashboard, Map, Moon, Newspaper, Settings, Siren, Sun, UserCog, Users } from "lucide-react";
 import { RescueMark } from "@/components/nurja/Brand";
 import { DashboardSection, IncidentSection } from "@/components/nurja/panel/Dashboard";
 import { HazardSection, KycSection, NetworkSection, PublisherSection, SettingsSection } from "@/components/nurja/panel/Manage";
+import { UsersSection } from "@/components/nurja/panel/Users";
 import { WebsiteCmsSection } from "@/components/nurja/panel/WebsiteCms";
 import { useDemo } from "@/lib/demo-store";
 import { LangToggle } from "@/lib/i18n";
@@ -25,6 +26,7 @@ const NAV = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "incident", label: "Live Incident & Dispatch", icon: Siren },
   { id: "kyc", label: "KYC Approval Queue", icon: FileCheck2 },
+  { id: "users", label: "User Database", icon: UserCog },
   { id: "network", label: "Rescue Network", icon: Users },
   { id: "hazard", label: "Hazard Manager", icon: Map },
   { id: "publisher", label: "Community & Blog", icon: Newspaper },
@@ -37,7 +39,7 @@ function Panel() {
   const [sec, setSec] = useState("dashboard");
   const [dark, setDark] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
-  const badge = (id: string) => id === "kyc" ? d.kyc.filter((k) => k.status === "pending").length : id === "network" ? d.volunteerApps.filter((a) => a.status === "pending").length : id === "website" ? d.inquiries.filter((q) => q.status === "new").length : id === "incident" && d.sos ? 1 : 0;
+  const badge = (id: string) => id === "kyc" ? d.kyc.filter((k) => k.status === "pending").length : id === "users" ? d.users.filter((u) => u.status !== "active").length : id === "network" ? d.volunteerApps.filter((a) => a.status === "pending").length : id === "website" ? d.inquiries.filter((q) => q.status === "new").length : id === "incident" && d.sos ? 1 : 0;
   return (
     <div className={cn("flex min-h-screen bg-background text-foreground", dark && "dark")}>
       <aside className={cn("sticky top-0 flex h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all", collapsed ? "w-[72px]" : "w-64")}>
@@ -65,6 +67,7 @@ function Panel() {
         {sec === "dashboard" && <DashboardSection go={setSec} />}
         {sec === "incident" && <IncidentSection />}
         {sec === "kyc" && <KycSection />}
+        {sec === "users" && <UsersSection />}
         {sec === "network" && <NetworkSection />}
         {sec === "hazard" && <HazardSection />}
         {sec === "publisher" && <PublisherSection />}
