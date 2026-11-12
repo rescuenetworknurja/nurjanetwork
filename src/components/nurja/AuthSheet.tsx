@@ -13,9 +13,12 @@ import { cn } from "@/lib/utils";
 export function NurjaAuthForm({
   initialMode = "signin",
   onDone,
+  onSignedUp,
 }: {
   initialMode?: "signin" | "signup";
   onDone?: () => void;
+  /** Called after a successful signup that returned a session (before onDone). */
+  onSignedUp?: (() => void) | undefined;
 }) {
   const d = useDemo();
   const bn = d.lang === "bn";
@@ -53,6 +56,7 @@ export function NurjaAuthForm({
       if (mode === "signup") {
         const data = await signUpWithPhone({ phone, password, fullName: fullName.trim() });
         if (data.session) {
+          onSignedUp?.();
           onDone?.();
         } else {
           toast.success(t.signedUp);
@@ -155,10 +159,12 @@ export function AuthSheet({
   open,
   initialMode,
   onClose,
+  onSignedUp,
 }: {
   open: boolean;
   initialMode: "signin" | "signup";
   onClose: () => void;
+  onSignedUp?: () => void;
 }) {
   const d = useDemo();
   if (!open) return null;
@@ -178,7 +184,7 @@ export function AuthSheet({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <NurjaAuthForm key={initialMode} initialMode={initialMode} onDone={onClose} />
+        <NurjaAuthForm key={initialMode} initialMode={initialMode} onDone={onClose} onSignedUp={onSignedUp} />
       </div>
     </div>
   );

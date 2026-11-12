@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 const RELATIONS = ["Mother", "Father", "Sister", "Brother", "Husband", "Guardian", "Friend"];
 
 export function SignedOutSplash() {
+  const d = useDemo();
   const [auth, setAuth] = useState<"signin" | "signup" | null>(null);
   return (
     <div className="relative flex flex-1 flex-col items-center justify-between overflow-hidden bg-hero px-8 pb-12 pt-24 text-center">
@@ -34,7 +35,12 @@ export function SignedOutSplash() {
         <Button size="lg" className="h-14 w-full rounded-lg text-base shadow-sos" onClick={() => setAuth("signin")}>Login</Button>
         <Button size="lg" variant="outline" className="h-14 w-full rounded-lg text-base" onClick={() => setAuth("signup")}>Create account</Button>
       </div>
-      <AuthSheet open={auth !== null} initialMode={auth ?? "signin"} onClose={() => setAuth(null)} />
+      <AuthSheet
+        open={auth !== null}
+        initialMode={auth ?? "signin"}
+        onClose={() => setAuth(null)}
+        onSignedUp={() => d.set({ appView: "onboarding" })}
+      />
     </div>
   );
 }

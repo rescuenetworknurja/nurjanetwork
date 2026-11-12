@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { NurjaAuthForm } from "@/components/nurja/AuthSheet";
 import { LangToggle } from "@/lib/i18n";
 import { useSession } from "@/lib/auth";
+import { useDemo } from "@/lib/demo-store";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): { redirect: string; mode?: "signup" | undefined } => ({
@@ -26,6 +27,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const { redirect, mode: initialMode } = Route.useSearch();
   const session = useSession();
+  const d = useDemo();
 
   useEffect(() => {
     if (!session.loading && session.user) {
@@ -41,6 +43,7 @@ function AuthPage() {
           key={initialMode ?? "signin"}
           initialMode={initialMode ?? "signin"}
           onDone={() => void navigate({ to: redirect as never })}
+          onSignedUp={() => d.set({ appView: "onboarding" })}
         />
       </div>
     </div>
