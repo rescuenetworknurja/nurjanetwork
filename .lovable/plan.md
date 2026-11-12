@@ -27,3 +27,8 @@ Sidebar with light/dark switch and 7 sections: Dashboard (KPIs + map), Live Inci
 - framer-motion added; shadcn components (dialog, drawer, tabs, table, switch, input-otp, calendar, sonner) generated as needed.
 - Logos uploaded as hosted assets; favicon taken from the app icon.
 - Each page gets its own title and description.
+
+## Live sync across interfaces
+- One shared demo store for all 4 interfaces, saved in the browser and synced across tabs. Triggering SOS in the NURJA app shows up right away as an incoming alert in Rescue Network and as an active incident in the Control Panel. Stopping it clears the alert everywhere.
+- Approving or rejecting KYC in the Control Panel updates the user's badge and unlocks SOS. Approving a volunteer generates a V-XXXXXX ID that shows in the Rescue Network profile.
+- The Profile and Home screens of the NURJA app show an "Offline PWA Cache Ready" indicator. It is visual only; real offline caching comes later.
