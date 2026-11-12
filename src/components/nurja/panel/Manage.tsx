@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDemo } from "@/lib/demo-store";
 import { IMAGES, isType1, type KycSubmission, type Responder, type Zone } from "@/lib/mock-data";
+import { fmtCoord, geoToMap, isLat, isLng, mapToGeo, parseCoordPair } from "@/lib/geo";
 import { ageFromDob, generateVolunteerId } from "@/lib/ids";
 import { cn } from "@/lib/utils";
 import { TacticalMap } from "../TacticalMap";
@@ -122,15 +123,38 @@ function UnitForm({ onDone }: { onDone: () => void }) {
   const [kind, setKind] = useState<"station" | "fari" | "patrol">("station");
   const [f, setF] = useState({ name: "", nameBn: "", code: "", area: "", inCharge: "", rank: "", phone: "", password: "", vehicleNo: "", patrolZone: "" });
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [geo, setGeo] = useState({ lat: "", lng: "" });
   const fixed = kind !== "patrol";
+
+  /** Fill the coordinate boxes from a map click. */
+  const pickOnMap = (x: number, y: number) => {
+    setPos({ x, y });
+    const g = mapToGeo(x, y);
+    setGeo({ lat: fmtCoord(g.lat), lng: fmtCoord(g.lng) });
+  };
+
+  /** Editable coordinate box — supports pasting a combined "lat,lng" string into either box. */
+  const onCoordChange = (field: "lat" | "lng", value: string) => {
+    const pair = parseCoordPair(value);
+    if (pair) {
+      setGeo({ lat: fmtCoord(pair.lat), lng: fmtCoord(pair.lng) });
+      setPos(geoToMap(pair.lat, pair.lng));
+      return;
+    }
+    const next = { ...geo, [field]: value };
+    setGeo(next);
+    if (isLat(next.lat) && isLng(next.lng)) setPos(geoToMap(+next.lat, +next.lng));
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (fixed && !pos) { toast.error("Pick the fixed location on the map"); return; }
+    if (fixed && !(isLat(geo.lat) && isLng(geo.lng))) { toast.error("Enter the fixed Latitude & Longitude or pick on the map"); return; }
     const code = f.code || (kind === "station" ? `THANA-DHK-${String(d.responders.filter((r) => r.kind === "station").length + 1).padStart(2, "0")}` : kind === "fari" ? `FARI-NRG-${String(d.responders.filter((r) => r.kind === "fari").length + 1).padStart(2, "0")}` : `PATROL-${100 + d.responders.filter((r) => r.kind === "patrol").length + 1}`);
     d.addResponder({
       name: f.name, nameBn: f.nameBn || undefined, kind, code, area: f.area, phone: f.phone, online: false,
       fixed, x: pos?.x ?? 30 + Math.random() * 40, y: pos?.y ?? 30 + Math.random() * 40,
+      lat: fixed && isLat(geo.lat) ? +geo.lat : undefined,
+      lng: fixed && isLng(geo.lng) ? +geo.lng : undefined,
       inCharge: f.inCharge || undefined, rank: f.rank || undefined, password: f.password || undefined,
       vehicleNo: kind === "patrol" ? f.vehicleNo || undefined : undefined,
       patrolZone: kind === "patrol" ? f.patrolZone || undefined : undefined,
@@ -165,11 +189,11 @@ function UnitForm({ onDone }: { onDone: () => void }) {
       {fixed ? (
         <div className="space-y-2 rounded-xl border p-4">
           <p className="flex items-center gap-2 text-sm font-bold"><MapPin className="h-4 w-4 text-navy dark:text-paper" /> Fixed location (স্থায়ী অবস্থান — Fixed GPS)</p>
-          <p className="text-xs text-muted-foreground">Thana and Fari are stationary. Click the map to drop the pin — the unit shows as a fixed marker on every map.</p>
-          <TacticalMap className="h-48 rounded-lg border" zones={d.zones} units={pos ? [{ id: "new", label: f.name || "New unit", kind, x: pos.x, y: pos.y, gps: "fixed" }] : []} onMapClick={(x, y) => setPos({ x, y })} />
+          <p className="text-xs text-muted-foreground">Thana and Fari are stationary. Type the exact coordinates, paste a combined <span className="font-mono">23.6384699,90.4354191</span> string into either box, or click the map to drop the pin.</p>
+          <TacticalMap className="h-48 rounded-lg border" zones={d.zones} units={pos ? [{ id: "new", label: f.name || "New unit", kind, x: pos.x, y: pos.y, gps: "fixed" }] : []} onMapClick={pickOnMap} />
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>Latitude</Label><Input readOnly value={pos ? (23.6 + pos.y / 100 * 0.25).toFixed(4) : ""} placeholder="Pick on map" /></div>
-            <div className="space-y-1.5"><Label>Longitude</Label><Input readOnly value={pos ? (90.3 + pos.x / 100 * 0.25).toFixed(4) : ""} placeholder="Pick on map" /></div>
+            <div className="space-y-1.5"><Label>Latitude (অক্ষাংশ)</Label><Input required={fixed} inputMode="decimal" className="font-mono" value={geo.lat} onChange={(e) => onCoordChange("lat", e.target.value)} placeholder="23.6384699" /></div>
+            <div className="space-y-1.5"><Label>Longitude (দ্রাঘিমাংশ)</Label><Input required={fixed} inputMode="decimal" className="font-mono" value={geo.lng} onChange={(e) => onCoordChange("lng", e.target.value)} placeholder="90.4354191" /></div>
           </div>
         </div>
       ) : (
@@ -288,7 +312,7 @@ export function NetworkSection() {
                     <TableCell>{KIND_LABEL[r.kind]}<span className="block text-[11px] text-muted-foreground">{KIND_LABEL_BN[r.kind]}</span></TableCell>
                     <TableCell>{r.area}</TableCell>
                     <TableCell className="text-xs">{r.inCharge}{r.rank && <span className="block text-muted-foreground">{r.rank}</span>}</TableCell>
-                    <TableCell><GpsBadge fixed={!!r.fixed} /></TableCell>
+                    <TableCell><GpsBadge fixed={!!r.fixed} />{r.fixed && r.lat !== undefined && r.lng !== undefined && <span className="mt-1 block font-mono text-[10px] text-muted-foreground">{fmtCoord(r.lat)}, {fmtCoord(r.lng)}</span>}</TableCell>
                     <TableCell><OnlineDot on={r.online} /></TableCell>
                   </TableRow>
                 ))}

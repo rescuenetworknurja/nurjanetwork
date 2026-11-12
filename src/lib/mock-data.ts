@@ -2,6 +2,7 @@ import volunteers from "@/assets/story-volunteers.jpg";
 import patrol from "@/assets/story-patrol.jpg";
 import workshop from "@/assets/story-workshop.jpg";
 import hero from "@/assets/hero-night-street.jpg";
+import { mapToGeo } from "./geo";
 
 export type KycStatus = "pending" | "approved" | "rejected";
 export type Post = {
@@ -23,6 +24,8 @@ export type Responder = {
   code: string; area: string; phone: string; online: boolean;
   /** Type 1 station/fari are fixed installations; everything else uses live device GPS. */
   fixed?: boolean | undefined; x?: number | undefined; y?: number | undefined;
+  /** Decimal GPS coordinates (e.g. 23.6384699, 90.4354191); set for fixed units. */
+  lat?: number | undefined; lng?: number | undefined;
   vehicleNo?: string | undefined; patrolZone?: string | undefined;
   inCharge?: string | undefined; rank?: string | undefined; station?: string | undefined;
   nid?: string | undefined; password?: string | undefined; hasPhoto?: boolean | undefined;
@@ -80,8 +83,8 @@ export const seedVolunteerApps: VolunteerApp[] = [
 export const seedResponders: Responder[] = [
   { id: "r1", name: "Patrol Unit DMP-07", nameBn: "পেট্রোল ইউনিট DMP-07", kind: "patrol", code: "PATROL-104", area: "Motijheel", phone: "01320000007", online: true, x: 30, y: 34, vehicleNo: "DHA-GA-17-4407", patrolZone: "Motijheel–Paltan ring", inCharge: "SI Mahmudul Hasan", rank: "Sub-Inspector" },
   { id: "r2", name: "Patrol Unit DMP-12", nameBn: "পেট্রোল ইউনিট DMP-12", kind: "patrol", code: "PATROL-112", area: "Paltan", phone: "01320000012", online: true, x: 70, y: 30, vehicleNo: "DHA-GA-17-4412", patrolZone: "Paltan–Gulistan ring", inCharge: "ASI Ruma Akter", rank: "Assistant Sub-Inspector" },
-  { id: "r3", name: "Police Fari — Wari", nameBn: "পুলিশ ফাঁড়ি — ওয়ারী", kind: "fari", code: "FARI-NRG-02", area: "Wari", phone: "01320000103", online: true, fixed: true, x: 74, y: 70, inCharge: "SI Sharmin Sultana", rank: "Sub-Inspector" },
-  { id: "r4", name: "Motijheel Police Station", nameBn: "মতিঝিল থানা", kind: "station", code: "THANA-DHK-01", area: "Motijheel", phone: "01320000200", online: true, fixed: true, x: 24, y: 72, inCharge: "OC Rafiqul Islam", rank: "Officer-in-Charge" },
+  { id: "r3", name: "Police Fari — Wari", nameBn: "পুলিশ ফাঁড়ি — ওয়ারী", kind: "fari", code: "FARI-NRG-02", area: "Wari", phone: "01320000103", online: true, fixed: true, x: 74, y: 70, ...mapToGeo(74, 70), inCharge: "SI Sharmin Sultana", rank: "Sub-Inspector" },
+  { id: "r4", name: "Motijheel Police Station", nameBn: "মতিঝিল থানা", kind: "station", code: "THANA-DHK-01", area: "Motijheel", phone: "01320000200", online: true, fixed: true, x: 24, y: 72, ...mapToGeo(24, 72), inCharge: "OC Rafiqul Islam", rank: "Officer-in-Charge" },
   { id: "r5", name: "Rakibul Islam", kind: "volunteer", code: "V-J75UN2", area: "Shantinagar", phone: "01711000001", online: true, x: 42, y: 40 },
   { id: "r6", name: "SI Tanvir Ahmed", kind: "officer", code: "TF-902", area: "Ramna", phone: "01711000902", online: true, x: 58, y: 38, rank: "Sub-Inspector", station: "Ramna Police Station" },
   { id: "r7", name: "Ayesha Siddika", kind: "volunteer", code: "V-K28PQ4", area: "Kakrail", phone: "01711000002", online: false, x: 60, y: 60 },
