@@ -28,3 +28,5 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- Prototype has no backend: all cross-interface state lives in `src/lib/demo-store.tsx` (React context persisted to localStorage, synced across tabs via the storage event), so the public site, user app, responder app and control panel stay in sync until a real backend replaces it.

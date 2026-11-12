@@ -44,7 +44,7 @@ export function DemoSwitcher() {
         <div className="mt-2 w-[280px] space-y-3 rounded-2xl border border-paper/10 bg-navy/95 p-3 text-paper shadow-2xl backdrop-blur animate-rise">
           <div className="grid grid-cols-2 gap-1.5">
             {VIEWS.map((v) => (
-              <Link key={v.to} to={v.to} onClick={() => setOpen(false)}
+              <Link key={v.to} to={v.to as "/"} onClick={() => setOpen(false)}
                 className={cn("flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold transition",
                   base?.to === v.to ? "bg-crimson text-paper" : "bg-navy-2 text-paper/80 hover:bg-navy-3")}>
                 <v.icon className="h-3.5 w-3.5" /> {v.label}

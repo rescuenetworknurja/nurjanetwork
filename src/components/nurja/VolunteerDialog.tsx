@@ -18,8 +18,8 @@ export function VolunteerDialog({ children }: { children: ReactNode }) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValidBdPhone(f.phone)) return toast.error("Phone must be 11 digits like 01XXXXXXXXX");
-    if (!photo) return toast.error("Please upload a photo of your NID");
+    if (!isValidBdPhone(f.phone)) { toast.error("Phone must be 11 digits like 01XXXXXXXXX"); return; }
+    if (!photo) { toast.error("Please upload a photo of your NID"); return; }
     submitVolunteer({ ...f, hasPhoto: true });
     toast.success("Application sent to Control Panel", { description: "Your Volunteer ID (e.g., V-J75UN2) will be generated upon approval." });
     setOpen(false); setPhoto(null);

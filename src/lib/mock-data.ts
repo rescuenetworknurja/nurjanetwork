@@ -5,7 +5,7 @@ import hero from "@/assets/hero-night-street.jpg";
 
 export type KycStatus = "pending" | "approved" | "rejected";
 export type Post = {
-  id: string; title: string; excerpt: string; body: string; image?: string; youtube?: string;
+  id: string; title: string; excerpt: string; body: string; image?: string | undefined; youtube?: string | undefined;
   tag: string; date: string; author: string; targets: { app: boolean; rescue: boolean; blog: boolean };
 };
 export type Zone = { id: string; name: string; x: number; y: number; r: number; rating: 1 | 2 | 3 | 4 | 5 };
@@ -92,6 +92,6 @@ export const DISPATCH_UNITS = [
   { id: "u3", label: "Police Fari — Wari", kind: "fari" as const, x: 74, y: 70, eta: 6, dist: 2.2 },
   { id: "u4", label: "Motijheel PS", kind: "station" as const, x: 24, y: 72, eta: 8, dist: 2.9 },
 ];
-export const VOLUNTEER_POS = [
+export const VOLUNTEER_POS = ([
   [42, 40], [58, 38], [60, 60], [40, 62], [36, 50], [64, 48], [52, 30], [48, 70], [30, 56], [68, 58],
-].map(([x, y], i) => ({ id: `v${i}`, label: i === 0 ? "V-J75UN2" : `V-${(i * 7919).toString(36).toUpperCase().padStart(6, "Q").slice(0, 6)}`, x, y, eta: 2 + (i % 5), dist: +(0.4 + i * 0.17).toFixed(1) }));
+] as [number, number][]).map(([x, y], i) => ({ id: `v${i}`, label: i === 0 ? "V-J75UN2" : `V-${(i * 7919).toString(36).toUpperCase().padStart(6, "Q").slice(0, 6)}`, x, y, eta: 2 + (i % 5), dist: +(0.4 + i * 0.17).toFixed(1) }));

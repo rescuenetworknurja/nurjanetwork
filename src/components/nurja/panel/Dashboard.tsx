@@ -120,7 +120,7 @@ export function IncidentSection() {
             <div className="mt-4 max-h-44 space-y-1.5 overflow-y-auto text-sm">
               {[...police, ...vols.slice(0, 4)].map((u) => (
                 <div key={u.id} className="flex items-center justify-between rounded-lg bg-muted px-3 py-1.5">
-                  <span className="flex items-center gap-2"><span className={cn("h-2 w-2 rounded-full", u.kind === "volunteer" ? "bg-emerald" : "bg-navy-3")} />{u.label}{s.acceptedBy.includes(u.label) && <span className="text-[10px] font-bold text-emerald">ACCEPTED</span>}</span>
+                  <span className="flex items-center gap-2"><span className={cn("h-2 w-2 rounded-full", u.kind === "volunteer" ? "bg-emerald" : "bg-amber")} />{u.label}{s.acceptedBy.includes(u.label) && <span className="text-[10px] font-bold text-emerald">ACCEPTED</span>}</span>
                   <span className="flex items-center gap-1 tabular-nums text-muted-foreground"><Clock className="h-3 w-3" />{u.eta === 0 ? "On scene" : `${u.eta} min · ${u.dist} km`}</span>
                 </div>
               ))}

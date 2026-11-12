@@ -22,7 +22,7 @@ export function useConvergingUnits(startedAt: number | undefined, accepted: stri
   const t = startedAt ? Math.min(1, (now - startedAt) / 90000) : 0;
   const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
   const units: (MapUnit & { dist: number })[] = [
-    ...DISPATCH_UNITS.map((u) => ({ ...u, x: lerp(u.x, VICTIM_POS.x, t * 0.85), y: lerp(u.y, VICTIM_POS.y, t * 0.85), eta: Math.max(0, Math.ceil(u.eta * (1 - t))), dist: +(u.dist * (1 - t * 0.85)).toFixed(1) })),
+    ...DISPATCH_UNITS.map((u) => ({ ...u, x: lerp(u.x, VICTIM_POS.x, t * 0.85), y: lerp(u.y, VICTIM_POS.y, t * 0.85), eta: Math.max(0, Math.ceil((u.eta ?? 0) * (1 - t))), dist: +(u.dist * (1 - t * 0.85)).toFixed(1) })),
     ...VOLUNTEER_POS.map((v, i) => {
       const k = i < 3 || accepted.includes(v.label) ? t * 0.9 : t * 0.2;
       return { ...v, kind: "volunteer" as const, x: lerp(v.x, VICTIM_POS.x, k), y: lerp(v.y, VICTIM_POS.y, k), eta: Math.max(0, Math.ceil(v.eta * (1 - k))), dist: +(v.dist * (1 - k)).toFixed(1) };
@@ -217,7 +217,7 @@ function ActiveSos() {
   );
 }
 
-function Row({ icon, tone, title, sub, eta }: { icon: React.ReactNode; tone: string; title: string; sub: string; eta?: number }) {
+function Row({ icon, tone, title, sub, eta }: { icon: React.ReactNode; tone: string; title: string; sub: string; eta?: number | undefined }) {
   return (
     <div className="flex items-center gap-3 px-3.5 py-2.5">
       <div className={cn("grid h-8 w-8 place-items-center rounded-full text-paper", tone)}>{icon}</div>

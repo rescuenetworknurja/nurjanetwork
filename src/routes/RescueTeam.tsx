@@ -148,7 +148,7 @@ function Navigate({ type1 }: { type1: boolean }) {
     { i: CornerUpRight, t: "Victim on right, near Sonali Bank gate", d: "150 m" },
   ];
   const cur = Math.min(2, Math.floor(progress * 3));
-  const S = steps[cur];
+  const S = steps[cur]!;
   return (
     <div className="flex flex-1 flex-col">
       {type1 && (
@@ -159,7 +159,7 @@ function Navigate({ type1 }: { type1: boolean }) {
       )}
       <div className="flex items-center gap-3 bg-emerald px-4 py-3 text-paper">
         <S.i className="h-9 w-9" />
-        <div className="flex-1"><p className="font-display text-lg font-bold leading-tight">{S.t}</p><p className="text-xs opacity-80">then {steps[Math.min(2, cur + 1)].t.toLowerCase()}</p></div>
+        <div className="flex-1"><p className="font-display text-lg font-bold leading-tight">{S.t}</p><p className="text-xs opacity-80">then {steps[Math.min(2, cur + 1)]!.t.toLowerCase()}</p></div>
         <p className="font-display text-xl font-extrabold">{S.d}</p>
       </div>
       <div className="relative">

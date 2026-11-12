@@ -2,7 +2,7 @@ import { Building2, Car, Shield, Siren, User } from "lucide-react";
 import type { Zone } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
-export type MapUnit = { id: string; label: string; kind: "patrol" | "fari" | "station" | "volunteer" | "officer" | "self"; x: number; y: number; eta?: number };
+export type MapUnit = { id: string; label: string; kind: "patrol" | "fari" | "station" | "volunteer" | "officer" | "self"; x: number; y: number; eta?: number | undefined };
 
 const zoneColor = (r: number) => (r >= 5 ? "var(--zone-5)" : r >= 4 ? "color-mix(in oklab, var(--zone-5) 55%, var(--zone-3))" : r >= 3 ? "var(--zone-3)" : r >= 2 ? "color-mix(in oklab, var(--zone-3) 50%, var(--zone-1))" : "var(--zone-1)");
 const zoneOpacity = (r: number) => 0.3 + r * 0.08;
@@ -12,9 +12,9 @@ const ICONS = { patrol: Car, fari: Siren, station: Building2, volunteer: User, o
 export function TacticalMap({
   className, zones = [], victim, units = [], route, routeTone = "emerald", onMapClick, selectedZone, showLabels = false, children,
 }: {
-  className?: string; zones?: Zone[]; victim?: { x: number; y: number }; units?: MapUnit[];
-  route?: [number, number][]; routeTone?: "emerald" | "crimson"; onMapClick?: (x: number, y: number) => void;
-  selectedZone?: string; showLabels?: boolean; children?: React.ReactNode;
+  className?: string | undefined; zones?: Zone[] | undefined; victim?: { x: number; y: number } | undefined; units?: MapUnit[] | undefined;
+  route?: [number, number][] | undefined; routeTone?: "emerald" | "crimson"; onMapClick?: ((x: number, y: number) => void) | undefined;
+  selectedZone?: string | undefined; showLabels?: boolean; children?: React.ReactNode;
 }) {
   return (
     <div className={cn("relative overflow-hidden bg-map-land", className)}>

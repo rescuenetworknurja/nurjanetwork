@@ -216,7 +216,7 @@ export function HazardSection() {
                   <div className="h-2 rounded-full" style={{ background: "linear-gradient(90deg, var(--zone-1), var(--zone-3), var(--zone-5))" }} />
                   <div className="flex justify-between text-[10px] text-muted-foreground"><span>1 Light red</span><span>5 Dark red</span></div>
                 </div>
-                <div className="space-y-2"><Label>Radius</Label><Slider min={3} max={15} step={1} value={[z.r]} onValueChange={([v]) => update({ r: v })} /></div>
+                <div className="space-y-2"><Label>Radius</Label><Slider min={3} max={15} step={1} value={[z.r]} onValueChange={([v]) => update({ r: v ?? 6 })} /></div>
                 <Button variant="outline" className="w-full text-crimson" onClick={() => { d.set((s) => ({ zones: s.zones.filter((x) => x.id !== sel) })); setSel(null); }}><Trash2 /> Delete zone</Button>
               </div>
             ) : <p className="text-sm text-muted-foreground">Select a zone or click the map to add one.</p>}
@@ -243,7 +243,7 @@ export function PublisherSection() {
   const preview = { id: "preview", title: f.title || "Your story title", excerpt: f.body.slice(0, 140) || "Story text preview…", body: f.body, image: f.image || undefined, youtube: toEmbed(f.youtube), tag: f.tag, date: "Today", author: "NURJA Control", targets: f.targets };
   const publish = (e: React.FormEvent) => {
     e.preventDefault();
-    if (f.youtube && !toEmbed(f.youtube)) return toast.error("That YouTube link doesn't look right");
+    if (f.youtube && !toEmbed(f.youtube)) { toast.error("That YouTube link doesn't look right"); return; }
     d.set((s) => ({ posts: [{ ...preview, id: `p${Date.now()}`, date: new Date().toISOString().slice(0, 10) }, ...s.posts] }));
     const where = [f.targets.app && "NURJA app", f.targets.rescue && "Rescue Network", f.targets.blog && "Website blog"].filter(Boolean).join(", ");
     toast.success("Published", { description: `Live on: ${where}` }); setF(blank);
@@ -280,7 +280,7 @@ export function PublisherSection() {
   );
 }
 
-const API_FIELDS = [
+const API_FIELDS: { group: string; fields: [string, string][] }[] = [
   { group: "Map API", fields: [["map_provider", "Provider (Google Maps / Mapbox)"], ["map_key", "Map API key"]] },
   { group: "Live Streaming (LiveKit / Agora)", fields: [["stream_url", "Server URL"], ["stream_key", "API key"], ["stream_secret", "API secret"]] },
   { group: "Bulk SMS Gateway", fields: [["sms_sender", "Sender ID"], ["sms_key", "Gateway API key"]] },
