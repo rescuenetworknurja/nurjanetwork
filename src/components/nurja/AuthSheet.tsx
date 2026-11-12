@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Loader2, Lock, Phone, ShieldCheck, UserRound, X } from "lucide-react";
+import { KeyRound, Loader2, Lock, Phone, ShieldCheck, UserRound, X } from "lucide-react";
 import { toast } from "sonner";
 import { useDemo } from "@/lib/demo-store";
+import { supabase } from "@/integrations/supabase/client";
 import { isEmailInput, isValidBdPhone, signInWithPhone, signUpWithPhone } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,8 @@ export function NurjaAuthForm({
   const d = useDemo();
   const bn = d.lang === "bn";
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
+  const [view, setView] = useState<"form" | "reset">("form");
+  const [resetDone, setResetDone] = useState(false);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -45,7 +48,41 @@ export function NurjaAuthForm({
     sub: bn ? "আপনার মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে সাইন ইন করুন" : "Sign in with your phone number and password",
     signedUp: bn ? "অ্যাকাউন্ট তৈরি হয়েছে! এখন সাইন ইন করুন।" : "Account created! Now sign in.",
     fail: bn ? "সাইন ইন ব্যর্থ হয়েছে। নম্বর ও পাসওয়ার্ড যাচাই করুন।" : "Sign-in failed. Check your number and password.",
+    forgot: bn ? "পাসওয়ার্ড ভুলে গেছেন?" : "Forgot password?",
+    resetTitle: bn ? "পাসওয়ার্ড রিসেট" : "Reset password",
+    resetSub: bn ? "আপনার মোবাইল নম্বর বা ইমেইল দিন" : "Enter your phone number or email",
+    resetSend: bn ? "রিসেট লিংক পাঠান" : "Send reset link",
+    resetSent: bn ? "রিসেট লিংক আপনার ইমেইলে পাঠানো হয়েছে। ইনবক্স দেখুন।" : "A reset link has been sent to your email. Check your inbox.",
+    resetPhoneInfo: bn
+      ? "মোবাইল নম্বর দিয়ে খোলা অ্যাকাউন্টের পাসওয়ার্ড NURJA কন্ট্রোল প্যানেল থেকে রিসেট করা হয়। পরিচয় যাচাইয়ের জন্য আপনার NID নিয়ে নিকটস্থ NURJA সহায়তা কেন্দ্রে যোগাযোগ করুন।"
+      : "Passwords for phone-number accounts are reset by the NURJA Control Panel. Contact your nearest NURJA support point with your NID for identity verification.",
+    backToLogin: bn ? "লগইনে ফিরে যান" : "Back to login",
   };
+
+  async function submitReset(e: React.FormEvent) {
+    e.preventDefault();
+    const email = isEmailInput(phone);
+    if (!email && !isValidBdPhone(phone)) { toast.error(t.badPhone); return; }
+    setBusy(true);
+    try {
+      if (email) {
+        const { error } = await supabase.auth.resetPasswordForEmail(phone.trim().toLowerCase(), {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast.success(t.resetSent);
+      } else {
+        // Phone accounts use a synthetic email that cannot receive mail;
+        // the Control Panel resets these after identity verification.
+        toast(t.resetPhoneInfo, { duration: 8000 });
+      }
+      setResetDone(true);
+    } catch {
+      toast.error(t.fail);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,6 +113,50 @@ export function NurjaAuthForm({
 
   const inputCls =
     "w-full rounded-lg border border-input bg-card px-4 py-3 pl-11 text-sm text-foreground outline-none transition focus:border-crimson focus:ring-2 focus:ring-crimson/20";
+
+  if (view === "reset")
+    return (
+      <div className="w-full">
+        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-crimson"><KeyRound className="h-6 w-6" /></span>
+          <h1 className="font-display text-2xl font-extrabold text-foreground">{t.resetTitle}</h1>
+          <p className="text-sm text-muted-foreground">{t.resetSub}</p>
+        </div>
+        {resetDone ? (
+          <button
+            onClick={() => { setView("form"); setResetDone(false); }}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-crimson py-3 text-sm font-bold text-paper shadow-sos transition hover:brightness-110"
+          >
+            {t.backToLogin}
+          </button>
+        ) : (
+          <form onSubmit={submitReset} className="space-y-4">
+            <div className="relative">
+              <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                className={inputCls}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder={t.phone}
+                inputMode="tel"
+                autoComplete="tel"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={busy}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-crimson py-3 text-sm font-bold text-paper shadow-sos transition hover:brightness-110 disabled:opacity-60"
+            >
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              {t.resetSend}
+            </button>
+            <button type="button" onClick={() => setView("form")} className="w-full text-center text-sm font-semibold text-muted-foreground">
+              {t.backToLogin}
+            </button>
+          </form>
+        )}
+      </div>
+    );
 
   return (
     <div className="w-full">
@@ -145,6 +226,11 @@ export function NurjaAuthForm({
           {busy && <Loader2 className="h-4 w-4 animate-spin" />}
           {mode === "signin" ? t.submitIn : t.submitUp}
         </button>
+        {mode === "signin" && (
+          <button type="button" onClick={() => setView("reset")} className="w-full text-center text-sm font-semibold text-crimson">
+            {t.forgot}
+          </button>
+        )}
       </form>
 
       <p className="mt-6 flex items-center justify-center gap-2 text-center text-[11px] text-muted-foreground">

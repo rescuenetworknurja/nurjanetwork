@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as OurStoryRouteImport } from './routes/our-story'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RpanelRouteImport } from './routes/rpanel'
 
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +54,11 @@ const OurStoryRoute = OurStoryRouteImport.update({
   path: '/our-story',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RpanelRoute = RpanelRouteImport.update({
   id: '/rpanel',
   path: '/rpanel',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/our-story': typeof OurStoryRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/rpanel': typeof RpanelRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/our-story': typeof OurStoryRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/rpanel': typeof RpanelRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/our-story': typeof OurStoryRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/rpanel': typeof RpanelRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/contact'
     | '/our-story'
+    | '/reset-password'
     | '/rpanel'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/contact'
     | '/our-story'
+    | '/reset-password'
     | '/rpanel'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/contact'
     | '/our-story'
+    | '/reset-password'
     | '/rpanel'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRoute
   ContactRoute: typeof ContactRoute
   OurStoryRoute: typeof OurStoryRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   RpanelRoute: typeof RpanelRoute
 }
 
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OurStoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rpanel': {
       id: '/rpanel'
       path: '/rpanel'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRoute,
   ContactRoute: ContactRoute,
   OurStoryRoute: OurStoryRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   RpanelRoute: RpanelRoute,
 }
 export const routeTree = rootRouteImport
