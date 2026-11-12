@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { startAutoTranslate } from "./auto-translate";
 import { useDemo } from "./demo-store";
 import { cn } from "./utils";
 import { MOCK_BN } from "./mock-data-bn";
@@ -7,11 +8,8 @@ export type Lang = "bn" | "en";
 export const DEFAULT_LANG: Lang = "bn";
 export type Bi = { en: string; bn: string };
 
-const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
-/** Convert Latin digits to Bangla digits. */
-export function toBnDigits(v: string | number): string {
-  return String(v).replace(/[0-9]/g, (d) => BN_DIGITS[Number(d)] ?? d);
-}
+import { toBnDigits } from "./i18n-digits";
+export { toBnDigits };
 
 /** Pick text for a language from an inline pair or a Bi object. */
 export function pick(lang: Lang, en: string | Bi, bn?: string): string {
@@ -36,7 +34,17 @@ export function useT() {
 /** Keeps <html lang> in sync so Bangla font CSS applies. Mount once. */
 export function LangSync() {
   const { lang } = useDemo();
-  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
+  const langRef = useRef(lang);
+  const ctl = useRef<ReturnType<typeof startAutoTranslate> | null>(null);
+  useEffect(() => {
+    ctl.current = startAutoTranslate(document.body, () => langRef.current);
+    return () => ctl.current?.stop();
+  }, []);
+  useEffect(() => {
+    langRef.current = lang;
+    document.documentElement.lang = lang;
+    ctl.current?.refresh();
+  }, [lang]);
   return null;
 }
 

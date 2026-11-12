@@ -5,6 +5,7 @@ import { RescueMark } from "@/components/nurja/Brand";
 import { DashboardSection, IncidentSection } from "@/components/nurja/panel/Dashboard";
 import { HazardSection, KycSection, NetworkSection, PublisherSection, SettingsSection } from "@/components/nurja/panel/Manage";
 import { useDemo } from "@/lib/demo-store";
+import { LangToggle } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/rpanel")({
@@ -53,6 +54,7 @@ function Panel() {
           ))}
         </nav>
         <div className="space-y-1 border-t border-sidebar-border p-3">
+          {!collapsed && <div className="px-3 pb-2"><LangToggle /></div>}
           <button onClick={() => setDark(!dark)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent">{dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}{!collapsed && (dark ? "Light mode" : "Dark mode")}</button>
           <button onClick={() => setCollapsed(!collapsed)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent"><ChevronsLeft className={cn("h-4 w-4 transition", collapsed && "rotate-180")} />{!collapsed && "Collapse"}</button>
         </div>

@@ -6,6 +6,7 @@ import { Onboarding } from "@/components/nurja/sos/Onboarding";
 import { HomeTab } from "@/components/nurja/sos/Home";
 import { CommunityTab, ProfileTab, SafeRouteTab } from "@/components/nurja/sos/Tabs";
 import { useDemo } from "@/lib/demo-store";
+import { LangToggle } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/NURJASOS")({
@@ -39,6 +40,7 @@ function NurjaApp() {
             {v === "onboarding" ? "Onboarding Wizard" : "Main App Screen"}
           </button>
         ))}
+        <LangToggle />
       </div>
       {d.appView === "onboarding" ? <Onboarding /> : (
         <>

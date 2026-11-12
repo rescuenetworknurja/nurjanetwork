@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Facebook, Menu, Phone, X, Youtube, Mail, MapPin } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { LangToggle } from "@/lib/i18n";
 import { NurjaMark } from "./Brand";
 import { VolunteerDialog } from "./VolunteerDialog";
 
@@ -26,10 +27,12 @@ export function SiteLayout({ children }: { children: ReactNode }) {
                 activeProps={{ className: "bg-accent text-accent-foreground" }}>{l.label}</Link>
             ))}
           </nav>
-          <div className="ml-auto hidden md:block">
+          <div className="ml-auto hidden items-center gap-3 md:flex">
+            <LangToggle />
             <VolunteerDialog><Button className="rounded-full">Become a Volunteer</Button></VolunteerDialog>
           </div>
-          <button className="ml-auto md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">{open ? <X /> : <Menu />}</button>
+          <LangToggle className="ml-auto md:hidden" />
+          <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">{open ? <X /> : <Menu />}</button>
         </div>
         {open && (
           <div className="space-y-1 border-t px-4 py-3 md:hidden">

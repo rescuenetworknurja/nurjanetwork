@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useConvergingUnits, useNow } from "@/components/nurja/sos/Home";
 import { useDemo } from "@/lib/demo-store";
 import { VICTIM_POS } from "@/lib/mock-data";
+import { LangToggle } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/RescueTeam")({
@@ -67,6 +68,7 @@ function RescueApp() {
                 {t1 ? "TYPE 1 · POLICE PATROL" : "TYPE 2 · VOLUNTEER V-J75UN2"}
               </span>
             </div>
+            <LangToggle dark />
             <label className={cn("flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold", d.responderOnline ? "bg-emerald/20 text-emerald" : "bg-paper/10 text-paper/60")}>
               {d.responderOnline ? "Online" : "Offline"}
               <Switch checked={d.responderOnline} onCheckedChange={(v) => { d.set({ responderOnline: v }); toast(v ? "You're online and receiving alerts" : "You're offline"); }} className="data-[state=checked]:bg-emerald" />

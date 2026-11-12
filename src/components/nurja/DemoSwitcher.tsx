@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronDown, FlaskConical, Globe, LayoutDashboard, RotateCcw, Shield, Siren, Smartphone } from "lucide-react";
 import { useState } from "react";
 import { useDemo } from "@/lib/demo-store";
+import { LangToggle } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const VIEWS = [
@@ -52,6 +53,7 @@ export function DemoSwitcher() {
             ))}
           </div>
           <div className="space-y-2 border-t border-paper/10 pt-3">
+            <Row label="Language"><LangToggle dark /></Row>
             <Row label="NURJA screen"><Seg value={d.appView} onChange={(v) => d.set({ appView: v })} options={[{ v: "onboarding", l: "Wizard" }, { v: "main", l: "Main app" }]} /></Row>
             <Row label="KYC"><Seg value={d.selfKyc === "approved" ? "approved" : "pending"} onChange={(v) => d.setSelfKyc(v)} options={[{ v: "pending", l: "Pending" }, { v: "approved", l: "Approved" }]} /></Row>
             <Row label="Age profile"><Seg value={d.user.adult ? "a" : "m"} onChange={(v) => d.setAdult(v === "a")} options={[{ v: "a", l: "Adult 18+" }, { v: "m", l: "Under 18" }]} /></Row>
