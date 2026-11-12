@@ -15,6 +15,7 @@ import { Route as RescueTeamRouteImport } from './routes/RescueTeam'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as OurStoryRouteImport } from './routes/our-story'
+import { Route as RpanelRouteImport } from './routes/rpanel'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const OurStoryRoute = OurStoryRouteImport.update({
   path: '/our-story',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RpanelRoute = RpanelRouteImport.update({
+  id: '/rpanel',
+  path: '/rpanel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/our-story': typeof OurStoryRoute
+  '/rpanel': typeof RpanelRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/our-story': typeof OurStoryRoute
+  '/rpanel': typeof RpanelRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,13 +79,27 @@ export interface FileRoutesById {
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/our-story': typeof OurStoryRoute
+  '/rpanel': typeof RpanelRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/NURJASOS' | '/RescueTeam' | '/blog' | '/contact' | '/our-story'
+    | '/'
+    | '/NURJASOS'
+    | '/RescueTeam'
+    | '/blog'
+    | '/contact'
+    | '/our-story'
+    | '/rpanel'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/NURJASOS' | '/RescueTeam' | '/blog' | '/contact' | '/our-story'
+  to:
+    | '/'
+    | '/NURJASOS'
+    | '/RescueTeam'
+    | '/blog'
+    | '/contact'
+    | '/our-story'
+    | '/rpanel'
   id:
     | '__root__'
     | '/'
@@ -86,6 +108,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/contact'
     | '/our-story'
+    | '/rpanel'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,6 +118,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRoute
   ContactRoute: typeof ContactRoute
   OurStoryRoute: typeof OurStoryRoute
+  RpanelRoute: typeof RpanelRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -141,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OurStoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rpanel': {
+      id: '/rpanel'
+      path: '/rpanel'
+      fullPath: '/rpanel'
+      preLoaderRoute: typeof RpanelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -151,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRoute,
   ContactRoute: ContactRoute,
   OurStoryRoute: OurStoryRoute,
+  RpanelRoute: RpanelRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
