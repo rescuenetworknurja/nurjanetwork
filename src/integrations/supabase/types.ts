@@ -56,6 +56,51 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_shares: {
+        Row: {
+          active: boolean
+          created_at: string
+          dest_label: string | null
+          dest_lat: number | null
+          dest_lng: number | null
+          ended_at: string | null
+          id: string
+          lat: number | null
+          lng: number | null
+          sharer_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          dest_label?: string | null
+          dest_lat?: number | null
+          dest_lng?: number | null
+          ended_at?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          sharer_name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          dest_label?: string | null
+          dest_lat?: number | null
+          dest_lng?: number | null
+          ended_at?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          sharer_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -79,6 +124,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_trip_share: {
+        Args: { _id: string }
+        Returns: {
+          active: boolean
+          dest_label: string
+          dest_lat: number
+          dest_lng: number
+          lat: number
+          lng: number
+          sharer_name: string
+          updated_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
