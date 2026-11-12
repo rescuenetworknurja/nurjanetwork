@@ -157,7 +157,7 @@ function ShareTripDialog({ open, onOpenChange, me, dest, destLabel, minutes }: {
     const text = message();
     window.__lovableEvents?.track?.("project.trip_shared", { channel, contact: who, has_route: !!dest, live });
     if (channel === "system" && navigator.share) { try { await navigator.share({ text }); } catch { return; } }
-    else if (channel === "whatsapp") window.open(`https://wa.me/88${target}?text=${encodeURIComponent(text)}`, "_blank");
+    else if (channel === "whatsapp") { const w = window.open(`https://wa.me/88${target}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer"); if (!w) { await navigator.clipboard?.writeText(text).catch(() => {}); toast.info("WhatsApp could not open here — message copied, paste it in WhatsApp"); return; } }
     else window.location.href = `sms:+88${target}?body=${encodeURIComponent(text)}`;
     toast.success("Trip shared");
   };
