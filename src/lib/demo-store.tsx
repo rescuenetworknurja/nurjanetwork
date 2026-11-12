@@ -6,6 +6,7 @@ import {
 import { generateVolunteerId } from "./ids";
 import { seedUsers, type AccountStatus, type AppUser } from "./users";
 import { seedInquiries, seedWebsite, type Inquiry, type WebsiteContent } from "./website-content";
+import { appendIncidentEvidence, type IncidentEvidence } from "./evidence";
 
 export type ResponderType = 1 | 2;
 export type SosState = {
@@ -28,6 +29,7 @@ export type DemoState = {
   zones: Zone[];
   posts: Post[];
   cases: CaseRecord[];
+  evidence: IncidentEvidence[];
   apiKeys: Record<string, string>;
   websiteContent: WebsiteContent;
   inquiries: Inquiry[];
@@ -50,6 +52,7 @@ const initial: DemoState = {
   zones: seedZones,
   posts: seedPosts,
   cases: seedCases,
+  evidence: [],
   apiKeys: {},
   websiteContent: seedWebsite,
   inquiries: seedInquiries,
@@ -65,6 +68,7 @@ type Ctx = DemoState & {
   setAdult: (adult: boolean) => void;
   triggerSos: () => void;
   stopSos: (outcome?: string) => void;
+  saveEvidence: (record: IncidentEvidence) => boolean;
   switchCamera: () => void;
   acceptSos: (code: string) => void;
   setKycStatus: (id: string, s: KycStatus) => void;
@@ -114,6 +118,16 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const ctx: Ctx = {
     ...state,
     set,
+    saveEvidence: (record) => {
+      const evidence = appendIncidentEvidence(state.evidence, record, state.sos?.id);
+      if (!evidence) return false;
+      const next = { ...state, evidence };
+      try {
+        localStorage.setItem(KEY, JSON.stringify(next));
+        setState(next);
+        return true;
+      } catch { return false; }
+    },
     selfKyc: state.kyc.find((k) => k.id === state.selfKycId)?.status ?? "pending",
     setSelfKyc: (st) => setKycStatus(state.selfKycId, st),
     setAdult: (adult) =>

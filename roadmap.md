@@ -1,6 +1,10 @@
 # Roadmap
 
 ## Done
+- Store captured stills as evidence linked to the active incident and retain them in case history using the shared prototype store
+- Victim Camera: select a current demo frame, preview it inline/fullscreen, download PNG, and return to live viewing
+
+## Done
 - Victim Camera: fullscreen, landscape, exit controls and navigation-free viewing on phone/tablet/desktop
 
 ## Done

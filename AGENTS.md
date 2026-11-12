@@ -34,3 +34,4 @@ use the editor.
 - Public website text lives in `websiteContent` (bilingual {en,bn} fields, seeded from `src/lib/website-content.ts`) in the demo store and is edited from /rpanel → Website CMS & CRM; never hardcode page copy in public routes — so the admin can change it without code.
 - RescueTeam shares one VictimCamera presentation between the desktop side panel and the mobile/tablet dispatch footer to keep camera states consistent across layouts.
 - VictimCamera uses a modal full-viewport viewer with optional native fullscreen/orientation locking and CSS landscape fallback so unsupported browsers still cover app navigation.
+- Captured demo evidence lives in the shared store keyed by incident ID, independent of active SOS lifetime; saving verifies the incident and browser persistence before reporting success.

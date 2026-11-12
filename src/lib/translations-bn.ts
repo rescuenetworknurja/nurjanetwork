@@ -3,6 +3,17 @@
  * Keys are the exact English text as rendered (whitespace-trimmed).
  */
 export const BN: Record<string, string> = {
+  "Save as incident evidence": "ঘটনার প্রমাণ হিসেবে সংরক্ষণ করুন",
+  "Saved still evidence": "সংরক্ষিত স্থিরচিত্র প্রমাণ",
+  "Frame saved as incident evidence": "ঘটনার প্রমাণ হিসেবে ফ্রেম সংরক্ষিত হয়েছে",
+  "Evidence could not be saved. Check the active incident or browser storage.": "প্রমাণ সংরক্ষণ করা যায়নি। সক্রিয় ঘটনা বা ব্রাউজারের খালি জায়গা পরীক্ষা করুন।",
+  "Select current frame": "বর্তমান ফ্রেম নির্বাচন করুন",
+  "Download frame": "ফ্রেম ডাউনলোড করুন",
+  "Return to live camera": "লাইভ ক্যামেরায় ফিরে যান",
+  "Selected frame": "নির্বাচিত ফ্রেম",
+  "Selected camera frame": "ক্যামেরার নির্বাচিত ফ্রেম",
+  "Camera frame is not ready": "ক্যামেরার ফ্রেম এখনো প্রস্তুত নয়",
+  "Could not select this frame": "এই ফ্রেমটি নির্বাচন করা যায়নি",
   "Fullscreen camera": "ক্যামেরা পূর্ণপর্দায় দেখুন",
   "Landscape view": "ল্যান্ডস্কেপ দেখুন",
   "Exit fullscreen": "পূর্ণপর্দা বন্ধ করুন",

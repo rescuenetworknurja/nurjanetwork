@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { RescueMark } from "@/components/nurja/Brand";
 import { TacticalMap } from "@/components/nurja/TacticalMap";
 import { VictimCamera } from "@/components/nurja/VictimCamera";
+import { IncidentEvidenceGallery } from "@/components/nurja/IncidentEvidenceGallery";
 import { PostCard } from "@/components/nurja/PostCard";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -423,6 +424,7 @@ function HistoryTab() {
         <div key={c.id + c.date} className="rounded-2xl border bg-card p-4">
           <div className="flex items-center justify-between"><span className="font-mono text-xs text-muted-foreground">{c.id}</span><span className="text-[11px] text-muted-foreground">{c.date}</span></div>
           <p className="mt-1 font-bold">{c.victim} · {c.area}</p>
+          <IncidentEvidenceGallery incidentId={c.id} />
           <div className="mt-2 flex items-center justify-between text-xs"><span className={cn("rounded-full px-2 py-0.5 font-semibold", c.outcome.startsWith("False") ? "bg-amber-soft text-amber" : "bg-emerald-soft text-emerald")}>{c.outcome}</span><span className="text-muted-foreground">Duration {c.duration}</span></div>
         </div>
       ))}
