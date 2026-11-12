@@ -87,5 +87,12 @@ export function LanguageSetting({ dark }: { dark?: boolean }) {
 export const SLOGAN = { en: "Safety • Confidence • Freedom", bn: "নিরাপত্তা • আত্মবিশ্বাস • স্বাধীনতা" } as const;
 export function Slogan({ className }: { className?: string }) {
   const { lang } = useT();
-  return <span className={cn("tracking-wide", className)} data-no-tr>{lang === "bn" ? SLOGAN.bn : SLOGAN.en}</span>;
+  const s = useDemo().websiteContent?.hero.slogan ?? SLOGAN;
+  return <span className={cn("tracking-wide", className)} data-no-tr>{lang === "bn" ? s.bn || SLOGAN.bn : s.en || SLOGAN.en}</span>;
+}
+
+/** Pick the active-language side of a bilingual CMS field (falls back to the other side). */
+export function useBi() {
+  const { lang } = useT();
+  return (x: { en: string; bn: string } | undefined) => (!x ? "" : lang === "bn" ? x.bn || x.en : x.en || x.bn);
 }

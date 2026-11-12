@@ -82,7 +82,7 @@ export function CommunityTab() {
     <div className="flex-1 overflow-y-auto px-4 pb-6 pt-12">
       <h1 className="text-2xl font-extrabold">Community</h1>
       <p className="mb-4 text-sm text-muted-foreground">Verified awareness posts from NURJA Control.</p>
-      <div className="space-y-4">{posts.filter((p) => p.targets.app).map((p) => <PostCard key={p.id} post={p} compact />)}</div>
+      <div className="space-y-4">{posts.filter((p) => p.targets.app && p.published !== false).map((p) => <PostCard key={p.id} post={p} compact />)}</div>
     </div>
   );
 }

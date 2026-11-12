@@ -31,3 +31,4 @@ use the editor.
 
 - Prototype has no backend: all cross-interface state lives in `src/lib/demo-store.tsx` (React context persisted to localStorage, synced across tabs via the storage event), so the public site, user app, responder app and control panel stay in sync until a real backend replaces it.
 - UI language: Bangla (default) / English via `lang` in the demo store; `src/lib/auto-translate.ts` swaps rendered English text using the dictionary in `src/lib/translations-bn.ts` — add a Bangla entry there for every new visible English string (keeps components untouched).
+- Public website text lives in `websiteContent` (bilingual {en,bn} fields, seeded from `src/lib/website-content.ts`) in the demo store and is edited from /rpanel → Website CMS & CRM; never hardcode page copy in public routes — so the admin can change it without code.

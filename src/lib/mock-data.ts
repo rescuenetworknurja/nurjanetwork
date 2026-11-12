@@ -7,6 +7,7 @@ export type KycStatus = "pending" | "approved" | "rejected";
 export type Post = {
   id: string; title: string; excerpt: string; body: string; image?: string | undefined; youtube?: string | undefined;
   tag: string; date: string; author: string; targets: { app: boolean; rescue: boolean; blog: boolean };
+  titleBn?: string | undefined; excerptBn?: string | undefined; bodyBn?: string | undefined; published?: boolean;
 };
 export type Zone = { id: string; name: string; x: number; y: number; r: number; rating: 1 | 2 | 3 | 4 | 5 };
 export type KycSubmission = {
@@ -15,7 +16,7 @@ export type KycSubmission = {
 };
 export type VolunteerApp = {
   id: string; name: string; phone: string; email: string; address: string; nid: string; occupation: string;
-  motivation: string; status: "pending" | "approved" | "rejected"; volunteerId?: string; submittedAt: string; hasPhoto: boolean;
+  motivation: string; status: "pending" | "approved" | "rejected"; volunteerId?: string; submittedAt: string; hasPhoto: boolean; notes?: string;
 };
 export type Responder = {
   id: string; name: string; kind: "patrol" | "fari" | "station" | "volunteer" | "officer";

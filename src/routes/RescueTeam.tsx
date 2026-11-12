@@ -77,7 +77,7 @@ function RescueApp() {
 
         <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
           {tab === "map" && (navigating ? <Navigate type1={t1} /> : <DispatchHome onSim={() => { setDismissed(null); setAccepted(null); if (!d.sos) d.triggerSos(); else toast("An SOS is already active"); }} />)}
-          {tab === "community" && <div className="space-y-4 p-4">{d.posts.filter((p) => p.targets.rescue).map((p) => <PostCard key={p.id} post={p} compact dark />)}</div>}
+          {tab === "community" && <div className="space-y-4 p-4">{d.posts.filter((p) => p.targets.rescue && p.published !== false).map((p) => <PostCard key={p.id} post={p} compact dark />)}</div>}
           {tab === "history" && <HistoryTab />}
           {tab === "profile" && <ProfileT type1={t1} />}
 

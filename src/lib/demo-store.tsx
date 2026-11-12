@@ -4,6 +4,7 @@ import {
   type CaseRecord, type KycStatus, type KycSubmission, type Post, type Responder, type VolunteerApp, type Zone,
 } from "./mock-data";
 import { generateVolunteerId } from "./ids";
+import { seedInquiries, seedWebsite, type Inquiry, type WebsiteContent } from "./website-content";
 
 export type ResponderType = 1 | 2;
 export type SosState = {
@@ -25,6 +26,8 @@ export type DemoState = {
   posts: Post[];
   cases: CaseRecord[];
   apiKeys: Record<string, string>;
+  websiteContent: WebsiteContent;
+  inquiries: Inquiry[];
 };
 
 const initial: DemoState = {
@@ -42,6 +45,8 @@ const initial: DemoState = {
   posts: seedPosts,
   cases: seedCases,
   apiKeys: {},
+  websiteContent: seedWebsite,
+  inquiries: seedInquiries,
 };
 
 const KEY = "nurja-demo-v1";
@@ -60,6 +65,7 @@ type Ctx = DemoState & {
   approveVolunteer: (id: string) => string;
   rejectVolunteer: (id: string) => void;
   addResponder: (r: Omit<Responder, "id">) => void;
+  submitInquiry: (q: Pick<Inquiry, "name" | "contact" | "subject" | "message">) => void;
   reset: () => void;
 };
 
@@ -138,6 +144,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     },
     rejectVolunteer: (id) => set((s) => ({ volunteerApps: s.volunteerApps.map((a) => (a.id === id ? { ...a, status: "rejected" } : a)) })),
     addResponder: (r) => set((s) => ({ responders: [...s.responders, { ...r, id: `r${Date.now()}` }] })),
+    submitInquiry: (q) => set((s) => ({ inquiries: [{ ...q, id: `q${Date.now()}`, at: new Date().toISOString().slice(0, 16).replace("T", " "), status: "new", notes: "" }, ...s.inquiries] })),
     reset: () => setState((s) => ({ ...initial, lang: s.lang })),
   };
 

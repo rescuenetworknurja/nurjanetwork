@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Clock, Facebook, Linkedin, Youtube } from "lucide-react";
+import { useState } from "react";
+import { useDemo } from "@/lib/demo-store";
+import { useBi } from "@/lib/i18n";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -20,23 +24,44 @@ export const Route = createFileRoute("/contact")({
 });
 
 function Contact() {
+  const d = useDemo();
+  const c = d.websiteContent.contact;
+  const L = useBi();
+  const blank = { name: "", contact: "", subject: "", message: "" };
+  const [f, setF] = useState(blank);
+  const send = (e: React.FormEvent) => {
+    e.preventDefault();
+    d.submitInquiry(f); setF(blank);
+    toast.success("Message sent. We'll reply within 24 hours.");
+  };
+  const rows = [
+    { i: Phone, t: `${c.phone} · Hotline ${c.hotline}` },
+    { i: Mail, t: [c.email, c.supportEmail].filter(Boolean).join(" · ") },
+    { i: MapPin, t: L(c.address) },
+    { i: Clock, t: L(c.hours) },
+  ];
   return (
     <SiteLayout>
       <section className="mx-auto grid max-w-6xl gap-10 px-6 py-16 md:grid-cols-[1fr_1.2fr]">
         <div className="space-y-6">
           <h1 className="text-5xl font-extrabold">Contact us</h1>
-          <p className="text-muted-foreground">For emergencies, always use the NURJA SOS or call 999. For everything else, write to us.</p>
-          {[{ i: Phone, t: "+880 1700-NURJA0" }, { i: Mail, t: "hello@nurja.org" }, { i: MapPin, t: "Level 4, Toyenbee Circular Rd, Motijheel, Dhaka 1000" }].map(({ i: I, t }) => (
-            <p key={t} className="flex items-center gap-3 font-semibold"><span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-crimson"><I className="h-5 w-5" /></span>{t}</p>
+          <p className="text-muted-foreground">{L(c.intro)}</p>
+          {rows.map(({ i: I, t }) => (
+            <p key={t} className="flex items-center gap-3 font-semibold"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent text-crimson"><I className="h-5 w-5" /></span>{t}</p>
           ))}
-        </div>
-        <form className="space-y-4 rounded-3xl border bg-card p-8 shadow-card" onSubmit={(e) => { e.preventDefault(); (e.target as HTMLFormElement).reset(); toast.success("Message sent. We'll reply within 24 hours."); }}>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5"><Label>Name</Label><Input required /></div>
-            <div className="space-y-1.5"><Label>Email</Label><Input required type="email" /></div>
+          <div className="flex gap-2">
+            {[{ I: Facebook, u: c.facebook }, { I: Youtube, u: c.youtube }, { I: Linkedin, u: c.linkedin }].filter((x) => x.u).map(({ I, u }) => (
+              <a key={u} href={u} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-lg border bg-card hover:text-crimson"><I className="h-5 w-5" /></a>
+            ))}
           </div>
-          <div className="space-y-1.5"><Label>Subject</Label><Input required /></div>
-          <div className="space-y-1.5"><Label>Message</Label><Textarea required rows={5} /></div>
+        </div>
+        <form className="space-y-4 rounded-3xl border bg-card p-8 shadow-card" onSubmit={send}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5"><Label>Name</Label><Input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>Phone or email</Label><Input required value={f.contact} onChange={(e) => setF({ ...f, contact: e.target.value })} /></div>
+          </div>
+          <div className="space-y-1.5"><Label>Subject</Label><Input required value={f.subject} onChange={(e) => setF({ ...f, subject: e.target.value })} /></div>
+          <div className="space-y-1.5"><Label>Message</Label><Textarea required rows={5} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} /></div>
           <Button type="submit" size="lg" className="w-full">Send message</Button>
         </form>
       </section>

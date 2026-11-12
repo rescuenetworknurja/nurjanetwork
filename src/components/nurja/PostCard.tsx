@@ -1,6 +1,7 @@
 import { PlayCircle } from "lucide-react";
 import type { Post } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export function PostMedia({ post, className }: { post: Post; className?: string }) {
   if (post.youtube)
@@ -15,6 +16,8 @@ export function PostMedia({ post, className }: { post: Post; className?: string 
 }
 
 export function PostCard({ post, compact, dark }: { post: Post; compact?: boolean; dark?: boolean }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
   return (
     <article className={cn("overflow-hidden rounded-2xl border bg-card shadow-card", dark && "border-border")}>
       <PostMedia post={post} />
@@ -24,8 +27,8 @@ export function PostCard({ post, compact, dark }: { post: Post; compact?: boolea
           {post.youtube && <span className="flex items-center gap-1 text-muted-foreground"><PlayCircle className="h-3 w-3" /> Video</span>}
           <span className="ml-auto text-muted-foreground">{post.date}</span>
         </div>
-        <h3 className={cn("font-display font-bold leading-snug", compact ? "text-[15px]" : "text-lg")}>{post.title}</h3>
-        <p className="text-sm text-muted-foreground">{post.excerpt}</p>
+        <h3 className={cn("font-display font-bold leading-snug", compact ? "text-[15px]" : "text-lg")}>{bn && post.titleBn ? post.titleBn : post.title}</h3>
+        <p className="text-sm text-muted-foreground">{bn && post.excerptBn ? post.excerptBn : post.excerpt}</p>
         <p className="text-xs text-muted-foreground">Published by <span className="font-semibold text-foreground">{post.author}</span> · Verified</p>
       </div>
     </article>

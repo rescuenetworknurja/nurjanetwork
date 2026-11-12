@@ -4,6 +4,7 @@ import { SiteLayout } from "@/components/nurja/SiteLayout";
 import { PostCard, PostMedia } from "@/components/nurja/PostCard";
 import { useDemo } from "@/lib/demo-store";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/blog")({
   head: () => ({
@@ -19,7 +20,9 @@ export const Route = createFileRoute("/blog")({
 
 function Blog() {
   const { posts } = useDemo();
-  const all = posts.filter((p) => p.targets.blog);
+  const all = posts.filter((p) => p.targets.blog && p.published !== false);
+  const { lang } = useT();
+  const pick = (en: string, bn?: string) => (lang === "bn" && bn ? bn : en);
   const tags = ["All", ...Array.from(new Set(all.map((p) => p.tag)))];
   const [tag, setTag] = useState("All");
   const list = all.filter((p) => tag === "All" || p.tag === tag);
@@ -39,8 +42,8 @@ function Blog() {
             <PostMedia post={featured} className="h-full" />
             <div className="space-y-3 p-8">
               <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-bold uppercase text-accent-foreground">{featured.tag}</span>
-              <h2 className="text-3xl font-extrabold">{featured.title}</h2>
-              <p className="text-muted-foreground">{featured.body}</p>
+              <h2 className="text-3xl font-extrabold">{pick(featured.title, featured.titleBn)}</h2>
+              <p className="text-muted-foreground">{pick(featured.body, featured.bodyBn)}</p>
               <p className="text-xs text-muted-foreground">{featured.author} · {featured.date}</p>
             </div>
           </article>

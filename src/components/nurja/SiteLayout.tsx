@@ -4,7 +4,8 @@ import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { LangToggle } from "@/lib/i18n";
 import { NurjaMark } from "./Brand";
-import { Slogan } from "@/lib/i18n";
+import { Slogan, useBi } from "@/lib/i18n";
+import { useDemo } from "@/lib/demo-store";
 import { VolunteerDialog } from "./VolunteerDialog";
 
 const LINKS = [
@@ -15,6 +16,8 @@ const LINKS = [
 ] as const;
 
 export function SiteLayout({ children }: { children: ReactNode }) {
+  const c = useDemo().websiteContent.contact;
+  const L = useBi();
   const [open, setOpen] = useState(false);
   return (
     <div className="min-h-screen bg-background">
@@ -48,9 +51,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           <div className="space-y-3 md:col-span-2">
             <NurjaMark className="[&_span]:text-paper" />
             <p className="font-display text-sm font-semibold text-crimson-soft"><Slogan /></p>
-            <p className="max-w-sm text-sm text-paper/60">Women safety and rapid rescue network for Bangladesh. One tap connects you with police and verified volunteers nearby.</p>
+            <p className="max-w-sm text-sm text-paper/60">{L(c.footerAbout)}</p>
             <div className="flex gap-2 pt-2">
-              {[Facebook, Youtube, Mail].map((I, i) => <span key={i} className="grid h-9 w-9 place-items-center rounded-full bg-paper/10"><I className="h-4 w-4" /></span>)}
+              {[{ I: Facebook, u: c.facebook }, { I: Youtube, u: c.youtube }, { I: Mail, u: c.email && `mailto:${c.email}` }].filter((x) => x.u).map(({ I, u }) => <a key={u} href={u} target="_blank" rel="noreferrer" className="grid h-9 w-9 place-items-center rounded-lg bg-paper/10 hover:bg-paper/20"><I className="h-4 w-4" /></a>)}
             </div>
           </div>
           <div className="space-y-2 text-sm">
@@ -59,9 +62,10 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="space-y-2 text-sm text-paper/60">
             <p className="font-display font-bold text-paper">Emergency</p>
-            <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-crimson" /> National helpline 999</p>
+            <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-crimson" /> National helpline {c.hotline}</p>
+            <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-crimson" /> {c.phone}</p>
             <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-crimson" /> Women & child 109</p>
-            <p className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Motijheel, Dhaka 1000</p>
+            <p className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0" /> {L(c.address)}</p>
           </div>
         </div>
         <div className="border-t border-paper/10 py-5 text-center text-xs text-paper/40">© 2026 NURJA Rescue Network. All rights reserved.</div>
