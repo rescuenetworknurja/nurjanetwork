@@ -1,6 +1,9 @@
 # Roadmap
 
 ## Done
+- RescueTeam: two-column tablet/desktop Community, Victim Cam below mobile/tablet dispatch, Online/Offline control in Profile only
+
+## Done
 - Rescue Network app: splash → login → app flow, responsive mobile/tablet/desktop layout
 - User Database & Account Control in /rpanel with live ban-sync to NURJA app
 - Rescue Network management: Type 1/2 directories, fixed vs live GPS, smart-paste coordinates

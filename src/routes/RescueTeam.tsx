@@ -24,6 +24,8 @@ export const Route = createFileRoute("/RescueTeam")({
       { name: "description", content: "Tactical responder app for police units and verified volunteers: incoming SOS, dispatch map and navigation." },
       { property: "og:title", content: "Rescue Network — Responder App | NURJA" },
       { property: "og:description", content: "Tactical responder app for police units and verified volunteers." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: RescueApp,
@@ -199,10 +201,6 @@ function Shell() {
             <p className="text-[10px] font-bold uppercase tracking-wider text-paper/40">Unit status</p>
             <p className="mt-1 truncate text-sm font-bold text-paper">{mine?.name}</p>
             <p className="mt-0.5 text-[11px] text-paper/50">{mine?.fixed ? "📍 Fixed GPS installation" : "📡 Live device GPS"}{mine?.vehicleNo ? ` · ${mine.vehicleNo}` : ""}</p>
-            <label className={cn("mt-2 flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-bold", d.responderOnline ? "bg-emerald/15 text-emerald" : "bg-paper/5 text-paper/50")}>
-              {d.responderOnline ? "Online — receiving alerts" : "Offline"}
-              <Switch checked={d.responderOnline} onCheckedChange={(v) => { d.set({ responderOnline: v }); toast(v ? "You're online and receiving alerts" : "You're offline"); }} className="data-[state=checked]:bg-emerald" />
-            </label>
           </div>
           <Button variant="outline" className="w-full border-paper/15 bg-transparent text-paper/70 hover:bg-paper/5 hover:text-paper" onClick={() => d.set({ rescueAuth: "login" })}><LogOut /> Logout</Button>
         </div>
@@ -237,10 +235,6 @@ function Shell() {
               </span>
               {mine && <span className={cn("ml-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-bold", mine.fixed ? "bg-paper/15 text-paper" : "bg-crimson/60 text-paper")}>{mine.fixed ? "📍 FIXED GPS" : "📡 LIVE GPS"}</span>}
             </div>
-            <label className={cn("flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold", d.responderOnline ? "bg-emerald/20 text-emerald" : "bg-paper/10 text-paper/60")}>
-              {d.responderOnline ? "Online" : "Offline"}
-              <Switch checked={d.responderOnline} onCheckedChange={(v) => { d.set({ responderOnline: v }); toast(v ? "You're online and receiving alerts" : "You're offline"); }} className="data-[state=checked]:bg-emerald" />
-            </label>
           </div>
         </div>
 
@@ -248,11 +242,14 @@ function Shell() {
         <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto pb-24 md:pb-0">
           {tab === "map" && (
             <div className="flex min-h-full flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_380px]">
-              <div className="flex min-w-0 flex-col">{navigating ? <Navigate type1={t1} /> : <DispatchHome mine={mine} onSim={onSim} />}</div>
+              <div className="flex min-w-0 flex-col">
+                {navigating ? <Navigate type1={t1} /> : <DispatchHome mine={mine} onSim={onSim} />}
+                {d.sos && <div className="px-4 pb-4 lg:hidden"><VictimCamera camera={d.sos.camera} /></div>}
+              </div>
               <SidePanel alert={alertCard} navigating={navigating} />
             </div>
           )}
-          {tab === "community" && <div className="mx-auto w-full max-w-2xl space-y-4 p-4">{d.posts.filter((p) => p.targets.rescue && p.published !== false).map((p) => <PostCard key={p.id} post={p} compact dark />)}</div>}
+          {tab === "community" && <div className="mx-auto grid w-full max-w-5xl grid-cols-1 items-start gap-4 p-4 md:grid-cols-2">{d.posts.filter((p) => p.targets.rescue && p.published !== false).map((p) => <PostCard key={p.id} post={p} compact dark />)}</div>}
           {tab === "history" && <div className="mx-auto w-full max-w-2xl"><HistoryTab /></div>}
           {tab === "profile" && <div className="mx-auto w-full max-w-2xl"><ProfileT type1={t1} mine={mine} /></div>}
 
@@ -296,6 +293,18 @@ function SosAlertCard({ sosId, victim, area, onDecline, onAccept }: { sosId: str
 
 /* ---------------- Desktop right panel ---------------- */
 
+function VictimCamera({ camera }: { camera: "back" | "front" }) {
+  return (
+    <section>
+      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Victim live camera</p>
+      <div className="relative overflow-hidden rounded-lg border-2 border-crimson">
+        <CameraFeed camera={camera} className="aspect-video rounded-none" label=" " />
+        <span className="absolute inset-x-0 bottom-0 bg-crimson py-1 text-center text-[10px] font-bold text-paper"><Video className="mr-1 inline h-3 w-3" />VICTIM CAM · {camera === "back" ? "Back" : "Front"}</span>
+      </div>
+    </section>
+  );
+}
+
 function SidePanel({ alert, navigating }: { alert: React.ReactNode; navigating: boolean }) {
   const d = useDemo();
   const sos = d.sos;
@@ -317,13 +326,7 @@ function SidePanel({ alert, navigating }: { alert: React.ReactNode; navigating: 
       </div>
       {sos && (
         <>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Victim live camera</p>
-            <div className="relative overflow-hidden rounded-2xl border-2 border-crimson">
-              <CameraFeed camera={sos.camera} className="aspect-video rounded-none" label=" " />
-              <span className="absolute inset-x-0 bottom-0 bg-crimson py-1 text-center text-[10px] font-bold text-paper"><Video className="mr-1 inline h-3 w-3" />VICTIM CAM · {sos.camera === "back" ? "Back" : "Front"}</span>
-            </div>
-          </div>
+          <VictimCamera camera={sos.camera} />
           <div className="rounded-2xl border bg-card p-4 text-sm">
             <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Victim & emergency contact</p>
             <p className="font-bold">{sos.victim}</p>
@@ -407,10 +410,6 @@ function Navigate({ type1 }: { type1: boolean }) {
           <p className="text-[10px] uppercase opacity-60">Distance to victim</p>
           <p className="font-display text-xl font-extrabold">{dist} km · {Math.max(0, Math.ceil(3 * (1 - progress)))} min</p>
         </div>
-        <div className="absolute right-3 top-3 w-28 overflow-hidden rounded-xl border-2 border-crimson lg:hidden">
-          <CameraFeed camera={sos.camera} className="aspect-[3/4] rounded-none" label=" " />
-          <span className="absolute inset-x-0 bottom-0 bg-crimson py-0.5 text-center text-[9px] font-bold text-paper"><Video className="mr-0.5 inline h-2.5 w-2.5" />VICTIM CAM</span>
-        </div>
       </div>
       <div className="space-y-2 p-4">
         <div className="rounded-2xl border bg-card p-3.5">
@@ -469,6 +468,10 @@ function ProfileT({ type1, mine }: { type1: boolean; mine: Responder | undefined
       </div>
       <div className="rounded-2xl border bg-card p-4">
         <p className="mb-3 text-xs font-bold uppercase text-muted-foreground">{tr("Settings", "সেটিংস")}</p>
+        <label className={cn("mb-4 flex items-center justify-between gap-3 rounded-lg px-3 py-3 text-sm font-bold", d.responderOnline ? "bg-emerald/15 text-emerald" : "bg-paper/5 text-paper/60")}>
+          <span className="flex items-center gap-2"><Radio className="h-4 w-4 shrink-0" />{d.responderOnline ? "Online — receiving alerts" : "Offline"}</span>
+          <Switch aria-label={tr("Online", "অনলাইন")} checked={d.responderOnline} onCheckedChange={(v) => { d.set({ responderOnline: v }); toast(v ? "You're online and receiving alerts" : "You're offline"); }} className="shrink-0 data-[state=checked]:bg-emerald" />
+        </label>
         <LanguageSetting dark />
       </div>
       <Button variant="outline" className="w-full border-crimson/40 text-crimson hover:bg-crimson/10" onClick={() => { d.set({ rescueAuth: "login" }); toast("Signed out"); }}>
