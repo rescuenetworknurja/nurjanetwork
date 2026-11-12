@@ -116,12 +116,13 @@ function DispatchHome({ onSim }: { onSim: () => void }) {
   const d = useDemo();
   const online = d.responders.filter((r) => r.online);
   return (
-    <div className="flex flex-1 flex-col">
-      <TacticalMap className="h-72 tactical-grid" zones={d.zones} units={[{ id: "me", label: "You", kind: d.responderType === 1 ? "patrol" : "volunteer", x: 30, y: 34 }]} />
-      <div className="space-y-3 p-4">
+    <div className="relative flex flex-1 flex-col">
+      <div aria-hidden className="pointer-events-none absolute inset-0 tactical-grid opacity-60" />
+      <TacticalMap className="relative h-72 tactical-grid shadow-card" zones={d.zones} units={[{ id: "me", label: "You", kind: d.responderType === 1 ? "patrol" : "volunteer", x: 30, y: 34 }]} />
+      <div className="relative space-y-3 p-4">
         <div className="grid grid-cols-3 gap-2">
           {[{ l: "Units online", v: online.length }, { l: "Active SOS", v: d.sos ? 1 : 0 }, { l: "My cases", v: d.cases.length }].map((s) => (
-            <div key={s.l} className="rounded-2xl border bg-card p-3"><p className="font-display text-2xl font-extrabold">{s.v}</p><p className="text-[10px] text-muted-foreground">{s.l}</p></div>
+            <div key={s.l} className="rounded-2xl border border-t-2 border-t-crimson/70 bg-card p-3 shadow-card"><p className="font-display text-2xl font-extrabold">{s.v}</p><p className="text-[10px] text-muted-foreground">{s.l}</p></div>
           ))}
         </div>
         <div className={cn("rounded-2xl border p-4", d.responderOnline ? "border-emerald/30 bg-emerald-soft" : "bg-card")}>

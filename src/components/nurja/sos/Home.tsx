@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, Building2, Car, Lock, MapPin, MessageSquare, Navigation, Radio, ShieldAlert, ShieldCheck, Siren, User, X } from "lucide-react";
+import { Bell, Building2, Car, Lock, MapPin, MessageSquare, Navigation, Radio, ShieldAlert, ShieldCheck, Siren, User, Video, X } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -46,17 +46,21 @@ export function HomeTab() {
   if (d.sos) return <ActiveSos />;
 
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="flex items-center justify-between px-5 pb-3 pt-12">
+    <div className="relative flex flex-1 flex-col overflow-hidden bg-vignette">
+      <CityWatermark />
+      <header className="relative mx-3 mt-3 flex items-center justify-between rounded-b-[28px] rounded-t-xl border border-border/70 bg-accent/60 px-4 pb-4 pt-9 shadow-card backdrop-blur-sm">
         <div>
           <p className="text-xs text-muted-foreground">Assalamu alaikum,</p>
           <p className="font-display text-lg font-bold">{d.user.name.split(" ")[0]}</p>
         </div>
-        <button className="relative grid h-10 w-10 place-items-center rounded-lg bg-muted"><Bell className="h-5 w-5" /><span className="absolute right-2 top-2 h-2 w-2 rounded-lg bg-crimson" /></button>
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 rounded-full border border-emerald/30 bg-emerald-soft px-2.5 py-1 text-[10px] font-bold text-emerald"><span className="h-1.5 w-1.5 rounded-full bg-emerald animate-blink" />Coverage Zone: Active</span>
+          <button className="relative grid h-10 w-10 place-items-center rounded-lg border bg-card shadow-sm"><Bell className="h-5 w-5" /><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-crimson" /></button>
+        </div>
       </header>
-      <div className="px-5">
+      <div className="relative px-5 pt-3">
         <button onClick={() => d.setSelfKyc(locked ? "approved" : "pending")}
-          className={cn("flex w-full items-center gap-3 rounded-2xl p-3 text-left transition", locked ? "bg-amber-soft" : "bg-emerald-soft")}>
+          className={cn("flex w-full items-center gap-3 rounded-lg border p-3 text-left shadow-sm transition", locked ? "border-amber/30 bg-amber-soft" : "border-emerald/30 bg-emerald-soft")}>
           <div className={cn("grid h-9 w-9 place-items-center rounded-full text-paper", locked ? "bg-amber" : "bg-emerald")}>{locked ? <Lock className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}</div>
           <div className="flex-1">
             <p className="text-sm font-bold">{locked ? "KYC Pending — SOS Locked" : "KYC Approved — SOS Active"}</p>
@@ -66,30 +70,49 @@ export function HomeTab() {
         </button>
       </div>
 
-      <div className="relative flex flex-1 flex-col items-center justify-center py-6">
-        <div className="relative grid h-[260px] w-[260px] place-items-center">
+      <div className="relative flex flex-1 flex-col items-center justify-center py-4">
+        <div className="relative grid h-[300px] w-[300px] place-items-center">
+          <Radar active={!locked} />
           {!locked && <>
-            <span className="absolute h-[180px] w-[180px] rounded-full bg-crimson/30 animate-ripple" />
-            <span className="absolute h-[180px] w-[180px] rounded-full bg-crimson/30 animate-ripple [animation-delay:.8s]" />
-            <span className="absolute h-[180px] w-[180px] rounded-full bg-crimson/30 animate-ripple [animation-delay:1.6s]" />
+            <span className="absolute h-[180px] w-[180px] rounded-full bg-crimson/25 animate-ripple" />
+            <span className="absolute h-[180px] w-[180px] rounded-full bg-crimson/25 animate-ripple [animation-delay:1.2s]" />
           </>}
-          <button
-            onClick={() => (locked ? toast.warning("SOS is locked until your KYC is approved", { description: "Call 999 in an emergency." }) : setCount(3))}
-            className={cn("relative grid h-[180px] w-[180px] place-items-center rounded-full border-[6px] border-paper text-paper transition active:scale-95",
-              locked ? "bg-muted-foreground/40 grayscale" : "bg-sos shadow-sos animate-breathe")}>
-            <div className="text-center">
-              {locked ? <Lock className="mx-auto h-10 w-10" /> : <Siren className="mx-auto h-9 w-9" />}
-              <p className="font-display text-4xl font-extrabold tracking-wider">SOS</p>
-              <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">{locked ? "Locked" : "Tap for help"}</p>
-            </div>
-          </button>
+          <div className="relative grid h-[204px] w-[204px] place-items-center rounded-full border border-border bg-bezel shadow-bezel">
+            <button
+              onClick={() => (locked ? toast.warning("SOS is locked until your KYC is approved", { description: "Call 999 in an emergency." }) : setCount(3))}
+              className={cn("relative grid h-[180px] w-[180px] place-items-center overflow-hidden rounded-full text-paper transition active:scale-95",
+                locked ? "bg-muted-foreground/50 grayscale" : "bg-core shadow-core animate-breathe")}>
+              <span aria-hidden className="absolute inset-0 rounded-full micro-grid" />
+              <span aria-hidden className="absolute inset-x-6 top-2 h-12 rounded-full bg-paper/15 blur-md" />
+              <div className="relative text-center">
+                {locked ? <Lock className="mx-auto h-9 w-9" /> : (
+                  <span className="relative mx-auto grid h-11 w-11 place-items-center"><ShieldAlert className="h-11 w-11 opacity-90" strokeWidth={1.6} /></span>
+                )}
+                <p className="font-display text-4xl font-extrabold tracking-wider drop-shadow">SOS</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest opacity-85">{locked ? "Locked" : "Tap for help"}</p>
+              </div>
+            </button>
+          </div>
         </div>
-        <p className="mt-2 max-w-[260px] text-center text-xs text-muted-foreground">Tapping starts a 3-second countdown, then alerts police and volunteers near you.</p>
+        <p className="mt-6 max-w-[260px] text-center text-xs text-muted-foreground">Tapping starts a 3-second countdown, then alerts police and volunteers near you.</p>
       </div>
 
-      <div className="space-y-3 px-5 pb-4">
-        <div className="flex items-center gap-3 rounded-2xl border bg-card p-3.5 shadow-card">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-crimson"><MapPin className="h-5 w-5" /></div>
+      <div className="relative space-y-3 px-5 pb-4">
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { I: Car, v: "2 Patrols", s: "0.6 km", c: "text-navy" },
+            { I: ShieldCheck, v: "10 Volunteers", s: "Online", c: "text-emerald" },
+            { I: Video, v: "Dual-Cam", s: "& Audio Ready", c: "text-crimson" },
+          ].map(({ I, v, s, c }) => (
+            <div key={v} className="rounded-lg border border-border/90 bg-card/90 p-2.5 shadow-sm backdrop-blur-sm">
+              <I className={cn("h-4 w-4", c)} />
+              <p className="mt-1 text-[11px] font-bold leading-tight">{v}</p>
+              <p className="text-[10px] leading-tight text-muted-foreground">{s}</p>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-3 rounded-lg border border-l-4 border-border/90 border-l-crimson bg-card/95 p-3 shadow-card backdrop-blur-sm">
+          <MiniRadar />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold">Toyenbee Circular Rd, Motijheel, Dhaka</p>
             <p className="font-mono text-[11px] text-muted-foreground">23.7330° N, 90.4172° E · ±6 m</p>
@@ -223,6 +246,51 @@ function Row({ icon, tone, title, sub, eta }: { icon: React.ReactNode; tone: str
       <div className={cn("grid h-8 w-8 place-items-center rounded-full text-paper", tone)}>{icon}</div>
       <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{title}</p><p className="text-[11px] text-muted-foreground">{sub}</p></div>
       <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold tabular-nums">{eta === 0 ? "Arrived" : `${eta} min`}</span>
+    </div>
+  );
+}
+
+function CityWatermark() {
+  return (
+    <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full text-navy opacity-[0.06]" preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 800">
+      <g fill="none" stroke="currentColor" strokeWidth="1.5">
+        {[60, 140, 230, 320].map((x) => <path key={x} d={`M${x} 0 L${x + 20} 800`} />)}
+        {[90, 210, 340, 470, 600, 720].map((y) => <path key={y} d={`M0 ${y} L400 ${y - 30}`} />)}
+        <path d="M0 520 Q120 470 200 540 T400 500" strokeWidth="6" />
+      </g>
+      <g fill="none" stroke="currentColor" strokeWidth=".8">
+        {[40, 80, 120, 160, 200].map((r) => <ellipse key={r} cx="300" cy="160" rx={r * 1.3} ry={r} />)}
+        {[30, 60, 90, 120].map((r) => <ellipse key={r} cx="70" cy="650" rx={r} ry={r * 0.8} />)}
+      </g>
+    </svg>
+  );
+}
+
+function Radar({ active }: { active: boolean }) {
+  const ring = active ? "border-radar/60" : "border-muted-foreground/25";
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0">
+      <span className={cn("absolute inset-0 rounded-full border", ring)} />
+      <span className={cn("absolute inset-[22px] rounded-full border border-dashed", ring)} />
+      <span className={cn("absolute inset-[44px] rounded-full border", ring)} />
+      <span className={cn("absolute left-1/2 top-0 h-full w-px -translate-x-1/2", active ? "bg-radar/40" : "bg-muted-foreground/15")} />
+      <span className={cn("absolute left-0 top-1/2 h-px w-full -translate-y-1/2", active ? "bg-radar/40" : "bg-muted-foreground/15")} />
+      {active && <span className="absolute inset-0 rounded-full radar-sweep" />}
+      {[["0°", "left-1/2 -top-4 -translate-x-1/2"], ["90°", "-right-6 top-1/2 -translate-y-1/2"], ["180°", "left-1/2 -bottom-4 -translate-x-1/2"], ["270°", "-left-7 top-1/2 -translate-y-1/2"]].map(([t, pos]) => (
+        <span key={t} className={cn("absolute font-mono text-[9px] font-semibold text-muted-foreground", pos)}>{t}</span>
+      ))}
+    </div>
+  );
+}
+
+function MiniRadar() {
+  return (
+    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border bg-map-land tactical-grid">
+      <span className="absolute left-0 top-1/2 h-1 w-full -rotate-12 bg-map-road" />
+      <span className="absolute left-1/3 top-0 h-full w-1 bg-map-road" />
+      <span className="absolute inset-1 rounded-full border border-crimson/30" />
+      <span className="absolute inset-0 rounded-full radar-sweep" />
+      <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-paper bg-crimson shadow" />
     </div>
   );
 }

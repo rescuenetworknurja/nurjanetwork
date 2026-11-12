@@ -4,6 +4,7 @@
  */
 export const BN: Record<string, string> = {
   // ---------- Shared / navigation ----------
+  "Coverage Zone: Active": "কভারেজ জোন: সক্রিয়", "2 Patrols": "২টি টহল দল", "10 Volunteers": "১০ জন ভলান্টিয়ার", "Online": "অনলাইন", "Dual-Cam": "ডুয়াল-ক্যাম", "& Audio Ready": "ও অডিও প্রস্তুত", "0.6 km": "০.৬ কিমি",
   "Home": "হোম", "Our Story": "আমাদের গল্প", "Blog": "ব্লগ ও ঘটনা", "Contact Us": "যোগাযোগ", "Contact us": "যোগাযোগ করুন",
   "Become a Volunteer": "ভলান্টিয়ার হোন", "Menu": "মেনু", "Explore": "ঘুরে দেখুন", "Open NURJA app": "নুর্জা অ্যাপ খুলুন",
   "Emergency": "জরুরি", "National helpline 999": "জাতীয় হেল্পলাইন ৯৯৯", "Women & child 109": "নারী ও শিশু ১০৯",

@@ -47,6 +47,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
   /* Brand */
   --color-crimson: var(--crimson);
+  --color-radar: var(--radar);
   --color-crimson-soft: var(--crimson-soft);
   --color-navy: var(--navy);
   --color-navy-2: var(--navy-2);
@@ -125,6 +126,19 @@
   --gradient-sos: radial-gradient(circle at 35% 30%, oklch(0.7 0.2 18), var(--crimson) 55%, oklch(0.45 0.18 15));
   --shadow-sos: 0 20px 60px -10px color-mix(in oklab, var(--crimson) 65%, transparent);
   --shadow-card: 0 1px 2px oklch(0 0 0 / 4%), 0 10px 30px -12px oklch(0.2 0.04 265 / 18%);
+  --rose-ivory: oklch(0.977 0.012 5);
+  --slate-cool: oklch(0.968 0.007 248);
+  --crimson-bright: oklch(0.645 0.215 16.4);
+  --crimson-deep: oklch(0.514 0.2 17);
+  --radar: oklch(0.82 0.09 10);
+  --bezel-top: oklch(1 0 0);
+  --bezel-bottom: oklch(0.955 0.008 255);
+  --grid-line: oklch(0.92 0.013 255);
+  --gradient-vignette: radial-gradient(ellipse at 50% 42%, var(--rose-ivory) 0%, var(--rose-ivory) 30%, var(--slate-cool) 100%);
+  --gradient-core: linear-gradient(to bottom, var(--crimson-bright), var(--crimson) 55%, var(--crimson-deep));
+  --gradient-bezel: linear-gradient(to bottom, var(--bezel-top), var(--bezel-bottom));
+  --shadow-core: inset 0 2px 4px oklch(1 0 0 / 45%), inset 0 -6px 14px oklch(0.3 0.12 15 / 35%), 0 18px 40px -10px color-mix(in oklab, var(--crimson) 55%, transparent);
+  --shadow-bezel: 0 10px 25px -8px oklch(0.2 0.04 265 / 25%), inset 0 1px 0 oklch(1 0 0);
 }
 
 /* Tactical (dark) surfaces: Rescue Network + Control Panel */
@@ -167,6 +181,26 @@
 @utility bg-sos { background-image: var(--gradient-sos); }
 @utility shadow-sos { box-shadow: var(--shadow-sos); }
 @utility shadow-card { box-shadow: var(--shadow-card); }
+@utility bg-vignette { background-image: var(--gradient-vignette); }
+@utility bg-core { background-image: var(--gradient-core); }
+@utility bg-bezel { background-image: var(--gradient-bezel); }
+@utility shadow-core { box-shadow: var(--shadow-core); }
+@utility shadow-bezel { box-shadow: var(--shadow-bezel); }
+@utility micro-grid {
+  background-image: linear-gradient(to right, oklch(1 0 0 / 9%) 1px, transparent 1px), linear-gradient(to bottom, oklch(1 0 0 / 9%) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+@utility arch-grid {
+  background-image: linear-gradient(to right, var(--grid-line) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse at 50% 40%, black 20%, transparent 75%);
+}
+@utility radar-sweep {
+  background-image: conic-gradient(from 0deg, color-mix(in oklab, var(--crimson) 22%, transparent), transparent 70deg);
+  animation: radar-spin 6s linear infinite;
+}
+@keyframes radar-spin { to { transform: rotate(360deg) } }
+@media (prefers-reduced-motion: reduce) { .radar-sweep { animation: none; } }
 @utility font-display { font-family: var(--font-display); }
 @utility tactical-grid {
   background-image: linear-gradient(oklch(1 0 0 / 4%) 1px, transparent 1px),

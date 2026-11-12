@@ -40,7 +40,8 @@ function Home() {
   return (
     <SiteLayout>
       <section className="relative overflow-hidden bg-hero">
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-[1.1fr_1fr] lg:py-24">
+        <div aria-hidden className="pointer-events-none absolute inset-0 arch-grid" />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-[1.1fr_1fr] lg:py-24">
           <div className="space-y-7 animate-rise">
             <span className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-semibold">
               <span className="h-2 w-2 rounded-full bg-emerald animate-blink" /> Live across Dhaka & Narayanganj
@@ -83,7 +84,7 @@ function Home() {
         </div>
         <ol className="mt-10 grid gap-4 md:grid-cols-4">
           {STEPS.map((s, i) => (
-            <li key={s.title} className="relative rounded-3xl border bg-card p-6 shadow-card animate-rise" style={{ animationDelay: `${i * 90}ms` }}>
+            <li key={s.title} className="relative overflow-hidden rounded-3xl border border-t-4 border-t-crimson bg-card p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-card animate-rise" style={{ animationDelay: `${i * 90}ms` }}>
               <span className="font-display text-5xl font-extrabold text-crimson/15">0{i + 1}</span>
               <div className="mt-2 grid h-12 w-12 place-items-center rounded-2xl bg-crimson text-paper"><s.icon className="h-6 w-6" /></div>
               <h3 className="mt-4 text-lg font-bold">{s.title}</h3>
