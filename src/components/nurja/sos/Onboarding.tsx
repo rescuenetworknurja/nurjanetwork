@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Slogan } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { ArrowLeft, Baby, Eye, EyeOff, KeyRound, Lock, Phone, ShieldCheck, UserRound } from "lucide-react";
@@ -14,6 +15,31 @@ import { ageFromDob, isValidBdPhone } from "@/lib/ids";
 import { cn } from "@/lib/utils";
 
 const RELATIONS = ["Mother", "Father", "Sister", "Brother", "Husband", "Guardian", "Friend"];
+
+export function SignedOutSplash() {
+  return (
+    <div className="relative flex flex-1 flex-col items-center justify-between overflow-hidden bg-hero px-8 pb-12 pt-24 text-center">
+      <div className="relative mt-10">
+        <span className="absolute inset-0 rounded-full bg-crimson/20 animate-ripple" />
+        <span className="absolute inset-0 rounded-full bg-crimson/20 animate-ripple [animation-delay:1.2s]" />
+        <img src={LOGOS.icon} alt="NURJA" className="relative h-40 w-40 rounded-full bg-paper object-contain p-4 shadow-sos animate-breathe" />
+      </div>
+      <div className="space-y-3 animate-rise">
+        <img src={LOGOS.lettering} alt="NURJA" className="mx-auto h-12 object-contain" />
+        <p className="font-display text-base font-bold text-crimson"><Slogan /></p>
+        <p className="text-muted-foreground">Your safety, one tap away. Police and verified volunteers nearby, always ready.</p>
+      </div>
+      <div className="w-full space-y-3">
+        <Button asChild size="lg" className="h-14 w-full rounded-lg text-base shadow-sos">
+          <Link to="/auth" search={{ redirect: "/NURJASOS" }}>Login</Link>
+        </Button>
+        <Button asChild size="lg" variant="outline" className="h-14 w-full rounded-lg text-base">
+          <Link to="/auth" search={{ redirect: "/NURJASOS", mode: "signup" }}>Create account</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export function Onboarding() {
   const d = useDemo();

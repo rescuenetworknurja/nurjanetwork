@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Home, Route as RouteIcon, ShieldAlert, UserRound, Users } from "lucide-react";
 import { PhoneFrame } from "@/components/nurja/PhoneFrame";
-import { Onboarding } from "@/components/nurja/sos/Onboarding";
+import { Onboarding, SignedOutSplash } from "@/components/nurja/sos/Onboarding";
 import { HomeTab } from "@/components/nurja/sos/Home";
 import { CommunityTab, ProfileTab, SafeRouteTab } from "@/components/nurja/sos/Tabs";
 import { useDemo } from "@/lib/demo-store";
@@ -33,7 +33,7 @@ function NurjaApp() {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("home");
   const locked = d.selfStatus !== "active";
   return (
-    <AuthGate redirectTo="/NURJASOS">
+    <AuthGate redirectTo="/NURJASOS" signedOut={<PhoneFrame><SignedOutSplash /></PhoneFrame>}>
     <PhoneFrame>
       <div className="flex justify-center gap-1 px-4 pt-3 md:pt-9">
         {(["onboarding", "main"] as const).map((v) => (

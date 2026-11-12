@@ -16,8 +16,11 @@ export function AuthGate({
   children,
   requireRole,
   redirectTo,
+  signedOut,
 }: {
   children: ReactNode;
+  /** Rendered instead of redirecting to /auth when there is no session. */
+  signedOut?: ReactNode;
   requireRole?: RequiredRole;
   redirectTo: string;
 }) {
@@ -34,10 +37,12 @@ export function AuthGate({
   });
 
   useEffect(() => {
-    if (!session.loading && !session.user) {
+    if (!session.loading && !session.user && !signedOut) {
       void navigate({ to: "/auth", search: { redirect: redirectTo } });
     }
-  }, [session.loading, session.user, navigate, redirectTo]);
+  }, [session.loading, session.user, navigate, redirectTo, signedOut]);
+
+  if (!session.loading && !session.user && signedOut) return <>{signedOut}</>;
 
   if (session.loading || !session.user) {
     return (

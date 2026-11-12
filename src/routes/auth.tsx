@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
     redirect: typeof search["redirect"] === "string" ? search["redirect"] : "/NURJASOS",
+    mode: search["mode"] === "signup" ? ("signup" as const) : undefined,
   }),
   head: () => ({
     meta: [
@@ -29,9 +30,9 @@ function AuthPage() {
   const d = useDemo();
   const bn = d.lang === "bn";
   const navigate = useNavigate();
-  const { redirect } = Route.useSearch();
+  const { redirect, mode: initialMode } = Route.useSearch();
   const session = useSession();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup">(initialMode ?? "signin");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");

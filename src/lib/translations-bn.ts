@@ -229,7 +229,7 @@ export const BN: Record<string, string> = {
   "Birth Registration No.": "জন্ম নিবন্ধন নং", "Guardian NOC": "অভিভাবকের NOC", "Name:": "নাম:", "Phone:": "ফোন:", "Relationship:": "সম্পর্ক:",
   "Legal consent signed": "আইনগত সম্মতি স্বাক্ষরিত", "Reject": "বাতিল করুন", "Approve": "অনুমোদন দিন", "Rejected": "বাতিল",
   "pending": "পেন্ডিং", "approved": "অনুমোদিত", "rejected": "বাতিল", "adult": "প্রাপ্তবয়স্ক", "minor": "অপ্রাপ্তবয়স্ক",
-  "Create account": "অ্যাকাউন্ট তৈরি করুন", "Roster": "তালিকা", "Approve & Generate Volunteer ID": "অনুমোদন দিন ও ভলান্টিয়ার আইডি তৈরি করুন",
+  "Create account": "অ্যাকাউন্ট তৈরি করুন", "Login": "লগইন", "Roster": "তালিকা", "Approve & Generate Volunteer ID": "অনুমোদন দিন ও ভলান্টিয়ার আইডি তৈরি করুন",
   "Account kind": "অ্যাকাউন্টের ধরন", "Area / jurisdiction": "এলাকা / অধিক্ষেত্র", "Type": "ধরন", "ID / Code": "আইডি / কোড", "Area": "এলাকা",
   "Edit zone": "জোন সম্পাদনা", "Danger rating": "ঝুঁকির মাত্রা", "1 Light red": "১ হালকা লাল", "5 Dark red": "৫ গাঢ় লাল", "Radius": "ব্যাসার্ধ",
   "Delete zone": "জোন মুছুন", "Select a zone or click the map to add one.": "একটি জোন বাছুন বা নতুন যোগ করতে ম্যাপে ক্লিক করুন।",
