@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Home, ShieldAlert, UserRound } from "lucide-react";
+import { Home, Route as RouteIcon, ShieldAlert, UserRound, Users } from "lucide-react";
 import { PhoneFrame } from "@/components/nurja/PhoneFrame";
 import { Onboarding, SignedOutSplash } from "@/components/nurja/sos/Onboarding";
 import { HomeTab } from "@/components/nurja/sos/Home";
-import { ProfileTab } from "@/components/nurja/sos/Tabs";
+import { CommunityTab, ProfileTab, SafeRouteTab } from "@/components/nurja/sos/Tabs";
 import { useDemo } from "@/lib/demo-store";
 import { AuthGate } from "@/components/nurja/AuthGate";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,8 @@ export const Route = createFileRoute("/NURJASOS")({
 
 const TABS = [
   { id: "home", label: "Home", icon: Home },
+  { id: "route", label: "Safe Route", icon: RouteIcon },
+  { id: "community", label: "Community", icon: Users },
   { id: "profile", label: "Profile", icon: UserRound },
 ] as const;
 
@@ -61,11 +63,13 @@ function NurjaApp() {
         <>
           <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto pb-24">
             {(tab === "home" || d.sos) && <HomeTab />}
+            {!d.sos && tab === "route" && <SafeRouteTab />}
+            {!d.sos && tab === "community" && <CommunityTab />}
             {!d.sos && tab === "profile" && <ProfileTab />}
           </div>
           {!d.sos && (
             <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 shadow-lg backdrop-blur-md">
-              <div className="mx-auto grid max-w-[430px] grid-cols-2 px-2 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <div className="mx-auto grid max-w-[430px] grid-cols-4 px-2 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 {TABS.map((t) => (
                   <button key={t.id} onClick={() => setTab(t.id)} className={cn("flex flex-col items-center gap-1 rounded-lg py-1.5 text-[11px] font-semibold", tab === t.id ? "text-crimson" : "text-muted-foreground")}>
                     <t.icon className="h-5 w-5" />{t.label}
