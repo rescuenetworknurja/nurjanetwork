@@ -1,6 +1,7 @@
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Circle, MapContainer, Marker, Polyline, TileLayer, useMapEvents } from "react-leaflet";
+import { Circle, MapContainer, Marker, Polyline, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { useEffect } from "react";
 import { MAP_CENTER, toLatLng, toXY, zoneRadiusMeters } from "@/lib/geo-map";
 import type { Zone } from "@/lib/mock-data";
 import type { MapUnit } from "./TacticalMap";
@@ -56,6 +57,26 @@ const victimIcon = L.divIcon({
   </div>`,
 });
 
+const meIcon = L.divIcon({
+  className: "nurja-map-icon", iconSize: [22, 22], iconAnchor: [11, 11],
+  html: `<div style="position:relative;width:22px;height:22px"><span style="position:absolute;inset:0;border-radius:9999px;background:rgba(37,99,235,.35);animation:nurja-ripple 2s infinite"></span><div style="position:relative;width:100%;height:100%;border-radius:9999px;border:3px solid #fff;background:#2563eb;box-shadow:0 2px 6px rgba(0,0,0,.35)"></div></div>`,
+});
+const pinIcon = (bg: string) => L.divIcon({
+  className: "nurja-map-icon", iconSize: [18, 18], iconAnchor: [9, 9],
+  html: `<div style="width:18px;height:18px;border-radius:9999px;border:3px solid #fff;background:${bg};box-shadow:0 2px 6px rgba(0,0,0,.35)"></div>`,
+});
+
+function FitTo({ points, focus }: { points?: [number, number][] | undefined; focus?: [number, number] | undefined }) {
+  const map = useMap();
+  const key = points?.length ? `${points[0]}|${points[points.length - 1]}|${points.length}` : "";
+  useEffect(() => {
+    if (points && points.length > 1) map.fitBounds(L.latLngBounds(points), { padding: [40, 40], paddingTopLeft: [40, 140], paddingBottomRight: [40, 280] });
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  const fk = focus ? `${focus[0].toFixed(4)},${focus[1].toFixed(4)}` : "";
+  useEffect(() => { if (focus && !(points && points.length > 1)) map.setView(focus, 15); }, [fk]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
 function ClickHandler({ onMapClick }: { onMapClick: (x: number, y: number) => void }) {
   useMapEvents({
     click: (e) => {
@@ -67,8 +88,9 @@ function ClickHandler({ onMapClick }: { onMapClick: (x: number, y: number) => vo
 }
 
 export default function LiveMap({
-  zones = [], victim, units = [], route, routeTone = "emerald", onMapClick, selectedZone, showLabels = false,
+  zones = [], victim, units = [], route, routeTone = "emerald", onMapClick, selectedZone, showLabels = false, path, me, endpoints,
 }: {
+  path?: [number, number][] | undefined; me?: [number, number] | undefined; endpoints?: [[number, number], [number, number]] | undefined;
   zones?: Zone[] | undefined; victim?: { x: number; y: number } | undefined; units?: MapUnit[] | undefined;
   route?: [number, number][] | undefined; routeTone?: "emerald" | "crimson";
   onMapClick?: ((x: number, y: number) => void) | undefined; selectedZone?: string | undefined; showLabels?: boolean;
@@ -122,6 +144,15 @@ export default function LiveMap({
         <Marker key={u.id} position={toLatLng(u.x, u.y)} icon={unitIcon(u)} />
       ))}
       {victim && <Marker position={toLatLng(victim.x, victim.y)} icon={victimIcon} zIndexOffset={1000} />}
+      {path && path.length > 1 && (
+        <>
+          <Polyline positions={path} pathOptions={{ color: "#10b981", weight: 9, opacity: 0.3, lineJoin: "round" }} />
+          <Polyline positions={path} pathOptions={{ color: "#059669", weight: 4, lineJoin: "round" }} />
+        </>
+      )}
+      {endpoints && <><Marker position={endpoints[0]} icon={pinIcon("#0f172a")} /><Marker position={endpoints[1]} icon={pinIcon("#10b981")} /></>}
+      {me && <Marker position={me} icon={meIcon} zIndexOffset={2000} />}
+      <FitTo points={path} focus={me} />
     </MapContainer>
   );
 }

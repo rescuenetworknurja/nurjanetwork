@@ -104,6 +104,10 @@ export const BN: Record<string, string> = {
   "Why do you want to volunteer?": "কেন ভলান্টিয়ার হতে চান?", "Tell us your motivation": "আপনার অনুপ্রেরণা জানান",
 
   // ---------- NURJA app: onboarding ----------
+  "My location": "আমার অবস্থান", "Enter a destination": "গন্তব্য লিখুন", "Enter a destination to see the safest route": "নিরাপদ রুট দেখতে গন্তব্য লিখুন",
+  "Finding route…": "রুট খোঁজা হচ্ছে…", "Route shown on map": "রুট ম্যাপে দেখানো হয়েছে", "Destination not found": "গন্তব্য পাওয়া যায়নি",
+  "Start place not found": "শুরুর জায়গা পাওয়া যায়নি", "Your location is not available yet": "আপনার অবস্থান এখনো পাওয়া যায়নি", "No route found": "কোনো রুট পাওয়া যায়নি",
+  "Route service unavailable, try again": "রুট সেবা পাওয়া যাচ্ছে না, আবার চেষ্টা করুন", "Location permission denied — allow location to see yourself on the map": "লোকেশন অনুমতি দেওয়া হয়নি — ম্যাপে নিজেকে দেখতে লোকেশন চালু করুন",
   "Onboarding Wizard": "অনবোর্ডিং উইজার্ড", "Main App Screen": "মূল অ্যাপ স্ক্রিন",
   "Your safety, one tap away. Police and verified volunteers nearby, always ready.": "নুর্জা — নারীর নিরাপত্তা ও জরুরি সহায়তা। কাছের পুলিশ ও যাচাইকৃত ভলান্টিয়ার সবসময় প্রস্তুত।",
   "Get Started": "শুরু করুন", "Tap to click or upload": "ছবি তুলতে বা আপলোড করতে ট্যাপ করুন", "Captured": "ছবি তোলা হয়েছে",

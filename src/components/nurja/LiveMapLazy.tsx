@@ -16,6 +16,9 @@ export type LiveMapProps = {
   onMapClick?: ((x: number, y: number) => void) | undefined;
   selectedZone?: string | undefined;
   showLabels?: boolean;
+  path?: [number, number][] | undefined;
+  me?: [number, number] | undefined;
+  endpoints?: [[number, number], [number, number]] | undefined;
   children?: React.ReactNode;
 };
 
