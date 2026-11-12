@@ -86,10 +86,7 @@ export function HomeTab() {
           <p className="font-display text-lg font-bold">{d.user.name.split(" ")[0]}</p>
           <Slogan className="mt-0.5 block text-[10px] font-semibold text-crimson/80" />
         </div>
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-full border border-emerald/30 bg-emerald-soft px-2.5 py-1 text-[10px] font-bold text-emerald"><span className="h-1.5 w-1.5 rounded-full bg-emerald animate-blink" />Coverage Zone: Active</span>
-          <button className="relative grid h-10 w-10 place-items-center rounded-lg border bg-card shadow-sm"><Bell className="h-5 w-5" /><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-crimson" /></button>
-        </div>
+        <button className="relative grid h-10 w-10 place-items-center rounded-lg border bg-card shadow-sm"><Bell className="h-5 w-5" /><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-crimson" /></button>
       </header>
       <div className="relative px-5 pt-3">
         <button onClick={() => d.setSelfKyc(locked ? "approved" : "pending")}
@@ -143,14 +140,6 @@ export function HomeTab() {
               <p className="text-[10px] leading-tight text-muted-foreground">{s}</p>
             </div>
           ))}
-        </div>
-        <div className="flex items-center gap-3 rounded-lg border border-l-4 border-border/90 border-l-crimson bg-card/95 p-3 shadow-card backdrop-blur-sm">
-          <MiniRadar />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold">Toyenbee Circular Rd, Motijheel, Dhaka</p>
-            <p className="font-mono text-[11px] text-muted-foreground">23.7330° N, 90.4172° E · ±6 m</p>
-          </div>
-          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald"><span className="h-1.5 w-1.5 rounded-full bg-emerald animate-blink" />GPS</span>
         </div>
         <div className="flex justify-center"><PwaBadge compact /></div>
       </div>
@@ -312,18 +301,6 @@ function Radar({ active }: { active: boolean }) {
       {[["0°", "left-1/2 -top-4 -translate-x-1/2"], ["90°", "-right-6 top-1/2 -translate-y-1/2"], ["180°", "left-1/2 -bottom-4 -translate-x-1/2"], ["270°", "-left-7 top-1/2 -translate-y-1/2"]].map(([t, pos]) => (
         <span key={t} className={cn("absolute font-mono text-[9px] font-semibold text-muted-foreground", pos)}>{t}</span>
       ))}
-    </div>
-  );
-}
-
-function MiniRadar() {
-  return (
-    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border bg-map-land tactical-grid">
-      <span className="absolute left-0 top-1/2 h-1 w-full -rotate-12 bg-map-road" />
-      <span className="absolute left-1/3 top-0 h-full w-1 bg-map-road" />
-      <span className="absolute inset-1 rounded-full border border-crimson/30" />
-      <span className="absolute inset-0 rounded-full radar-sweep" />
-      <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-paper bg-crimson shadow" />
     </div>
   );
 }
