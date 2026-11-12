@@ -13,7 +13,6 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { DemoStoreProvider } from "@/lib/demo-store";
-import { DemoSwitcher } from "@/components/nurja/DemoSwitcher";
 import { LangSync } from "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -132,7 +131,6 @@ function RootComponent() {
       <DemoStoreProvider>
         <LangSync />
         <Outlet />
-        <DemoSwitcher />
         <Toaster position="top-center" richColors />
       </DemoStoreProvider>
     </QueryClientProvider>
