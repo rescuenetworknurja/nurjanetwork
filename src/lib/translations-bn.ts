@@ -268,7 +268,6 @@ export const BN: Record<string, string> = {
   "string into either box, or click the map to drop the pin.": "স্ট্রিং যেকোনো ঘরে পেস্ট করুন, অথবা ম্যাপে ক্লিক করে পিন বসান।",
   "Latitude (অক্ষাংশ)": "অক্ষাংশ", "Longitude (দ্রাঘিমাংশ)": "দ্রাঘিমাংশ",
   "User Database": "ইউজার ডাটাবেজ",
-  "Rescue Network": "রেসকিউ নেটওয়ার্ক",
   "Connecting to Central Dispatch & GPS Satellite…": "সেন্ট্রাল ডিসপ্যাচ ও GPS স্যাটেলাইটের সাথে সংযোগ হচ্ছে…",
   "Proceed to Responder Login": "লগইন পেজে যান",
   "NURJA Emergency Response & Women Safety Ecosystem": "নুর্জা জরুরি সাড়া ও নারী নিরাপত্তা ইকোসিস্টেম",
