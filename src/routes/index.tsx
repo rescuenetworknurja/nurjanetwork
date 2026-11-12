@@ -52,8 +52,8 @@ function Home() {
               NURJA is a women safety and rapid rescue network. One SOS alerts the nearest police and verified volunteers, streams live video, and keeps the evidence safe.
             </p>
             <div className="flex flex-wrap gap-3">
-              <VolunteerDialog><Button size="lg" className="h-12 rounded-full px-6 shadow-sos">Become a Volunteer <ArrowRight /></Button></VolunteerDialog>
-              <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-6"><Link to="/NURJASOS">Try the NURJA app</Link></Button>
+              <VolunteerDialog><Button size="lg" className="h-12 rounded-lg px-6 shadow-sos">Become a Volunteer <ArrowRight /></Button></VolunteerDialog>
+              <Button asChild size="lg" variant="outline" className="h-12 rounded-lg px-6"><Link to="/NURJASOS">Try the NURJA app</Link></Button>
             </div>
             <div className="grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
               <Stat label="Women protected" value={rescued.toLocaleString()} />
@@ -101,7 +101,7 @@ function Home() {
               <p className="text-sm font-bold uppercase tracking-widest text-crimson">Stories & awareness</p>
               <h2 className="mt-2 text-4xl font-extrabold">Incident stories from the network</h2>
             </div>
-            <Button asChild variant="outline" className="rounded-full"><Link to="/blog">View all stories <ArrowRight /></Link></Button>
+            <Button asChild variant="outline" className="rounded-lg"><Link to="/blog">View all stories <ArrowRight /></Link></Button>
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-3">{blog.map((p) => <PostCard key={p.id} post={p} />)}</div>
         </div>
@@ -114,7 +114,7 @@ function Home() {
             <h2 className="mt-4 text-4xl font-extrabold">Be the nearest help.</h2>
             <p className="mt-2 max-w-xl text-paper/70">Verified volunteers get alerts when someone nearby needs help. Training and verification are free.</p>
           </div>
-          <VolunteerDialog><Button size="lg" className="h-12 rounded-full px-8">Become a Volunteer</Button></VolunteerDialog>
+          <VolunteerDialog><Button size="lg" className="h-12 rounded-lg px-8">Become a Volunteer</Button></VolunteerDialog>
         </div>
       </section>
     </SiteLayout>

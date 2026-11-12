@@ -52,7 +52,7 @@ export function HomeTab() {
           <p className="text-xs text-muted-foreground">Assalamu alaikum,</p>
           <p className="font-display text-lg font-bold">{d.user.name.split(" ")[0]}</p>
         </div>
-        <button className="relative grid h-10 w-10 place-items-center rounded-full bg-muted"><Bell className="h-5 w-5" /><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-crimson" /></button>
+        <button className="relative grid h-10 w-10 place-items-center rounded-lg bg-muted"><Bell className="h-5 w-5" /><span className="absolute right-2 top-2 h-2 w-2 rounded-lg bg-crimson" /></button>
       </header>
       <div className="px-5">
         <button onClick={() => d.setSelfKyc(locked ? "approved" : "pending")}
@@ -110,7 +110,7 @@ export function HomeTab() {
             <span key={count} className="font-display text-[120px] font-extrabold leading-none animate-count">{count}</span>
           </div>
           <p className="max-w-[260px] text-center text-sm opacity-80">Nearest police and volunteers will be alerted with your live location and camera.</p>
-          <Button variant="outline" size="lg" className="mt-10 h-14 w-56 rounded-full border-paper bg-transparent text-lg text-paper hover:bg-paper hover:text-crimson" onClick={() => setCount(null)}>
+          <Button variant="outline" size="lg" className="mt-10 h-14 w-56 rounded-lg border-paper bg-transparent text-lg text-paper hover:bg-paper hover:text-crimson" onClick={() => setCount(null)}>
             <X /> Cancel
           </Button>
         </div>

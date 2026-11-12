@@ -23,13 +23,13 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           <nav className="hidden flex-1 items-center gap-1 md:flex">
             {LINKS.map((l) => (
               <Link key={l.to} to={l.to} activeOptions={{ exact: true }}
-                className="rounded-full px-3.5 py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground"
+                className="rounded-lg px-3.5 py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground"
                 activeProps={{ className: "bg-accent text-accent-foreground" }}>{l.label}</Link>
             ))}
           </nav>
           <div className="ml-auto hidden items-center gap-3 md:flex">
             <LangToggle />
-            <VolunteerDialog><Button className="rounded-full">Become a Volunteer</Button></VolunteerDialog>
+            <VolunteerDialog><Button className="rounded-lg">Become a Volunteer</Button></VolunteerDialog>
           </div>
           <LangToggle className="ml-auto md:hidden" />
           <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">{open ? <X /> : <Menu />}</button>

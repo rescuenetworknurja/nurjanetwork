@@ -31,7 +31,7 @@ function Blog() {
         <p className="mt-2 text-muted-foreground">Published and verified by the NURJA Control Panel.</p>
         <div className="mt-6 flex flex-wrap gap-2">
           {tags.map((t) => (
-            <button key={t} onClick={() => setTag(t)} className={cn("rounded-full border px-4 py-1.5 text-sm font-semibold", tag === t ? "border-primary bg-primary text-primary-foreground" : "bg-card")}>{t}</button>
+            <button key={t} onClick={() => setTag(t)} className={cn("rounded-lg border px-4 py-1.5 text-sm font-semibold", tag === t ? "border-primary bg-primary text-primary-foreground" : "bg-card")}>{t}</button>
           ))}
         </div>
         {featured && (

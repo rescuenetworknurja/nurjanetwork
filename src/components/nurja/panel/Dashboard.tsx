@@ -28,7 +28,7 @@ export function DashboardSection({ go }: { go: (s: string) => void }) {
     <>
       <PageHead title="Command Dashboard" sub="Dhaka & Narayanganj · live overview" />
       {d.sos && (
-        <button onClick={() => go("incident")} className="mb-5 flex w-full items-center gap-3 rounded-2xl p-4 text-left text-paper animate-flash">
+        <button onClick={() => go("incident")} className="mb-5 flex w-full items-center gap-3 rounded-lg p-4 text-left text-paper animate-flash">
           <Siren className="h-6 w-6 animate-blink" />
           <div className="flex-1"><p className="font-display font-extrabold">LIVE SOS — {d.sos.victim} · {d.sos.area}</p><p className="text-xs opacity-80">{d.sos.id} · {d.sos.acceptedBy.length} responders accepted · click to open dispatch center</p></div>
           <span className="rounded-full bg-paper px-3 py-1 text-xs font-bold text-crimson">Open</span>

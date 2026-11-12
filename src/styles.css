@@ -67,7 +67,7 @@
 }
 
 :root {
-  --radius: 0.875rem;
+  --radius: 0.5rem;
   --crimson: oklch(0.586 0.222 17.6);
   --crimson-soft: oklch(0.95 0.03 15);
   --navy: oklch(0.208 0.042 265.8);

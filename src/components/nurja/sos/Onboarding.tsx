@@ -81,7 +81,7 @@ export function Onboarding() {
           <img src={LOGOS.lettering} alt="NURJA" className="mx-auto h-12 object-contain" />
           <p className="text-muted-foreground">Your safety, one tap away. Police and verified volunteers nearby, always ready.</p>
         </div>
-        <Button size="lg" className="h-14 w-full rounded-2xl text-base shadow-sos" onClick={() => setStep(1)}>Get Started</Button>
+        <Button size="lg" className="h-14 w-full rounded-lg text-base shadow-sos" onClick={() => setStep(1)}>Get Started</Button>
       </div>
     );
 
@@ -91,7 +91,7 @@ export function Onboarding() {
   return (
     <div className="flex flex-1 flex-col px-6 pb-8 pt-12">
       <div className="flex items-center gap-3">
-        <button onClick={back} className="grid h-10 w-10 place-items-center rounded-full bg-muted" aria-label="Back"><ArrowLeft className="h-5 w-5" /></button>
+        <button onClick={back} className="grid h-10 w-10 place-items-center rounded-lg bg-muted" aria-label="Back"><ArrowLeft className="h-5 w-5" /></button>
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
           <div className="h-full rounded-full bg-crimson transition-all duration-500" style={{ width: `${(progress / totalSteps) * 100}%` }} />
         </div>
@@ -101,7 +101,7 @@ export function Onboarding() {
       <div key={`${step}-${sub}`} className="mt-8 flex-1 space-y-6 animate-rise">
         {step === 1 && <Head icon={Phone} title="Your phone number" text="We'll send a 6-digit code to verify it." />}
         {step === 1 && (
-          <div className="flex items-center gap-2 rounded-2xl border bg-card px-4">
+          <div className="flex items-center gap-2 rounded-lg border bg-card px-4">
             <span className="font-semibold text-muted-foreground">🇧🇩 +88</span>
             <Input className="h-14 border-0 text-lg shadow-none focus-visible:ring-0" placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={11} value={f.phone} onChange={(e) => set({ phone: e.target.value.replace(/\D/g, "") })} autoFocus />
           </div>
@@ -114,10 +114,10 @@ export function Onboarding() {
         {step === 3 && (
           <div className="space-y-3">
             <div className="relative">
-              <Input type={show ? "text" : "password"} className="h-14 rounded-2xl pr-12" placeholder="At least 8 characters" value={f.password} onChange={(e) => set({ password: e.target.value })} />
+              <Input type={show ? "text" : "password"} className="h-14 rounded-lg pr-12" placeholder="At least 8 characters" value={f.password} onChange={(e) => set({ password: e.target.value })} />
               <button className="absolute right-4 top-4 text-muted-foreground" onClick={() => setShow(!show)}>{show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button>
             </div>
-            <Input type={show ? "text" : "password"} className="h-14 rounded-2xl" placeholder="Confirm password" value={f.confirm} onChange={(e) => set({ confirm: e.target.value })} />
+            <Input type={show ? "text" : "password"} className="h-14 rounded-lg" placeholder="Confirm password" value={f.confirm} onChange={(e) => set({ confirm: e.target.value })} />
             <div className="flex gap-1">{[0, 1, 2, 3].map((i) => <div key={i} className={cn("h-1 flex-1 rounded-full", f.password.length > i * 3 + 2 ? (f.password.length >= 10 ? "bg-emerald" : "bg-amber") : "bg-muted")} />)}</div>
           </div>
         )}
@@ -134,8 +134,8 @@ export function Onboarding() {
         {step === 5 && <Head icon={UserRound} title="About you" text="Your age decides which verification you'll need." />}
         {step === 5 && (
           <div className="space-y-4">
-            <div className="space-y-1.5"><Label>Full name</Label><Input className="h-14 rounded-2xl" placeholder="As on your NID / birth certificate" value={f.name} onChange={(e) => set({ name: e.target.value })} /></div>
-            <div className="space-y-1.5"><Label>Date of birth</Label><Input type="date" className="h-14 rounded-2xl" max={new Date().toISOString().slice(0, 10)} value={f.dob} onChange={(e) => set({ dob: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>Full name</Label><Input className="h-14 rounded-lg" placeholder="As on your NID / birth certificate" value={f.name} onChange={(e) => set({ name: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>Date of birth</Label><Input type="date" className="h-14 rounded-lg" max={new Date().toISOString().slice(0, 10)} value={f.dob} onChange={(e) => set({ dob: e.target.value })} /></div>
             {age !== null && (
               <div className={cn("flex items-center gap-3 rounded-2xl p-4 animate-rise", adult ? "bg-emerald-soft" : "bg-amber-soft")}>
                 <div className={cn("grid h-11 w-11 place-items-center rounded-full text-paper", adult ? "bg-emerald" : "bg-amber")}>{adult ? <ShieldCheck className="h-5 w-5" /> : <Baby className="h-5 w-5" />}</div>
@@ -151,9 +151,9 @@ export function Onboarding() {
         {step === 6 && <Head icon={Phone} title="Emergency family contact" text="They'll get an SMS with your live location when you trigger SOS." />}
         {step === 6 && (
           <div className="space-y-4">
-            <div className="space-y-1.5"><Label>Contact number</Label><Input className="h-14 rounded-2xl" placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={11} value={f.ePhone} onChange={(e) => set({ ePhone: e.target.value.replace(/\D/g, "") })} /></div>
+            <div className="space-y-1.5"><Label>Contact number</Label><Input className="h-14 rounded-lg" placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={11} value={f.ePhone} onChange={(e) => set({ ePhone: e.target.value.replace(/\D/g, "") })} /></div>
             <div className="space-y-1.5"><Label>Relationship</Label>
-              <div className="flex flex-wrap gap-2">{RELATIONS.map((r) => <button key={r} onClick={() => set({ eRel: r })} className={cn("rounded-full border px-4 py-2 text-sm font-semibold", f.eRel === r ? "border-primary bg-primary text-primary-foreground" : "bg-card")}>{r}</button>)}</div>
+              <div className="flex flex-wrap gap-2">{RELATIONS.map((r) => <button key={r} onClick={() => set({ eRel: r })} className={cn("rounded-lg border px-4 py-2 text-sm font-semibold", f.eRel === r ? "border-primary bg-primary text-primary-foreground" : "bg-card")}>{r}</button>)}</div>
             </div>
           </div>
         )}
@@ -173,14 +173,14 @@ export function Onboarding() {
             ) : (
               <>
                 {sub === 0 && (<><Head title="Birth registration" text="Enter the 17-digit number from your birth certificate." />
-                  <Input className="h-14 rounded-2xl text-lg tracking-widest" inputMode="numeric" maxLength={17} placeholder="17-digit number" value={f.birthReg} onChange={(e) => set({ birthReg: e.target.value.replace(/\D/g, "") })} />
+                  <Input className="h-14 rounded-lg text-lg tracking-widest" inputMode="numeric" maxLength={17} placeholder="17-digit number" value={f.birthReg} onChange={(e) => set({ birthReg: e.target.value.replace(/\D/g, "") })} />
                   <p className="text-right text-xs text-muted-foreground">{f.birthReg.length}/17</p></>)}
                 {sub === 1 && (<><Head title="Guardian NOC form" text="A parent or legal guardian must give consent." />
                   <div className="space-y-3">
-                    <Input className="h-12 rounded-xl" placeholder="Guardian full name" value={f.gName} onChange={(e) => set({ gName: e.target.value })} />
-                    <Input className="h-12 rounded-xl" placeholder="Guardian phone 01XXXXXXXXX" inputMode="numeric" maxLength={11} value={f.gPhone} onChange={(e) => set({ gPhone: e.target.value.replace(/\D/g, "") })} />
+                    <Input className="h-12 rounded-lg" placeholder="Guardian full name" value={f.gName} onChange={(e) => set({ gName: e.target.value })} />
+                    <Input className="h-12 rounded-lg" placeholder="Guardian phone 01XXXXXXXXX" inputMode="numeric" maxLength={11} value={f.gPhone} onChange={(e) => set({ gPhone: e.target.value.replace(/\D/g, "") })} />
                     <Select value={f.gRel} onValueChange={(v) => set({ gRel: v })}>
-                      <SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="Relationship to you" /></SelectTrigger>
+                      <SelectTrigger className="h-12 rounded-lg"><SelectValue placeholder="Relationship to you" /></SelectTrigger>
                       <SelectContent>{["Mother", "Father", "Legal guardian", "Grandparent", "Elder sibling"].map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
                     </Select>
                     <label className="flex gap-3 rounded-2xl border bg-muted/50 p-4 text-xs leading-relaxed">
@@ -195,7 +195,7 @@ export function Onboarding() {
         )}
       </div>
 
-      <Button size="lg" className="mt-6 h-14 w-full rounded-2xl text-base" onClick={next}>
+      <Button size="lg" className="mt-6 h-14 w-full rounded-lg text-base" onClick={next}>
         {step === 7 && sub === 2 ? "Submit for verification" : "Continue"}
       </Button>
     </div>

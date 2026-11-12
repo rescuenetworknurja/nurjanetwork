@@ -35,10 +35,10 @@ export function SafeRouteTab() {
         <div className="flex items-center gap-2">
           <div className="flex flex-col items-center gap-1 px-1"><Circle className="h-3 w-3 fill-ink text-ink" /><span className="h-5 w-px bg-border" /><MapPin className="h-4 w-4 text-emerald" /></div>
           <div className="flex-1 space-y-1.5">
-            <Input value={from} onChange={(e) => setFrom(e.target.value)} className="h-10 rounded-xl bg-muted border-0" placeholder="Origin" />
-            <Input value={to} onChange={(e) => setTo(e.target.value)} className="h-10 rounded-xl bg-muted border-0" placeholder="Destination" />
+            <Input value={from} onChange={(e) => setFrom(e.target.value)} className="h-10 rounded-lg bg-muted border-0" placeholder="Origin" />
+            <Input value={to} onChange={(e) => setTo(e.target.value)} className="h-10 rounded-lg bg-muted border-0" placeholder="Destination" />
           </div>
-          <button className="grid h-9 w-9 place-items-center rounded-full bg-muted" onClick={() => { setFrom(to); setTo(from); }}><ArrowUpDown className="h-4 w-4" /></button>
+          <button className="grid h-9 w-9 place-items-center rounded-lg bg-muted" onClick={() => { setFrom(to); setTo(from); }}><ArrowUpDown className="h-4 w-4" /></button>
         </div>
       </div>
 
@@ -61,7 +61,7 @@ export function SafeRouteTab() {
             <span className="flex items-center gap-1 rounded-full bg-emerald-soft px-2 py-1 font-semibold text-emerald"><ShieldCheck className="h-3 w-3" /> Safety score 92</span>
             <span className="flex items-center gap-1 rounded-full bg-crimson-soft px-2 py-1 font-semibold text-crimson"><ShieldAlert className="h-3 w-3" /> Fastest route: 19 min, 3 danger zones</span>
           </div>
-          <Button className="mt-3 h-11 w-full rounded-xl bg-emerald hover:bg-emerald/90" onClick={() => { setGo(true); toast.success("Navigation started on safest route"); }}>Start safe navigation</Button>
+          <Button className="mt-3 h-11 w-full rounded-lg bg-emerald hover:bg-emerald/90" onClick={() => { setGo(true); toast.success("Navigation started on safest route"); }}>Start safe navigation</Button>
         </div>
       </div>
     </div>

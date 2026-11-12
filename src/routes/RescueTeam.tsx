@@ -92,8 +92,8 @@ function RescueApp() {
                 </div>
                 <p className="text-sm"><b>{sos.victim.split(" ")[0]}</b> · {sos.area}</p>
                 <div className="grid grid-cols-[auto_1fr] gap-2">
-                  <Button variant="outline" className="h-12 rounded-xl" onClick={() => setDismissed(sos.id)}><X /> Decline</Button>
-                  <Button className="h-12 rounded-xl bg-emerald text-base font-bold hover:bg-emerald/90" onClick={() => { setAccepted(sos.id); d.acceptSos(myCode); toast.success("Accepted. Navigation started."); }}>Accept / Respond</Button>
+                  <Button variant="outline" className="h-12 rounded-lg" onClick={() => setDismissed(sos.id)}><X /> Decline</Button>
+                  <Button className="h-12 rounded-lg bg-emerald text-base font-bold hover:bg-emerald/90" onClick={() => { setAccepted(sos.id); d.acceptSos(myCode); toast.success("Accepted. Navigation started."); }}>Accept / Respond</Button>
                 </div>
               </div>
             </div>
@@ -128,7 +128,7 @@ function DispatchHome({ onSim }: { onSim: () => void }) {
           <p className="flex items-center gap-2 text-sm font-bold"><Radio className={cn("h-4 w-4", d.responderOnline && "animate-blink text-emerald")} /> {d.responderOnline ? "Standing by for alerts" : "Go online to receive alerts"}</p>
           <p className="mt-1 text-xs text-muted-foreground">Area: Motijheel · Radius 3 km</p>
         </div>
-        <Button size="lg" className="h-14 w-full rounded-2xl text-base font-bold" disabled={!d.responderOnline} onClick={onSim}>
+        <Button size="lg" className="h-14 w-full rounded-lg text-base font-bold" disabled={!d.responderOnline} onClick={onSim}>
           <Siren /> Simulate Incoming SOS Alert
         </Button>
         <p className="text-center text-[11px] text-muted-foreground">Or trigger SOS from the NURJA app — it shows up here live.</p>
@@ -182,8 +182,8 @@ function Navigate({ type1 }: { type1: boolean }) {
           <p className="mt-1 text-xs text-muted-foreground">{sos.acceptedBy.length} responders accepted · 2 patrols, 1 fari, 1 station dispatched</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" className="h-12 rounded-xl" onClick={() => toast("Calling control room…")}><Phone /> Control room</Button>
-          <Button className="h-12 rounded-xl bg-emerald hover:bg-emerald/90" onClick={() => { d.stopSos("Rescued safely — responder on scene"); toast.success("Marked as rescued. Case archived."); }}><Navigation /> Arrived · Rescued</Button>
+          <Button variant="outline" className="h-12 rounded-lg" onClick={() => toast("Calling control room…")}><Phone /> Control room</Button>
+          <Button className="h-12 rounded-lg bg-emerald hover:bg-emerald/90" onClick={() => { d.stopSos("Rescued safely — responder on scene"); toast.success("Marked as rescued. Case archived."); }}><Navigation /> Arrived · Rescued</Button>
         </div>
       </div>
     </div>

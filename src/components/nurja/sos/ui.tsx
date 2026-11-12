@@ -31,7 +31,7 @@ export function PinInput({ value, onChange, autoFocus }: { value: string; onChan
     <InputOTP maxLength={6} value={value} onChange={onChange} autoFocus={autoFocus} containerClassName="justify-center">
       <InputOTPGroup className="gap-2">
         {Array.from({ length: 6 }).map((_, i) => (
-          <InputOTPSlot key={i} index={i} className="h-12 w-11 rounded-xl border text-lg font-bold first:rounded-xl last:rounded-xl" />
+          <InputOTPSlot key={i} index={i} className="h-12 w-11 rounded-md border-2 text-lg font-bold" />
         ))}
       </InputOTPGroup>
     </InputOTP>
