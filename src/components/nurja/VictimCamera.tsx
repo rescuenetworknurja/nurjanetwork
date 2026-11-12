@@ -13,6 +13,7 @@ export function VictimCamera({ camera }: { camera: "back" | "front" }) {
   const d = useDemo();
   const [open, setOpen] = useState(false);
   const [landscape, setLandscape] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [frame, setFrame] = useState<{ id: string; src: string; at: string; incidentId: string; camera: "back" | "front"; saved: boolean } | null>(null);
   const feed = useRef<HTMLDivElement>(null);
   const viewer = useRef<HTMLDivElement>(null);
@@ -87,17 +88,21 @@ export function VictimCamera({ camera }: { camera: "back" | "front" }) {
     if (!context) return;
     try {
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      setFrame({ id: crypto.randomUUID(), src: canvas.toDataURL("image/png"), at: new Date().toISOString(), incidentId: d.sos.id, camera, saved: false });
+      setFrame({ id: crypto.randomUUID(), src: canvas.toDataURL("image/jpeg", 0.9), at: new Date().toISOString(), incidentId: d.sos.id, camera, saved: false });
     } catch {
       toast.error(tr("Could not select this frame", "এই ফ্রেমটি নির্বাচন করা যায়নি"));
     }
   };
-  const save = () => {
-    if (!frame || frame.saved) return;
+  const save = async () => {
+    if (!frame || frame.saved || saving) return;
+    setSaving(true);
     const responder = d.responders.find((item) => item.id === d.responderId);
-    const success = d.saveEvidence({ id: frame.id, incidentId: frame.incidentId, src: frame.src, capturedAt: frame.at, savedAt: new Date().toISOString(), camera: frame.camera, responderId: d.responderId, responderName: responder?.name ?? d.responderId });
-    if (!success) {
-      toast.error(tr("Evidence could not be saved. Check the active incident or browser storage.", "প্রমাণ সংরক্ষণ করা যায়নি। সক্রিয় ঘটনা বা ব্রাউজারের খালি জায়গা পরীক্ষা করুন।"));
+    const result = await d.saveEvidence({ id: frame.id, incidentId: frame.incidentId, src: frame.src, capturedAt: frame.at, savedAt: new Date().toISOString(), camera: frame.camera, responderId: d.responderId, responderName: responder?.name ?? d.responderId });
+    setSaving(false);
+    if (result !== "saved") {
+      toast.error(result === "incident"
+        ? tr("This frame belongs to an ended or different incident. Download it to keep a copy.", "এই ফ্রেমটি শেষ হওয়া বা অন্য ঘটনার। কপি রাখতে ডাউনলোড করুন।")
+        : tr("Browser storage is full or unavailable. Download the frame to keep a copy.", "ব্রাউজারে জায়গা নেই বা সংরক্ষণ বন্ধ আছে। কপি রাখতে ফ্রেম ডাউনলোড করুন।"));
       return;
     }
     setFrame({ ...frame, saved: true });
@@ -107,7 +112,7 @@ export function VictimCamera({ camera }: { camera: "back" | "front" }) {
     if (!frame) return;
     const link = document.createElement("a");
     link.href = frame.src;
-    link.download = `NURJA-frame-${frame.at.replace(/[:.]/g, "-")}.png`;
+    link.download = `NURJA-frame-${frame.at.replace(/[:.]/g, "-")}.${frame.src.startsWith("data:image/jpeg") ? "jpg" : "png"}`;
     link.click();
   };
   const frameControls = frame && (
@@ -118,7 +123,7 @@ export function VictimCamera({ camera }: { camera: "back" | "front" }) {
         <time dateTime={frame.at} className="text-[10px] text-paper/60">{new Date(frame.at).toLocaleTimeString()}</time>
       </div>
       <div className="flex shrink-0 gap-1">
-        <Button variant="secondary" size="icon" title={saveLabel} aria-label={saveLabel} disabled={frame.saved} onClick={save}>{frame.saved ? <Check /> : <Save />}</Button>
+        <Button variant="secondary" size="icon" title={saveLabel} aria-label={saveLabel} disabled={frame.saved || saving} aria-busy={saving} onClick={save}>{frame.saved ? <Check /> : <Save />}</Button>
         <Button variant="secondary" size="icon" title={downloadLabel} aria-label={downloadLabel} onClick={download}><Download /></Button>
         <Button variant="secondary" size="icon" title={clearLabel} aria-label={clearLabel} onClick={() => setFrame(null)}><X /></Button>
       </div>

@@ -7,6 +7,7 @@ import { generateVolunteerId } from "./ids";
 import { seedUsers, type AccountStatus, type AppUser } from "./users";
 import { seedInquiries, seedWebsite, type Inquiry, type WebsiteContent } from "./website-content";
 import { appendIncidentEvidence, updateEvidenceTags, type IncidentEvidence } from "./evidence";
+import { persistEvidenceState } from "./demo-persistence";
 
 export type ResponderType = 1 | 2;
 export type SosState = {
@@ -68,8 +69,8 @@ type Ctx = DemoState & {
   setAdult: (adult: boolean) => void;
   triggerSos: () => void;
   stopSos: (outcome?: string) => void;
-  saveEvidence: (record: IncidentEvidence) => boolean;
-  setEvidenceTags: (id: string, tags: string[]) => boolean;
+  saveEvidence: (record: IncidentEvidence) => Promise<"saved" | "incident" | "storage">;
+  setEvidenceTags: (id: string, tags: string[]) => Promise<boolean>;
   switchCamera: () => void;
   acceptSos: (code: string) => void;
   setKycStatus: (id: string, s: KycStatus) => void;
@@ -106,7 +107,10 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (hydrated.current) localStorage.setItem(KEY, JSON.stringify(state));
+    if (hydrated.current) {
+      try { localStorage.setItem(KEY, JSON.stringify(state)); }
+      catch { /* Explicit evidence actions report persistence failures without crashing the app. */ }
+    }
   }, [state]);
 
   const set: Ctx["set"] = useCallback((patch) => {
@@ -119,24 +123,24 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const ctx: Ctx = {
     ...state,
     set,
-    setEvidenceTags: (id, tags) => {
+    setEvidenceTags: async (id, tags) => {
       if (!state.evidence.some((item) => item.id === id)) return false;
       const next = { ...state, evidence: updateEvidenceTags(state.evidence, id, tags) };
       try {
-        localStorage.setItem(KEY, JSON.stringify(next));
-        setState(next);
+        const persisted = await persistEvidenceState(KEY, next);
+        setState((current) => ({ ...current, evidence: persisted.evidence }));
         return true;
       } catch { return false; }
     },
-    saveEvidence: (record) => {
+    saveEvidence: async (record) => {
       const evidence = appendIncidentEvidence(state.evidence, record, state.sos?.id);
-      if (!evidence) return false;
+      if (!evidence) return "incident";
       const next = { ...state, evidence };
       try {
-        localStorage.setItem(KEY, JSON.stringify(next));
-        setState(next);
-        return true;
-      } catch { return false; }
+        const persisted = await persistEvidenceState(KEY, next);
+        setState((current) => ({ ...current, evidence: persisted.evidence }));
+        return "saved";
+      } catch { return "storage"; }
     },
     selfKyc: state.kyc.find((k) => k.id === state.selfKycId)?.status ?? "pending",
     setSelfKyc: (st) => setKycStatus(state.selfKycId, st),

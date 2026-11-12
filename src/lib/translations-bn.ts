@@ -3,6 +3,12 @@
  * Keys are the exact English text as rendered (whitespace-trimmed).
  */
 export const BN: Record<string, string> = {
+  "Prepare PDF report": "PDF রিপোর্ট তৈরি করুন",
+  "Preparing PDF": "PDF তৈরি হচ্ছে",
+  "Download PDF": "PDF ডাউনলোড",
+  "Could not prepare PDF report": "PDF রিপোর্ট তৈরি করা যায়নি",
+  "This frame belongs to an ended or different incident. Download it to keep a copy.": "এই ফ্রেমটি শেষ হওয়া বা অন্য ঘটনার। কপি রাখতে ডাউনলোড করুন।",
+  "Browser storage is full or unavailable. Download the frame to keep a copy.": "ব্রাউজারে জায়গা নেই বা সংরক্ষণ বন্ধ আছে। কপি রাখতে ফ্রেম ডাউনলোড করুন।",
   "Captured at": "ক্যাপচারের সময়",
   "Edit tags": "ট্যাগ সম্পাদনা করুন",
   "Save tags": "ট্যাগ সংরক্ষণ করুন",

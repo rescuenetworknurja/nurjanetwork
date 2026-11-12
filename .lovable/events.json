@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "events": {
+    "project.evidence_open": {
+      "event_schema_version": 1,
+      "description": "A saved evidence frame is expanded in the incident gallery.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "camera"
+        ],
+        "properties": {
+          "camera": {
+            "type": "string",
+            "enum": [
+              "back",
+              "front"
+            ]
+          }
+        }
+      }
+    },
+    "project.evidence_search": {
+      "event_schema_version": 1,
+      "description": "An evidence search is submitted or completed by leaving the search field.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "result_count"
+        ],
+        "properties": {
+          "result_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "project.evidence_tags_edited": {
+      "event_schema_version": 1,
+      "description": "Edited evidence tags are successfully persisted.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tag_count"
+        ],
+        "properties": {
+          "tag_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}

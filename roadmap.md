@@ -1,6 +1,11 @@
 # Roadmap
 
 ## Done
+- Download all incident evidence as a PDF with capture times, tags and responder information
+- Track evidence gallery searches, successful tag edits and evidence opens
+- Fix evidence-save failures: smaller captures, recover storage space from previous PNG frames without deleting evidence, and specific error messages
+
+## Done
 - Evidence gallery: explicit capture time, editable persisted tags, and tag/time/responder search
 
 ## Done

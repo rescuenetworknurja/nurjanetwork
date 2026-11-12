@@ -35,3 +35,5 @@ use the editor.
 - RescueTeam shares one VictimCamera presentation between the desktop side panel and the mobile/tablet dispatch footer to keep camera states consistent across layouts.
 - VictimCamera uses a modal full-viewport viewer with optional native fullscreen/orientation locking and CSS landscape fallback so unsupported browsers still cover app navigation.
 - Captured demo evidence lives in the shared store keyed by incident ID, independent of active SOS lifetime; saving verifies the incident and browser persistence before reporting success.
+- Evidence reports generate in the browser from every frame in an incident, rasterize bilingual metadata for font fidelity, and require a separate download click to preserve mobile user activation.
+- Evidence persistence recovers quota failures by compacting legacy PNG images without removing records; new captures use JPEG to reduce browser storage use.
