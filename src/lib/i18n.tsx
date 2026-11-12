@@ -10,7 +10,7 @@ export type Bi = { en: string; bn: string };
 const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
 /** Convert Latin digits to Bangla digits. */
 export function toBnDigits(v: string | number): string {
-  return String(v).replace(/[0-9]/g, (d) => BN_DIGITS[Number(d)]);
+  return String(v).replace(/[0-9]/g, (d) => BN_DIGITS[Number(d)] ?? d);
 }
 
 /** Pick text for a language from an inline pair or a Bi object. */
