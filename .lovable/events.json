@@ -66,6 +66,120 @@
           }
         }
       }
+    },
+    "project.safe_route_no_safe_alternative": {
+      "event_schema_version": 1,
+      "description": "Every route found crosses a high-risk zone and the warning is shown.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "high_risk_crossings"
+        ],
+        "properties": {
+          "high_risk_crossings": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "project.safe_route_search": {
+      "event_schema_version": 1,
+      "description": "A safe route search completes on the Safe Route tab.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "result",
+          "option_count"
+        ],
+        "properties": {
+          "result": {
+            "type": "string",
+            "enum": [
+              "safe",
+              "no_safe_alternative",
+              "no_route"
+            ]
+          },
+          "option_count": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "project.safe_route_selected": {
+      "event_schema_version": 1,
+      "description": "User picks one of the route options.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "option_index",
+          "high_risk_crossings"
+        ],
+        "properties": {
+          "option_index": {
+            "type": "integer"
+          },
+          "high_risk_crossings": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "project.trip_shared": {
+      "event_schema_version": 1,
+      "description": "User sends their route and current location to a trusted person.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "channel",
+          "contact",
+          "has_route",
+          "live"
+        ],
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "whatsapp",
+              "system"
+            ]
+          },
+          "contact": {
+            "type": "string",
+            "enum": [
+              "emergency",
+              "custom"
+            ]
+          },
+          "has_route": {
+            "type": "boolean"
+          },
+          "live": {
+            "type": "boolean"
+          }
+        }
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { geocode, type LatLng } from "@/lib/routing";
 import { findSafeRoutes, type Scored } from "@/lib/safe-route";
-import { ArrowUpDown, Circle, Clock, Fingerprint, KeyRound, LogOut, MapPin, Phone, Route as RouteIcon, ShieldCheck, ShieldAlert, Lock, UserRound, Users } from "lucide-react";
+import { Share2, MessageSquare, ArrowUpDown, Circle, Clock, Fingerprint, KeyRound, LogOut, MapPin, Phone, Route as RouteIcon, ShieldCheck, ShieldAlert, Lock, UserRound, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ export function SafeRouteTab() {
   const [busy, setBusy] = useState(false);
   const [opts, setOpts] = useState<{ ranked: Scored[]; fastest: Scored | null; ends: [LatLng, LatLng] } | null>(null);
   const [pick, setPick] = useState(0);
+  const [shareOpen, setShareOpen] = useState(false);
   const chosen = opts?.ranked[pick];
   const res = opts && chosen ? { ...chosen, ends: opts.ends } : null;
 
@@ -55,6 +56,9 @@ export function SafeRouteTab() {
       if (!a) { toast.error(from === MY_LOC ? "Your location is not available yet" : "Start place not found"); return; }
       if (!b) { toast.error("Destination not found"); return; }
       const r = await findSafeRoutes(a, b, zones);
+      const top = r.ranked[0];
+      window.__lovableEvents?.track?.("project.safe_route_search", { result: top ? (top.crossings ? "no_safe_alternative" : "safe") : "no_route", option_count: r.ranked.length });
+      if (top?.crossings) window.__lovableEvents?.track?.("project.safe_route_no_safe_alternative", { high_risk_crossings: top.crossings });
       if (!r.ranked.length) { toast.error("No route found"); return; }
       setOpts({ ...r, ends: [a, b] }); setPick(0);
       if (r.ranked[0]!.crossings > 0) toast.warning("No safer alternative available — route passes a high-risk zone");
@@ -86,7 +90,7 @@ export function SafeRouteTab() {
               {opts.ranked.length > 1 && (
                 <div className="flex gap-1.5">
                   {opts.ranked.map((o, i) => (
-                    <button key={i} onClick={() => setPick(i)} className={cn("flex-1 rounded-lg border px-2 py-1.5 text-left text-[11px]", pick === i ? "border-emerald bg-emerald/10" : "bg-muted")}>
+                    <button key={i} onClick={() => { setPick(i); window.__lovableEvents?.track?.("project.safe_route_selected", { option_index: i, high_risk_crossings: o.crossings }); }} className={cn("flex-1 rounded-lg border px-2 py-1.5 text-left text-[11px]", pick === i ? "border-emerald bg-emerald/10" : "bg-muted")}>
                       <span className="block font-bold">{i === 0 ? "Safest" : `Option ${i + 1}`}</span>
                       <span className="text-muted-foreground">{Math.round(o.seconds / 60)} min · {o.crossings ? `${o.crossings} high-risk` : "Avoids high-risk"}</span>
                     </button>
@@ -122,10 +126,65 @@ export function SafeRouteTab() {
           ) : (
             <p className="text-xs text-muted-foreground">Enter a destination to see the safest route</p>
           )}
-          <Button disabled={busy} className="mt-3 h-11 w-full rounded-lg bg-emerald hover:bg-emerald/90" onClick={start}>{busy ? "Finding route…" : "Start safe navigation"}</Button>
+          <Button variant="outline" className="mt-3 h-10 w-full rounded-lg" onClick={() => setShareOpen(true)}><Share2 className="h-4 w-4" /> Share route & live location</Button>
+          <Button disabled={busy} className="mt-2 h-11 w-full rounded-lg bg-emerald hover:bg-emerald/90" onClick={start}>{busy ? "Finding route…" : "Start safe navigation"}</Button>
         </div>
       </div>
+      <ShareTripDialog open={shareOpen} onOpenChange={setShareOpen} me={me} dest={res?.ends[1]} destLabel={to} minutes={res ? Math.round(res.seconds / 60) : undefined} />
     </div>
+  );
+}
+
+const mapsLink = (p: LatLng) => `https://www.google.com/maps?q=${p[0].toFixed(6)},${p[1].toFixed(6)}`;
+
+function ShareTripDialog({ open, onOpenChange, me, dest, destLabel, minutes }: { open: boolean; onOpenChange: (o: boolean) => void; me?: LatLng | undefined; dest?: LatLng | undefined; destLabel: string; minutes?: number | undefined }) {
+  const { user } = useDemo();
+  const [who, setWho] = useState<"emergency" | "custom">("emergency");
+  const [phone, setPhone] = useState("");
+  const [live, setLive] = useState(false);
+  const meRef = useRef(me);
+  meRef.current = me;
+  const target = who === "emergency" ? user.emergencyPhone : phone.trim();
+  const message = () => {
+    const parts = [`NURJA: ${user.name} is sharing their trip with you.`];
+    if (meRef.current) parts.push(`Current location: ${mapsLink(meRef.current)}`);
+    if (dest) parts.push(`Going to: ${destLabel || "destination"} ${mapsLink(dest)}${minutes ? ` (~${minutes} min)` : ""}`);
+    return parts.join("\n");
+  };
+  const send = async (channel: "sms" | "whatsapp" | "system") => {
+    if (!meRef.current) { toast.error("Your location is not available yet"); return; }
+    if (!/^01\d{9}$/.test(target)) { toast.error("Enter a valid 01XXXXXXXXX number"); return; }
+    const text = message();
+    window.__lovableEvents?.track?.("project.trip_shared", { channel, contact: who, has_route: !!dest, live });
+    if (channel === "system" && navigator.share) { try { await navigator.share({ text }); } catch { return; } }
+    else if (channel === "whatsapp") window.open(`https://wa.me/88${target}?text=${encodeURIComponent(text)}`, "_blank");
+    else window.location.href = `sms:+88${target}?body=${encodeURIComponent(text)}`;
+    toast.success("Trip shared");
+  };
+  useEffect(() => {
+    if (!live) return;
+    const id = window.setInterval(() => toast.info("Send a live location update to your trusted contact", { action: { label: "Send", onClick: () => void send("sms") } }), 5 * 60 * 1000);
+    return () => window.clearInterval(id);
+  }, [live, target]);
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader><DialogTitle>Share with a trusted person</DialogTitle><DialogDescription>They get your current location and route as map links.</DialogDescription></DialogHeader>
+        <div className="space-y-2">
+          <button onClick={() => setWho("emergency")} className={cn("w-full rounded-lg border p-3 text-left text-sm", who === "emergency" && "border-emerald bg-emerald/10")}>
+            <b>{user.emergencyName}</b> · {user.relation}<span className="block text-xs text-muted-foreground">{user.emergencyPhone}</span>
+          </button>
+          <button onClick={() => setWho("custom")} className={cn("w-full rounded-lg border p-3 text-left text-sm", who === "custom" && "border-emerald bg-emerald/10")}><b>Another person</b></button>
+          {who === "custom" && <Input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))} inputMode="numeric" placeholder="01XXXXXXXXX" className="h-10 rounded-lg" />}
+          <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={live} onChange={(e) => setLive(e.target.checked)} /> Remind me every 5 min to send a location update</label>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Button className="rounded-lg" onClick={() => void send("sms")}><MessageSquare className="h-4 w-4" /> SMS</Button>
+          <Button variant="outline" className="rounded-lg" onClick={() => void send("whatsapp")}>WhatsApp</Button>
+        </div>
+        {typeof navigator !== "undefined" && "share" in navigator && <Button variant="ghost" className="rounded-lg" onClick={() => void send("system")}><Share2 className="h-4 w-4" /> More apps</Button>}
+      </DialogContent>
+    </Dialog>
   );
 }
 

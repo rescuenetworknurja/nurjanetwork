@@ -168,6 +168,11 @@ export const BN: Record<string, string> = {
   "Accepted": "গ্রহণ করেছেন", "Responding": "রেসপন্ড করছেন", "Arrived": "পৌঁছেছেন",
 
   // ---------- NURJA app: tabs ----------
+  "Share route & live location": "রুট ও লাইভ লোকেশন শেয়ার করুন", "Share with a trusted person": "বিশ্বস্ত ব্যক্তির সঙ্গে শেয়ার করুন",
+  "They get your current location and route as map links.": "তিনি ম্যাপ লিংকে আপনার বর্তমান অবস্থান ও রুট পাবেন।", "Another person": "অন্য কেউ",
+  "Remind me every 5 min to send a location update": "প্রতি ৫ মিনিটে লোকেশন আপডেট পাঠাতে মনে করিয়ে দিন", "More apps": "অন্যান্য অ্যাপ",
+  "Trip shared": "যাত্রা শেয়ার করা হয়েছে", "Enter a valid 01XXXXXXXXX number": "সঠিক 01XXXXXXXXX নম্বর দিন", "Send": "পাঠান",
+  "Send a live location update to your trusted contact": "বিশ্বস্ত ব্যক্তিকে লাইভ লোকেশন আপডেট পাঠান",
   "Safest": "সবচেয়ে নিরাপদ", "Caution route": "সতর্কতার রুট", "Alternative route": "বিকল্প রুট",
   "Passes through a high-risk zone": "উচ্চ ঝুঁকিপূর্ণ জোনের ভেতর দিয়ে যায়", "Avoids marked high-risk zones": "চিহ্নিত উচ্চ ঝুঁকিপূর্ণ জোন এড়িয়ে যায়",
   "No safer alternative available. Stay alert, share live location, and keep SOS ready.": "নিরাপদ বিকল্প রুট নেই। সতর্ক থাকুন, লাইভ লোকেশন শেয়ার করুন এবং SOS প্রস্তুত রাখুন।",
