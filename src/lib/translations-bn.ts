@@ -3,6 +3,15 @@
  * Keys are the exact English text as rendered (whitespace-trimmed).
  */
 export const BN: Record<string, string> = {
+  "Captured at": "ক্যাপচারের সময়",
+  "Edit tags": "ট্যাগ সম্পাদনা করুন",
+  "Save tags": "ট্যাগ সংরক্ষণ করুন",
+  "Frame tags": "ফ্রেমের ট্যাগ",
+  "Tags (comma-separated)": "ট্যাগ (কমা দিয়ে আলাদা)",
+  "Search evidence": "প্রমাণ খুঁজুন",
+  "Search tags, capture time or responder": "ট্যাগ, ক্যাপচার সময় বা রেসপন্ডার খুঁজুন",
+  "No matching frames": "মিল পাওয়া কোনো ফ্রেম নেই",
+  "Tags could not be saved": "ট্যাগ সংরক্ষণ করা যায়নি",
   "Save as incident evidence": "ঘটনার প্রমাণ হিসেবে সংরক্ষণ করুন",
   "Saved still evidence": "সংরক্ষিত স্থিরচিত্র প্রমাণ",
   "Frame saved as incident evidence": "ঘটনার প্রমাণ হিসেবে ফ্রেম সংরক্ষিত হয়েছে",

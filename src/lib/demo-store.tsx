@@ -6,7 +6,7 @@ import {
 import { generateVolunteerId } from "./ids";
 import { seedUsers, type AccountStatus, type AppUser } from "./users";
 import { seedInquiries, seedWebsite, type Inquiry, type WebsiteContent } from "./website-content";
-import { appendIncidentEvidence, type IncidentEvidence } from "./evidence";
+import { appendIncidentEvidence, updateEvidenceTags, type IncidentEvidence } from "./evidence";
 
 export type ResponderType = 1 | 2;
 export type SosState = {
@@ -69,6 +69,7 @@ type Ctx = DemoState & {
   triggerSos: () => void;
   stopSos: (outcome?: string) => void;
   saveEvidence: (record: IncidentEvidence) => boolean;
+  setEvidenceTags: (id: string, tags: string[]) => boolean;
   switchCamera: () => void;
   acceptSos: (code: string) => void;
   setKycStatus: (id: string, s: KycStatus) => void;
@@ -118,6 +119,15 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const ctx: Ctx = {
     ...state,
     set,
+    setEvidenceTags: (id, tags) => {
+      if (!state.evidence.some((item) => item.id === id)) return false;
+      const next = { ...state, evidence: updateEvidenceTags(state.evidence, id, tags) };
+      try {
+        localStorage.setItem(KEY, JSON.stringify(next));
+        setState(next);
+        return true;
+      } catch { return false; }
+    },
     saveEvidence: (record) => {
       const evidence = appendIncidentEvidence(state.evidence, record, state.sos?.id);
       if (!evidence) return false;
