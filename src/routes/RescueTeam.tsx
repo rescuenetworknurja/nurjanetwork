@@ -73,7 +73,7 @@ function Splash() {
           <span className="h-1.5 w-1.5 rounded-full bg-emerald animate-blink" />
           Rescue Network
         </p>
-        <Button size="lg" className="mt-6 h-13 w-full rounded-lg text-base font-bold" onClick={() => void signOut()}>
+        <Button size="lg" className="mt-6 h-13 w-full rounded-lg text-base font-bold" onClick={() => void d.set({ rescueAuth: "login" })}>
           <ShieldCheck /> Proceed to Responder Login
         </Button>
         <p className="mt-4 text-[11px] text-paper/40">NURJA Emergency Response & Women Safety Ecosystem</p>
