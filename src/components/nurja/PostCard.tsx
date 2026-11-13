@@ -1,4 +1,4 @@
-import { PlayCircle } from "lucide-react";
+import { PlayCircle, Share2 } from "lucide-react";
 import type { Post } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -15,11 +15,11 @@ export function PostMedia({ post, className }: { post: Post; className?: string 
   return null;
 }
 
-export function PostCard({ post, compact, dark }: { post: Post; compact?: boolean; dark?: boolean }) {
+export function PostCard({ post, compact, dark, id, onShare }: { post: Post; compact?: boolean; dark?: boolean; id?: string; onShare?: () => void }) {
   const { lang } = useT();
   const bn = lang === "bn";
   return (
-    <article className={cn("overflow-hidden rounded-2xl border bg-card shadow-card", dark && "border-border")}>
+    <article id={id} className={cn("overflow-hidden rounded-2xl border bg-card shadow-card", dark && "border-border")}>
       <PostMedia post={post} />
       <div className={cn("space-y-2", compact ? "p-3.5" : "p-5")}>
         <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide">
@@ -30,6 +30,15 @@ export function PostCard({ post, compact, dark }: { post: Post; compact?: boolea
         <h3 className={cn("font-display font-bold leading-snug", compact ? "text-[15px]" : "text-lg")}>{bn && post.titleBn ? post.titleBn : post.title}</h3>
         <p className="text-sm text-muted-foreground">{bn && post.excerptBn ? post.excerptBn : post.excerpt}</p>
         <p className="text-xs text-muted-foreground">Published by <span className="font-semibold text-foreground">{post.author}</span> · Verified</p>
+        {onShare && (
+          <button
+            type="button"
+            onClick={onShare}
+            className="mt-1 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition hover:bg-muted"
+          >
+            <Share2 className="h-3.5 w-3.5" />{bn ? "শেয়র করুন" : "Share"}
+          </button>
+        )}
       </div>
     </article>
   );

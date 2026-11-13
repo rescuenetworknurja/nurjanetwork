@@ -3,6 +3,21 @@
  * Keys are the exact English text as rendered (whitespace-trimmed).
  */
 export const BN: Record<string, string> = {
+  "Share": "শেয়র",
+  "Share this story": "এই গল্পটি শেয়র করুন",
+  "Share as photocard": "পফোটোকার্ড হিসেবে শেয়র করুন",
+  "Share photocard": "পফোটোকার্ড শেয়র করুন",
+  "Download photocard": "পফোটোকার্ড ডাউনলোড",
+  "Copy story link": "গল্পর লিঙ্ক কপি করুন",
+  "Preparing photocard": "পফোটোকার্ড তৈরি হচ্ছের",
+  "Could not prepare the photocard": "পফোটোকার্ড তৈরি করা যায়নি",
+  "Story photocard preview": "গল্পর পফোটোকার্ড প্রিভিউ",
+  "Photocard is a PNG image": "পফোটোকার্ড একটি PNG ছবি",
+  "Photocard downloaded — attach it in any chat app": "পফোটোকার্ড ডাউনলোড হয়েছের — যেকোনো চ্যাত অ্যাপে য়াটচ করুন",
+  "Story link copied": "গল্পর লিঙ্ক কপি হয়েছের",
+  "Could not copy the link": "লিঙ্ক কপি করা যায়নি",
+  "Verified story": "যাচাইকৃত গল্প",
+  "Saves the story as a photocard image you can send anywhere.": "গল্পটি একটি পফোটোকার্ড ছবি হিসেবে সজ্জায় হয়, যেকোনো জায়গায় পাঠাওয়া যাব।",
   "Prepare PDF report": "PDF রিপোর্ট তৈরি করুন",
   "Preparing PDF": "PDF তৈরি হচ্ছে",
   "Download PDF": "PDF ডাউনলোড",

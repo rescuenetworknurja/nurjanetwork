@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { CalendarDays, ChevronDown, X } from "lucide-react";
+import { CalendarDays, ChevronDown, Share2, X } from "lucide-react";
 import { SiteLayout } from "@/components/nurja/SiteLayout";
+import { StoryShareDialog } from "@/components/nurja/StoryShareDialog";
 import { PostCard, PostMedia } from "@/components/nurja/PostCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDemo } from "@/lib/demo-store";
+import type { Post } from "@/lib/mock-data";
 import { useT } from "@/lib/i18n";
 import {
   DATE_RANGES,
@@ -46,6 +48,7 @@ function Blog() {
   const list = useMemo(() => filterStories(all, filter), [all, filter]);
   const [featured, ...rest] = list;
   const active = storyFilterActive(filter);
+  const [sharePost, setSharePost] = useState<Post | null>(null);
 
   return (
     <SiteLayout>
@@ -130,20 +133,28 @@ function Blog() {
         ) : (
           <>
             {featured && (
-              <article className="mt-8 grid overflow-hidden rounded-3xl border bg-card shadow-card md:grid-cols-2">
+              <article id={featured.id} className="mt-8 grid overflow-hidden rounded-3xl border bg-card shadow-card md:grid-cols-2">
                 <PostMedia post={featured} className="h-full" />
                 <div className="space-y-4 p-8 md:p-10">
                   <span className="inline-flex w-fit items-center rounded-full bg-accent px-2.5 py-1 text-xs font-bold uppercase text-accent-foreground">{featured.tag}</span>
                   <h2 className="text-3xl font-extrabold leading-tight">{pick(featured.title, featured.titleBn)}</h2>
                   <p className="text-muted-foreground">{pick(featured.body, featured.bodyBn)}</p>
                   <p className="text-xs text-muted-foreground">{featured.author} · {featured.date}</p>
+                  <button
+                    type="button"
+                    onClick={() => setSharePost(featured)}
+                    className="inline-flex w-fit items-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold transition hover:bg-muted"
+                  >
+                    <Share2 className="h-4 w-4" />{tr("Share as photocard", "পফোটোকার্ড হিসেবে শেয়র করুন")}
+                  </button>
                 </div>
               </article>
             )}
-            <div className="mt-8 grid gap-6 md:grid-cols-3">{rest.map((p) => <PostCard key={p.id} post={p} />)}</div>
+            <div className="mt-8 grid gap-6 md:grid-cols-3">{rest.map((p) => <PostCard key={p.id} post={p} id={p.id} onShare={() => setSharePost(p)} />)}</div>
           </>
         )}
       </section>
+      <StoryShareDialog post={sharePost} open={!!sharePost} onOpenChange={(v) => { if (!v) setSharePost(null); }} />
     </SiteLayout>
   );
 }
