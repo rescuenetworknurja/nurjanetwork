@@ -9,10 +9,10 @@ import { useDemo } from "@/lib/demo-store";
 import { VolunteerDialog } from "./VolunteerDialog";
 
 const LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/our-story", label: "About us" },
-  { to: "/blog", label: "Stories" },
-  { to: "/contact", label: "Contact Us" },
+  { to: "/", label: { en: "Home", bn: "হোম" } },
+  { to: "/our-story", label: { en: "About us", bn: "আমাদের সম্পর্কে" } },
+  { to: "/blog", label: { en: "Stories", bn: "গল্প" } },
+  { to: "/contact", label: { en: "Contact Us", bn: "যোগাযোগ" } },
 ] as const;
 
 export function SiteLayout({ children }: { children: ReactNode }) {
@@ -28,7 +28,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             {LINKS.map((l) => (
               <Link key={l.to} to={l.to} activeOptions={{ exact: true }}
                 className="rounded-lg px-3.5 py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground"
-                activeProps={{ className: "bg-accent text-accent-foreground" }}>{l.label}</Link>
+                activeProps={{ className: "bg-accent text-accent-foreground" }} data-no-tr>{L(l.label)}</Link>
             ))}
           </nav>
           <div className="ml-auto hidden items-center gap-3 md:flex">
@@ -40,7 +40,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         </div>
         {open && (
           <div className="space-y-1 border-t px-4 py-3 md:hidden">
-            {LINKS.map((l) => <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 font-semibold">{l.label}</Link>)}
+            {LINKS.map((l) => <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 font-semibold" data-no-tr>{L(l.label)}</Link>)}
             <VolunteerDialog><Button className="w-full">Become a Volunteer</Button></VolunteerDialog>
           </div>
         )}
@@ -58,7 +58,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="space-y-2 text-sm">
             <p className="font-display font-bold">Explore</p>
-            {LINKS.map((l) => <Link key={l.to} to={l.to} className="block text-paper/60 hover:text-paper">{l.label}</Link>)}
+            {LINKS.map((l) => <Link key={l.to} to={l.to} className="block text-paper/60 hover:text-paper" data-no-tr>{L(l.label)}</Link>)}
           </div>
           <div className="space-y-2 text-sm text-paper/60">
             <p className="font-display font-bold text-paper">Emergency</p>
