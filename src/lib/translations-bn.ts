@@ -415,7 +415,7 @@ export const BN: Record<string, string> = {
   "Responder Login": "রেসপন্ডার লগইন",
   "NURJA Emergency Response & Women Safety Ecosystem": "নুর্জা জরুরি সাড়া ও নারী নিরাপত্তা ইকোসিস্টেম",
   "Rescue Network Login": "রেসকিউ নেটওয়ার্ক লগইন",
-  "Duty phone / Unit code / Volunteer or TaskForce ID": "মোবাইল নাম্বার / ইউনিট কোড / ভলান্টিয়ার বা টাস্কফোর্স আইডি",
+  "Mobile Number / ID": "মোবাইল নাম্বার / আইডি",
   "Password": "পাসওয়ার্ড", "Sign in to Dispatch": "ডিসপ্যাচে সাইন ইন করুন", "Quick demo login": "দ্রুত ডেমো লগইন",
   "Accounts are issued and managed exclusively by the Central Control Panel (/rpanel).": "অ্যাকাউন্ট শুধুমাত্র সেন্ট্রাল কন্ট্রোল প্যানেল (/rpanel) থেকে ইস্যু ও পরিচালিত হয়।",
   "Unit status": "ইউনিট স্ট্যাটাস", "Online — receiving alerts": "অনলাইন — অ্যালার্ট পাচ্ছেন", "Logout": "লগআউট",
