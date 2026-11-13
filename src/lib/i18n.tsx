@@ -5,7 +5,7 @@ import { cn } from "./utils";
 import { MOCK_BN } from "./mock-data-bn";
 
 export type Lang = "bn" | "en";
-export const DEFAULT_LANG: Lang = "bn";
+export { DEFAULT_LANG } from "./demo-store";
 export type Bi = { en: string; bn: string };
 
 import { toBnDigits } from "./i18n-digits";

@@ -48,8 +48,11 @@ export type DemoState = {
   users: AppUser[];
 };
 
+// English is the app's default language; Bangla is available everywhere as an explicit choice.
+export const DEFAULT_LANG = "en" as const;
+
 const initial: DemoState = {
-  lang: "bn",
+  lang: DEFAULT_LANG,
   appView: "main",
   user: { name: "", phone: "", dob: "", adult: true, emergencyName: "", emergencyPhone: "", relation: "", pin: "" },
   selfKycId: "self",
@@ -66,6 +69,7 @@ const initial: DemoState = {
 };
 
 const KEY = "nurja-preferences-v2";
+const LANG_CHOSEN_KEY = "nurja-lang-chosen";
 
 type Ctx = DemoState & {
   set: (patch: Partial<DemoState> | ((s: DemoState) => Partial<DemoState>)) => Promise<void>;
@@ -152,7 +156,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     channel.subscribe(status=>{if(status==="SUBSCRIBED") soon();});
     return()=>{clearInterval(timer);clearTimeout(pending);document.removeEventListener("visibilitychange",onVisible);void supabase.removeChannel(channel);};
   },[refresh]);
-  useEffect(()=>{try {const p=JSON.parse(localStorage.getItem(KEY)??"{}");if(p.lang==="en"||p.lang==="bn")local({lang:p.lang}); localStorage.removeItem("nurja-demo-v1");}catch{}},[local]);
+  useEffect(()=>{try {const p=JSON.parse(localStorage.getItem(KEY)??"{}");if((p.lang==="en"||p.lang==="bn")&&localStorage.getItem(LANG_CHOSEN_KEY)==="1")local({lang:p.lang}); localStorage.removeItem("nurja-demo-v1");}catch{}},[local]);
   useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify({lang:state.lang}));}catch{}},[state.lang]);
   useEffect(()=>{
     const id=state.sos?.userId===session.user?.id?state.sos?.id:undefined;
@@ -177,6 +181,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
       for(const item of previous)if(!next.some(n=>n.id===item.id))await run(()=>saveRecord({data:{collection:key,id:item.id,content:null}}));
     }
     if(patch.responderOnline!==undefined){delete localPatch.responderOnline;await run(()=>setDutyStatus({data:{online:patch.responderOnline ?? false}}));}
+    if(patch.lang!==undefined){try{localStorage.setItem(LANG_CHOSEN_KEY,"1");}catch{};}
     local(localPatch);
   };
   const ctx:Ctx={...state,set,refresh,selectIncident:id=>{selectedIncident.current=id;local({sos:state.incidents.find(i=>i.id===id)??null});},
