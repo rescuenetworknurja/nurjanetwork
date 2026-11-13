@@ -159,9 +159,9 @@ async function ensureFonts(lang: Lang) {
   if (typeof document === "undefined" || !document.fonts) return;
   const faces =
     lang === "bn"
-      ? ['600 52px "Hind Siliguri"', '400 30px "Hind Siliguri"', '700 26px "Hind Siliguri"']
+      ? ['600 52px "Hind Siliguri"', '400 30px "Hind Siliguri"', '700 26px "Hind Siliguri"', '400 30px "Noto Sans Bengali"']
       : ['800 56px "Sora"', '400 30px "Manrope"', '700 26px "Manrope"'];
-  await Promise.all(faces.map((f) => document.fonts.load(f).catch(() => undefined)));
+  await Promise.all(faces.map((f) => document.fonts.load(f, "০১২৩৪৫৬৭৮৯0123456789").catch(() => undefined)));
   await document.fonts.ready.catch(() => undefined);
 }
 
@@ -172,8 +172,8 @@ async function paint(spec: StoryCardSpec, photo?: HTMLImageElement): Promise<Blo
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Photocard rendering unavailable");
   const bn = spec.lang === "bn";
-  const display = bn ? '"Hind Siliguri", sans-serif' : '"Sora", sans-serif';
-  const body = bn ? '"Hind Siliguri", sans-serif' : '"Manrope", sans-serif';
+  const display = bn ? '"Noto Sans Bengali", "Hind Siliguri", sans-serif' : '"Sora", sans-serif';
+  const body = bn ? '"Noto Sans Bengali", "Hind Siliguri", sans-serif' : '"Manrope", sans-serif';
 
   ctx.fillStyle = NAVY;
   ctx.fillRect(0, 0, spec.width, spec.height);

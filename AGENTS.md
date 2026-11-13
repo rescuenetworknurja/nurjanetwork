@@ -41,3 +41,4 @@ use the editor.
 - Live auth (external Supabase): phone+password sign-in derives a deterministic synthetic email (`<880…>@phone.nurja.com`, src/lib/auth.ts) because Supabase phone OTP needs an SMS provider; the real number lives in profiles.phone, roles in user_roles via has_role(), and route gates use AuthGate + getMyProfile server fn (bearer attached by src/lib/auth-attacher.ts in src/start.ts).
 - Home-screen installation uses a manifest only, launching /NURJASOS; do not add an app-shell service worker without an explicit offline request, to keep previews fresh.
 - Apply story pagination after filtering and sorting through the shared story-filter helpers so featured and regular stories share the same page limit.
+- Load the Bangla digit font locally with digit-only Unicode ranges and prepend it to Bangla UI/export font stacks so lettering and English typography remain unchanged.

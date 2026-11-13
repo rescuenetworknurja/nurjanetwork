@@ -2,6 +2,7 @@ import type { IncidentEvidence } from "./evidence";
 
 export async function buildEvidenceReport(incidentId: string, records: IncidentEvidence[], lang: "en" | "bn", victim: string) {
   const { PDFDocument } = await import("pdf-lib");
+  if (lang === "bn") await document.fonts.load('400 26px "Noto Sans Bengali"', "০১২৩৪৫৬৭৮৯0123456789");
   await document.fonts.ready;
   const pdf = await PDFDocument.create();
   pdf.setTitle(`NURJA Evidence Report — ${incidentId}`);
@@ -12,7 +13,7 @@ export async function buildEvidenceReport(incidentId: string, records: IncidentE
     canvas.width = 1100;
     const context = canvas.getContext("2d");
     if (!context) throw new Error("Report rendering unavailable");
-    const font = bn ? '"Hind Siliguri", sans-serif' : '"Manrope", sans-serif';
+    const font = bn ? '"Noto Sans Bengali", "Hind Siliguri", sans-serif' : '"Manrope", sans-serif';
     context.font = `26px ${font}`;
     const lines: string[] = [];
     for (const value of [t("NURJA — Incident Evidence Report", "নুর্জা — ঘটনার প্রমাণ রিপোর্ট"), `${incidentId} · ${victim}`, `${t("Frame", "ফ্রেম")} ${index + 1} / ${records.length}`, `${t("Captured at", "ক্যাপচারের সময়")}: ${new Date(record.capturedAt).toLocaleString(bn ? "bn-BD" : "en-GB")}`, `${t("Responder", "রেসপন্ডার")}: ${record.responderName} · ${record.responderId}`, `${t("Camera", "ক্যামেরা")}: ${record.camera === "back" ? t("Back", "ব্যাক") : t("Front", "ফ্রন্ট")}`, `${t("Tags", "ট্যাগ")}: ${(record.tags ?? []).join(", ") || "—"}`]) {
