@@ -30,7 +30,7 @@ export const seedWebsite: WebsiteContent = {
     sub: b("NURJA is a women safety and rapid rescue network. One SOS alerts the nearest police and verified volunteers, streams live video, and keeps the evidence safe.",
       "নুর্জা নারীর নিরাপত্তা ও দ্রুত উদ্ধার নেটওয়ার্ক। একটি SOS কাছের পুলিশ ও যাচাইকৃত ভলান্টিয়ারদের সতর্ক করে, লাইভ ভিডিও পাঠায় এবং প্রমাণ সুরক্ষিত রাখে।"),
     cta: b("Become a Volunteer", "ভলান্টিয়ার হোন"),
-    installCta: b("Install NURJASOS", "NURJASOS ইনস্টল করুন"),
+    installCta: b("Install App", "অ্যাপ ইনস্টল করুন"),
     installHelp: b("Open NURJASOS in Chrome outside this preview, then choose Install app or Add to Home screen from Chrome's menu. On iPhone, use Safari → Share → Add to Home Screen. Installation is available from the published website; this does not enable offline SOS.", "এই প্রিভিউয়ের বাইরে Chrome-এ NURJASOS খুলুন, তারপর Chrome-এর মেনু থেকে Install app বা Add to Home screen বেছে নিন। iPhone-এ Safari → Share → Add to Home Screen ব্যবহার করুন। প্রকাশিত ওয়েবসাইট থেকে ইনস্টল করা যাবে; এতে ইন্টারনেট ছাড়া SOS চালু হয় না।"),
     image: "",
   },
