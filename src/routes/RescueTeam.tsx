@@ -115,13 +115,6 @@ function Login() {
             </div>
           </div>
           <Button type="submit" size="lg" className="h-12 w-full rounded-lg text-base font-bold"><LogIn /> Sign in to Dispatch</Button>
-          <a href="/auth?redirect=/RescueTeam"
-            className="flex items-center justify-center gap-2 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2.5 text-xs font-bold text-emerald transition hover:bg-emerald/20">
-            <ShieldCheck className="h-4 w-4" /> Sign in with your NURJA account (phone + password)
-          </a>
-          <p className="border-t border-paper/10 pt-3 text-center text-[11px] leading-relaxed text-paper/40">
-            Accounts are issued and managed exclusively by the Central Control Panel (/rpanel).
-          </p>
         </form>
       </div>
     </div>
