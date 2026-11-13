@@ -41,6 +41,7 @@ type ProfileRow = {
 export const ADMIN_PROFILES_KEY = ["admin-profiles"] as const;
 
 export function KycSection() {
+  const d=useDemo();
   const [filter, setFilter] = useState("pending");
   const [open, setOpen] = useState<ProfileRow | null>(null);
   const qc = useQueryClient();
@@ -101,6 +102,9 @@ export function KycSection() {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="rounded-xl border p-4"><p className="text-xs text-muted-foreground">KYC Status</p><Pill s={open.kyc_status} /></div>
                   <div className="rounded-xl border p-4"><p className="text-xs text-muted-foreground">Account</p><p className="font-bold capitalize">{open.account_status}</p></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(d.kycDocuments[open.id]??{}).map(([label,src])=><a key={label} href={src} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border"><img src={src} alt={label} className="aspect-video w-full object-contain" /><p className="p-2 text-xs">{label}</p></a>)}
                 </div>
                 <p className="rounded-lg bg-amber-soft p-3 text-xs text-amber">Verify the NID number against the user's physical card or submitted documents before approving. Approving unlocks the SOS button in their app automatically.</p>
                 <div className="grid grid-cols-2 gap-2 pt-2">

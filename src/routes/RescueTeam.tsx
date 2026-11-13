@@ -308,10 +308,10 @@ function DispatchHome({ mine }: { mine: Responder | undefined }) {
   return (
     <div className="relative flex flex-1 flex-col">
       <div aria-hidden className="pointer-events-none absolute inset-0 tactical-grid opacity-60" />
-      <LiveMapLazy className="relative h-72 tactical-grid shadow-card lg:h-full lg:min-h-[420px]" zones={d.zones} units={[...others, { id: "me", label: "You", kind: mine?.kind ?? (d.responderType === 1 ? "patrol" : "volunteer"), x: mine?.x ?? 30, y: mine?.y ?? 34, gps: mine?.fixed ? "fixed" : "live" }]} />
+      <LiveMapLazy className="relative h-72 tactical-grid shadow-card lg:h-full lg:min-h-[420px]" zones={d.zones} units={[...others, ...(mine?.x!==undefined && mine.y!==undefined ? [{id:"me",label:"You",kind:mine.kind,x:mine.x,y:mine.y,gps:mine.fixed?"fixed" as const:"live" as const}] : [])]} />
       <div className="relative space-y-3 p-4">
         <div className="grid grid-cols-3 gap-2">
-          {[{ l: "Units online", v: online.length }, { l: "Active SOS", v: d.sos ? 1 : 0 }, { l: "My cases", v: d.cases.length }].map((s) => (
+          {[{ l: "Units online", v: online.length }, { l: "Active SOS", v: d.incidents.length }, { l: "My cases", v: d.cases.length }].map((s) => (
             <div key={s.l} className="rounded-2xl border border-t-2 border-t-crimson/70 bg-card p-3 shadow-card"><p className="font-display text-2xl font-extrabold">{s.v}</p><p className="text-[10px] text-muted-foreground">{s.l}</p></div>
           ))}
         </div>

@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
 
 export const getMyProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -17,19 +18,11 @@ export const getMyProfile = createServerFn({ method: "POST" })
 
 export const updateMyProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: {
-      full_name?: string;
-      nid_number?: string;
-      emergency_contact_name?: string;
-      emergency_contact_phone?: string;
-    }) => input,
-  )
+  .inputValidator((input:unknown)=>z.object({full_name:z.string().trim().min(1).max(120).optional(),nid_number:z.string().max(30).optional(),emergency_contact_name:z.string().max(120).optional(),emergency_contact_phone:z.string().max(30).optional()}).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const patch: Record<string, string> = Object.fromEntries(
-      Object.entries(data).filter(([, v]) => typeof v === "string"),
-    );
+    const patch: Record<string, string> = {};
+    for(const [key,value] of Object.entries(data))if(typeof value==="string")patch[key]=value;
     const { error } = await supabase.from("profiles").update(patch as never).eq("id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };

@@ -18,7 +18,7 @@ export async function savePrivateImage(path: string, src: string) {
   if (!header || !payload) throw new Error("Invalid image");
   const bytes = Uint8Array.from(atob(payload), (c) => c.charCodeAt(0));
   if (bytes.byteLength > 10 * 1024 * 1024) throw new Error("Image exceeds 10 MB");
-  const { error } = await supabaseAdmin.storage.from("nurja-private").upload(path, bytes, { contentType: header.slice(5, header.indexOf(";")), upsert: true });
+  const { error } = await supabaseAdmin.storage.from("nurja-private").upload(path, bytes, { contentType: header.slice(5, header.indexOf(";")), upsert: false });
   if (error) throw new Error("Image could not be stored");
   return path;
 }

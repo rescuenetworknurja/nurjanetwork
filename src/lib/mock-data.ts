@@ -39,7 +39,7 @@ export const findAccount = (rs: Responder[], q: string) => {
   if (!s) return undefined;
   return rs.find((r) => r.code.toLowerCase() === s || r.phone === s);
 };
-export type CaseRecord = { id: string; victim: string; area: string; date: string; outcome: string; duration: string };
+export type CaseRecord = { id: string; userId?: string; victim: string; area: string; date: string; outcome: string; duration: string };
 
 export const IMAGES = { volunteers, patrol, workshop, hero };
 

@@ -20,6 +20,7 @@ export async function sendSms(number: string, message: string): Promise<void> {
   const sender = process.env["BULKSMSBD_SENDER_ID"];
   if (sender) q.set("senderid", sender);
   const res = await fetch(`${GATEWAY}/api/smsapi?${q}`, {
+    signal: AbortSignal.timeout(10000),
     headers: { Authorization: `Bearer ${lovable}`, "X-Connection-Api-Key": conn },
   });
   const body = await res.text();

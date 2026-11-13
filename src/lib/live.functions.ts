@@ -265,7 +265,7 @@ export const saveLiveEvidence = createServerFn({ method: "POST" }).middleware([r
     const path = await savePrivateImage(`evidence/${data.incidentId}/${data.id}`, data.src);
     const { data: p } = await context.supabase.from("profiles").select("full_name").eq("id", context.userId).single();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("incident_evidence").upsert({ id: data.id, incident_id: data.incidentId, storage_path: path, camera: data.camera, captured_at: data.capturedAt, responder_id: context.userId, responder_name: p?.full_name ?? "", tags: data.tags ?? [] });
+    const { error } = await supabaseAdmin.from("incident_evidence").insert({ id: data.id, incident_id: data.incidentId, storage_path: path, camera: data.camera, captured_at: data.capturedAt, responder_id: context.userId, responder_name: p?.full_name ?? "", tags: data.tags ?? [] });
     if (error) throw new Error("Evidence save failed"); return { ok: true };
   });
 export const editLiveEvidenceTags = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])

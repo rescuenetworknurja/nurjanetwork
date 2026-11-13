@@ -8,13 +8,20 @@
 - [x] Apply Noto Sans Bengali to Bengali numerals across every interface; verify on mobile and desktop.
 
 ## Replace remaining demo workflows with live services
-- [ ] Persist registration details, emergency contacts, SOS PIN and KYC documents; verify OTP delivery.
-- [ ] Replace local SOS with live incidents, location updates, nearest-unit dispatch and server-enforced completion permissions.
-- [ ] Provision real responder accounts, volunteer approvals, duty status and device GPS; remove demo sign-in and account switching.
-- [ ] Save administrator-managed coverage/risk zones without publishing invented hazards.
-- [ ] Persist bilingual Website CMS, published stories and community feeds; keep drafts private.
-- [ ] Persist contact inquiries and volunteer applications with administrator-only management.
-- [ ] Connect the user directory, account suspension, bans and incident flags to real records.
-- [ ] Store incident evidence and KYC files privately; retain report, tag and search workflows.
-- [ ] Replace simulated victim camera with authenticated live video; configure a video relay service.
-- [ ] Verify role boundaries, multi-device flows and mobile/desktop rendering; document delivery and background limitations.
+- [x] Persist registration details, emergency contacts, SOS PIN and KYC documents.
+- [x] Replace local SOS with live incidents, location updates, nearest-unit dispatch and server-enforced completion permissions.
+- [x] Provision real responder accounts, volunteer approvals, duty status and device GPS; remove demo sign-in and account switching.
+- [x] Save administrator-managed coverage/risk zones without publishing invented hazards.
+- [x] Persist bilingual Website CMS, published stories and community feeds; keep drafts private.
+- [x] Persist contact inquiries and volunteer applications with administrator-only management.
+- [x] Connect the user directory, account suspension, bans and incident flags to real records.
+- [x] Store incident evidence and KYC files privately; retain report, tag and search workflows.
+- [x] Replace simulated victim camera with authenticated live-video integration and truthful unavailable states.
+- [x] Verify public mobile/desktop pages, contact persistence and automated rules; inspect server permissions.
+- [ ] Configure LiveKit relay credentials; blocked on owner's LiveKit project URL, key and secret and service approval.
+- [ ] Verify OTP delivery and signed-in multi-device SOS, responder, CMS and evidence workflows; external unmanaged authentication provides no test session.
+
+### Operational limits
+- Foreground pages refresh through Realtime and ten-second polling; closed-app/background push is not configured.
+- Browser camera/GPS require permission and may pause in the background; live video is not recorded automatically.
+- Police/volunteer accounts and real hazards must be entered/approved by the administrator; no invented operational data is preloaded.

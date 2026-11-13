@@ -59,7 +59,7 @@ export function UsersSection() {
   const [banReason, setBanReason] = useState<string>(BAN_REASONS[0]);
 
   const list = filterUsers(d.users, query, filter);
-  const casesFor = (u: AppUser) => d.cases.filter((c) => c.victim === u.name || (u.id === "self" && c.victim === d.user.name));
+  const casesFor = (u: AppUser) => d.cases.filter((c) => c.userId === u.id);
 
   const confirmBan = async () => {
     if (!banTarget) return;
