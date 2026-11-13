@@ -48,6 +48,55 @@ export const verifyRegistrationOtp = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/** Sends a 6-digit password-reset code to a phone that already has an account. */
+export const sendPasswordResetOtp = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ phone: phoneSchema }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { hashCode, makeCode, sendSms } = await import("./otp.server");
+    const { data: prof } = await supabaseAdmin.from("profiles").select("id").eq("phone", data.phone).maybeSingle();
+    if (!prof) return { ok: false as const, error: "notfound" as const };
+    const { data: prev } = await supabaseAdmin.from("phone_otps").select("sent_at").eq("phone", data.phone).maybeSingle();
+    if (prev && Date.now() - new Date(prev.sent_at).getTime() < RESEND_SECONDS * 1000) {
+      return { ok: false as const, error: "wait" as const };
+    }
+    const code = makeCode();
+    await sendSms(data.phone, `Your NURJA password reset code is ${code}. It expires in ${VALID_MINUTES} minutes. Do not share it.`);
+    const { error } = await supabaseAdmin.from("phone_otps").upsert({
+      phone: data.phone,
+      code_hash: await hashCode(data.phone, code),
+      expires_at: new Date(Date.now() + VALID_MINUTES * 60_000).toISOString(),
+      attempts: 0,
+      sent_at: new Date().toISOString(),
+      verified_at: null,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true as const, resendIn: RESEND_SECONDS };
+  });
+
+/** Verifies the reset code and sets a new password for that phone's account. */
+export const resetPasswordWithOtp = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ phone: phoneSchema, code: z.string().regex(/^\d{6}$/), password: z.string().min(6).max(72) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { hashCode } = await import("./otp.server");
+    const { data: row } = await supabaseAdmin.from("phone_otps").select("*").eq("phone", data.phone).maybeSingle();
+    if (!row || new Date(row.expires_at).getTime() < Date.now()) return { ok: false as const, error: "expired" as const };
+    if (row.attempts >= 5) return { ok: false as const, error: "locked" as const };
+    if (row.code_hash !== (await hashCode(data.phone, data.code))) {
+      await supabaseAdmin.from("phone_otps").update({ attempts: row.attempts + 1 }).eq("phone", data.phone);
+      return { ok: false as const, error: "wrong" as const };
+    }
+    const { data: prof } = await supabaseAdmin.from("profiles").select("id").eq("phone", data.phone).maybeSingle();
+    if (!prof) return { ok: false as const, error: "notfound" as const };
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(prof.id, { password: data.password });
+    if (error) return { ok: false as const, error: "failed" as const };
+    await supabaseAdmin.from("phone_otps").delete().eq("phone", data.phone);
+    return { ok: true as const };
+  });
+
 /** Creates the account only for a phone verified by OTP in the last 30 minutes. */
 export const registerVerifiedPhone = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
