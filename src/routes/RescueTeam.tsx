@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUp, BadgeCheck, Building2, Car, CornerUpLeft, CornerUpRight, Eye, EyeOff, History, KeyRound, LogIn, LogOut, Map as MapIcon, Navigation, Phone, Radio, Shield, ShieldCheck, Siren, UserRound, Users, Video, X } from "lucide-react";
 import { toast } from "sonner";
 import { RescueMark } from "@/components/nurja/Brand";
@@ -144,6 +144,13 @@ function Shell() {
   const mine = accounts.find((r) => r.id === d.responderId) ;
   const myCode = mine?.code ?? "";
   const sos = d.sos && d.responderOnline && dismissed !== d.sos.id ? d.sos : null;
+  const autoOnline = useRef("");
+  useEffect(() => {
+    // Signing in puts the responder on duty by default; they can still go offline from Profile.
+    if (!d.responderId || autoOnline.current === d.responderId) return;
+    autoOnline.current = d.responderId;
+    if (!d.responderOnline) void d.set({ responderOnline: true }).catch(() => {});
+  }, [d.responderId]);
   const navigating = !!sos && (t1 || accepted === sos.id || sos.acceptedBy.includes(myCode));
 
 
@@ -310,7 +317,18 @@ function DispatchHome({ mine }: { mine: Responder | undefined }) {
   return (
     <div className="relative flex flex-1 flex-col">
       <div aria-hidden className="pointer-events-none absolute inset-0 tactical-grid opacity-60" />
-      <LiveMapLazy className="relative h-72 tactical-grid shadow-card lg:h-full lg:min-h-[420px]" zones={d.zones} units={[...others, ...(mine?.x!==undefined && mine.y!==undefined ? [{id:"me",label:"You",kind:mine.kind,x:mine.x,y:mine.y,gps:mine.fixed?"fixed" as const:"live" as const}] : [])]} />
+      <div className="relative">
+        <LiveMapLazy className="relative h-[52dvh] min-h-80 shadow-card lg:h-[calc(100dvh-8rem)]" zones={d.zones} focusPoint={mine?.lat!==undefined&&mine.lng!==undefined?[mine.lat,mine.lng]:undefined} units={[...others, ...(mine?.x!==undefined && mine.y!==undefined ? [{id:"me",label:"You",kind:mine.kind,x:mine.x,y:mine.y,gps:mine.fixed?"fixed" as const:"live" as const}] : [])]} />
+        <div className="pointer-events-none absolute left-3 top-3 z-[400] flex flex-col gap-1.5">
+          <span className={cn("flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold shadow-card backdrop-blur", d.responderOnline ? "bg-emerald/90 text-paper" : "bg-navy/85 text-paper/70")}><span className={cn("h-2 w-2 rounded-full bg-paper", d.responderOnline && "animate-blink")} />{d.responderOnline ? "Online" : "Offline"}</span>
+          {d.incidents.length > 0 && <span className="flex items-center gap-1.5 rounded-lg bg-crimson/90 px-2.5 py-1 text-[11px] font-bold text-paper shadow-card animate-pulse"><Siren className="h-3 w-3" />{d.incidents.length} Active SOS</span>}
+        </div>
+        <div className="pointer-events-none absolute bottom-3 left-3 right-3 z-[400] flex flex-wrap gap-1.5 text-[10px] font-semibold">
+          {[["bg-crimson","SOS"],["bg-emerald","You"],["bg-primary","Units"],["bg-amber","Risk zones"]].map(([c,l])=>(
+            <span key={l} className="flex items-center gap-1 rounded-md bg-navy/85 px-2 py-1 text-paper backdrop-blur"><span className={cn("h-2 w-2 rounded-full",c)} />{l}</span>
+          ))}
+        </div>
+      </div>
       <div className="relative space-y-3 p-4">
         <div className="grid grid-cols-3 gap-2">
           {[{ l: "Units online", v: online.length }, { l: "Active SOS", v: d.incidents.length }, { l: "My cases", v: d.cases.length }].map((s) => (

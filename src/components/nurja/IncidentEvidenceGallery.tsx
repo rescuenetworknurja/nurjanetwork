@@ -21,23 +21,23 @@ export function IncidentEvidenceGallery({ incidentId }: { incidentId: string }) 
   const filtered = filterIncidentEvidence(d.evidence, incidentId, query);
   const version = JSON.stringify([d.lang, records]);
   const reportReady = report?.version === version;
-  if (!records.length) return null;
   return (
     <section className="mt-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-xs font-bold">{tr("Saved still evidence", "সংরক্ষিত স্থিরচিত্র প্রমাণ")} · {records.length}</h3>
+        <h3 className="text-xs font-bold">{records.length ? <>{tr("Saved still evidence", "সংরক্ষিত স্থিরচিত্র প্রমাণ")} · {records.length}</> : tr("Case report", "কেস রিপোর্ট")}</h3>
         <Button variant="outline" size="sm" disabled={generating} onClick={async () => {
           if (reportReady && report) { await deliverEvidenceReport(report.blob, `${incidentId}-evidence.pdf`); return; }
           setGenerating(true);
           try {
-            const victim = d.sos?.id === incidentId ? d.sos.victim : d.cases.find((item) => item.id === incidentId)?.victim ?? "";
-            const blob = await buildEvidenceReport(incidentId, records, d.lang, victim);
+            const c = d.cases.find((item) => item.id === incidentId);
+            const victim = d.sos?.id === incidentId ? d.sos.victim : c?.victim ?? "";
+            const blob = await buildEvidenceReport(incidentId, records, d.lang, victim, { area: c?.area, date: c?.date, outcome: c?.outcome, duration: c?.duration });
             setReport({ blob, version });
-          } catch { toast.error(tr("Could not prepare PDF report", "PDF রিপোর্ট তৈরি করা যায়নি")); }
+          } catch (e) { console.error(e); toast.error(tr("Could not prepare PDF report", "PDF রিপোর্ট তৈরি করা যায়নি")); }
           finally { setGenerating(false); }
         }}><FileText />{generating ? tr("Preparing PDF", "PDF তৈরি হচ্ছে") : reportReady ? tr("Download PDF", "PDF ডাউনলোড") : tr("Prepare PDF report", "PDF রিপোর্ট তৈরি করুন")}</Button>
       </div>
-      <div className="relative">
+      {records.length > 0 && <><div className="relative">
         <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input value={query} onChange={(event) => setQuery(event.target.value)} onBlur={() => {
           if (!query.trim() || query === lastSearch.current) return;
@@ -81,7 +81,7 @@ export function IncidentEvidenceGallery({ incidentId }: { incidentId: string }) 
             }}><Download /></Button>
           </div>
         </details>
-      ))}
+      ))}</>}
     </section>
   );
 }

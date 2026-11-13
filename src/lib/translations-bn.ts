@@ -305,6 +305,7 @@ export const BN: Record<string, string> = {
   "Online": "অনলাইন", "Offline": "অফলাইন", "You're online and receiving alerts": "আপনি অনলাইনে আছেন এবং অ্যালার্ট পাচ্ছেন", "You're offline": "আপনি অফলাইনে",
   "An SOS is already active": "একটি SOS ইতিমধ্যে চালু আছে", "Accepted. Navigation started.": "গৃহীত। নেভিগেশন শুরু হয়েছে।",
   "Units online": "অনলাইন ইউনিট", "Active SOS": "চালু SOS", "My cases": "আমার কেস", "Standing by for alerts": "অ্যালার্টের অপেক্ষায়",
+  "Risk zones": "ঝুঁকিপূর্ণ এলাকা", "Units": "ইউনিট",
   "Go online to receive alerts": "অ্যালার্ট পেতে অনলাইনে যান", "Head south on Shapla Chattar": "শাপলা চত্বর থেকে দক্ষিণে যান",
   "Turn left onto Toyenbee Circular Rd": "টয়েনবি সার্কুলার রোডে বাঁয়ে ঘুরুন", "Victim on right, near Sonali Bank gate": "ভুক্তভোগী ডানে, সোনালী ব্যাংক গেটের কাছে",
   "Calling control room…": "কন্ট্রোল রুমে কল করা হচ্ছে…", "Rescued safely — responder on scene": "নিরাপদে উদ্ধার — রেসপন্ডার ঘটনাস্থলে",
