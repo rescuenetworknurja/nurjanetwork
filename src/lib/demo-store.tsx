@@ -1,3 +1,4 @@
+import type React from "react";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   type CaseRecord, type KycStatus, type KycSubmission, type Post, type Responder, type VolunteerApp, type Zone,
@@ -98,7 +99,9 @@ type Ctx = DemoState & {
   reset: () => void;
 };
 
-const StoreCtx = createContext<Ctx | null>(null);
+// Keep one context instance across hot reloads so already-mounted providers stay matched.
+const ctxHolder = globalThis as typeof globalThis & { __nurjaStoreCtx?: React.Context<Ctx | null> };
+const StoreCtx = (ctxHolder.__nurjaStoreCtx ??= createContext<Ctx | null>(null));
 
 export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const {data:publicRecords}=useSuspenseQuery(publicRecordsOptions);
