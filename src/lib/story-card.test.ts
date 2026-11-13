@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildStoryCardSpec, formatStoryDate, wrapText } from "./story-card";
+import { buildStoryCardSpec, formatStoryDate, wrapText, youtubeThumbnail, youtubeThumbnailCandidates } from "./story-card";
 
 const post = {
   image: "/assets/story-patrol.jpg",
@@ -57,8 +57,35 @@ describe("buildStoryCardSpec", () => {
     expect(spec.brand).toBe("NURJA");
     expect(spec.badge).toBe("Verified story");
   });
-  it("drops the photo for video posts so the branded band is used", () => {
+  it("uses the YouTube thumbnail as the photo for video posts", () => {
     const spec = buildStoryCardSpec({ ...post, youtube: "https://www.youtube.com/embed/KuRxu4Ncsmc" }, opts);
-    expect(spec.photo).toBeUndefined();
+    expect(spec.photo).toBe("https://i.ytimg.com/vi/KuRxu4Ncsmc/hqdefault.jpg");
+  });
+});
+
+describe("youtubeThumbnail", () => {
+  it("reads embed, watch, share and shorts URLs", () => {
+    expect(youtubeThumbnail("https://www.youtube.com/embed/KuRxu4Ncsmc")).toBe(
+      "https://i.ytimg.com/vi/KuRxu4Ncsmc/hqdefault.jpg",
+    );
+    expect(youtubeThumbnail("https://www.youtube.com/watch?v=KuRxu4Ncsmc&t=30s")).toBe(
+      "https://i.ytimg.com/vi/KuRxu4Ncsmc/hqdefault.jpg",
+    );
+    expect(youtubeThumbnail("https://youtu.be/KuRxu4Ncsmc")).toBe("https://i.ytimg.com/vi/KuRxu4Ncsmc/hqdefault.jpg");
+    expect(youtubeThumbnail("https://www.youtube.com/shorts/KuRxu4Ncsmc")).toBe(
+      "https://i.ytimg.com/vi/KuRxu4Ncsmc/hqdefault.jpg",
+    );
+  });
+  it("returns undefined for missing or non-YouTube URLs", () => {
+    expect(youtubeThumbnail(undefined)).toBeUndefined();
+    expect(youtubeThumbnail("https://example.com/video")).toBeUndefined();
+  });
+  it("offers sharper-to-smaller candidates for videos without high-res thumbs", () => {
+    expect(youtubeThumbnailCandidates("https://youtu.be/KuRxu4Ncsmc")).toEqual([
+      "https://i.ytimg.com/vi/KuRxu4Ncsmc/maxresdefault.jpg",
+      "https://i.ytimg.com/vi/KuRxu4Ncsmc/hqdefault.jpg",
+      "https://i.ytimg.com/vi/KuRxu4Ncsmc/mqdefault.jpg",
+    ]);
+    expect(youtubeThumbnailCandidates(undefined)).toEqual([]);
   });
 });

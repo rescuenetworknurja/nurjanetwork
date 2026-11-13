@@ -66,11 +66,39 @@ export function wrapText(
   return lines;
 }
 
+/**
+ * Best-effort YouTube thumbnail for a video story. Handles embed, watch,
+ * youtu.be and shorts URLs; returns undefined when no video id is found.
+ * i.ytimg.com sends CORS headers, so the canvas stays exportable.
+ */
+export function youtubeThumbnail(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  const match =
+    /(?:youtube\.com\/(?:embed|shorts|watch)\/([\w-]{6,})|youtube\.com\/watch\?[^#]*\bv=([\w-]{6,})|youtu\.be\/([\w-]{6,}))/.exec(
+      url,
+    );
+  const id = match?.[1] ?? match?.[2] ?? match?.[3];
+  return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : undefined;
+}
+
+/**
+ * Thumbnail URLs from sharpest to smallest. Videos without a high-res
+ * thumbnail 404 on the sharper names, so the loader walks this list.
+ */
+export function youtubeThumbnailCandidates(url: string | undefined): string[] {
+  const hq = youtubeThumbnail(url);
+  if (!hq) return [];
+  const base = hq.replace(/\/hqdefault\.jpg$/, "");
+  return [`${base}/maxresdefault.jpg`, hq, `${base}/mqdefault.jpg`];
+}
+
 export type StoryCardSpec = {
   width: number;
   height: number;
-  /** Story photo, or undefined for video posts / posts without an image. */
+  /** Story photo; video posts use the YouTube thumbnail. */
   photo: string | undefined;
+  /** Alternate photo URLs tried in order when the primary one fails to load. */
+  photoFallbacks: string[];
   tag: string;
   title: string;
   excerpt: string;
@@ -101,7 +129,8 @@ export function buildStoryCardSpec(
   return {
     width: CARD_W,
     height: CARD_H,
-    photo: post.youtube ? undefined : post.image,
+    photo: post.youtube ? youtubeThumbnail(post.youtube) : post.image,
+    photoFallbacks: post.youtube ? youtubeThumbnailCandidates(post.youtube) : [],
     tag: opts.tag,
     title: opts.title,
     excerpt: opts.excerpt,
@@ -272,7 +301,12 @@ async function paint(spec: StoryCardSpec, photo?: HTMLImageElement): Promise<Blo
  */
 export async function renderStoryCard(spec: StoryCardSpec): Promise<Blob> {
   await ensureFonts(spec.lang);
-  const photo = spec.photo ? await loadImage(spec.photo) : null;
+  let photo: HTMLImageElement | null = null;
+  for (const src of [spec.photo, ...spec.photoFallbacks]) {
+    if (!src) continue;
+    photo = await loadImage(src);
+    if (photo) break;
+  }
   try {
     return await paint(spec, photo ?? undefined);
   } catch {
