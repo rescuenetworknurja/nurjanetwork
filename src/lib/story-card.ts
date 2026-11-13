@@ -235,7 +235,7 @@ async function paint(spec: StoryCardSpec, photo?: HTMLImageElement): Promise<Blo
   ctx.lineTo(spec.width - 64, 1212);
   ctx.stroke();
 
-  // Footer: right-aligned brand and slogan, with no printed link.
+  // Footer: slogan on the left, branding on the right, with no printed link.
   const footerRight = spec.width - 64;
   ctx.font = `800 34px ${display}`;
   const markX = footerRight - ctx.measureText(spec.brand).width - 88;
@@ -257,9 +257,9 @@ async function paint(spec: StoryCardSpec, photo?: HTMLImageElement): Promise<Blo
   ctx.fillText(spec.brand, footerRight, 1276);
   ctx.fillStyle = MUTED;
   ctx.font = `500 22px ${body}`;
-  const slogan = wrapText(spec.slogan, (s) => ctx.measureText(s).width, 620, 1);
-  ctx.fillText(slogan[0] ?? spec.slogan, footerRight, 1330);
   ctx.textAlign = "left";
+  const slogan = wrapText(spec.slogan, (s) => ctx.measureText(s).width, markX - 96, 1);
+  ctx.fillText(slogan[0] ?? spec.slogan, 64, 1276);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Photocard export failed"))), "image/png");
