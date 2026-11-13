@@ -43,9 +43,6 @@ function Home() {
         <div aria-hidden className="pointer-events-none absolute inset-0 arch-grid" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-[1.1fr_1fr] lg:py-24">
           <div className="space-y-7 animate-rise">
-            <span className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-semibold">
-              <span className="h-2 w-2 rounded-full bg-emerald animate-blink" /> {L(c.hero.badge)}
-            </span>
             <p className="font-display text-sm font-bold uppercase tracking-[0.2em] text-crimson"><Slogan /></p>
             <h1 className="text-5xl font-extrabold leading-[1.02] sm:text-6xl lg:text-7xl">
               {headline.map((part, i) => i % 2 ? <span key={i} className="text-crimson">{part}</span> : <span key={i}>{part}</span>)}
