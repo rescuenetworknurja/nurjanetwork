@@ -24,10 +24,10 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6">
           <Link to="/"><NurjaMark tagline taglineClassName="hidden sm:block" /></Link>
-          <nav className="hidden flex-1 items-center gap-1 md:flex">
+          <nav className="hidden flex-1 items-center justify-center gap-1 md:flex">
             {LINKS.map((l) => (
               <Link key={l.to} to={l.to} activeOptions={{ exact: true }}
-                className="rounded-lg px-3.5 py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground"
+                className="whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground"
                 activeProps={{ className: "bg-accent text-accent-foreground" }} data-no-tr>{L(l.label)}</Link>
             ))}
           </nav>

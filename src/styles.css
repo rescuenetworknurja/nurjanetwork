@@ -8,7 +8,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("@fontsource-variable/noto-sans-bengali/files/noto-sans-bengali-bengali-wght-normal.woff2") format("woff2");
+  src: url("/fonts/noto-sans-bengali-bengali-wght-normal.woff2") format("woff2");
   unicode-range: U+09E6-09EF;
 }
 @font-face {
@@ -16,7 +16,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("@fontsource-variable/noto-sans-bengali/files/noto-sans-bengali-latin-wght-normal.woff2") format("woff2");
+  src: url("/fonts/noto-sans-bengali-latin-wght-normal.woff2") format("woff2");
   unicode-range: U+0030-0039;
 }
 
