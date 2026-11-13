@@ -132,9 +132,9 @@ function Blog() {
             {featured && (
               <article className="mt-8 grid overflow-hidden rounded-3xl border bg-card shadow-card md:grid-cols-2">
                 <PostMedia post={featured} className="h-full" />
-                <div className="space-y-3 p-8">
-                  <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-bold uppercase text-accent-foreground">{featured.tag}</span>
-                  <h2 className="text-3xl font-extrabold">{pick(featured.title, featured.titleBn)}</h2>
+                <div className="space-y-4 p-8 md:p-10">
+                  <span className="inline-flex w-fit items-center rounded-full bg-accent px-2.5 py-1 text-xs font-bold uppercase text-accent-foreground">{featured.tag}</span>
+                  <h2 className="text-3xl font-extrabold leading-tight">{pick(featured.title, featured.titleBn)}</h2>
                   <p className="text-muted-foreground">{pick(featured.body, featured.bodyBn)}</p>
                   <p className="text-xs text-muted-foreground">{featured.author} · {featured.date}</p>
                 </div>
