@@ -97,8 +97,21 @@ function Home() {
         </ol>
       </section>
 
+      <section className="bg-muted/60 py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-widest text-crimson">{L(c.sections.storiesEyebrow)}</p>
+              <h2 className="mt-2 text-4xl font-extrabold">{L(c.sections.storiesTitle)}</h2>
+            </div>
+            <Button asChild variant="outline" className="rounded-lg"><Link to="/blog">View all stories <ArrowRight /></Link></Button>
+          </div>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">{blog.map((p) => <PostCard key={p.id} post={p} />)}</div>
+        </div>
+      </section>
+
       {c.features.length > 0 && (
-        <section className="mx-auto max-w-7xl px-6 pb-20">
+        <section className="mx-auto max-w-7xl px-6 py-20">
           <p className="text-sm font-bold uppercase tracking-widest text-crimson">{L(c.sections.featuresEyebrow)}</p>
           <h2 className="mt-2 text-3xl font-extrabold">{L(c.sections.featuresTitle)}</h2>
           <div className="mt-8 grid gap-4 md:grid-cols-4">
@@ -112,19 +125,6 @@ function Home() {
           </div>
         </section>
       )}
-
-      <section className="bg-muted/60 py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-widest text-crimson">{L(c.sections.storiesEyebrow)}</p>
-              <h2 className="mt-2 text-4xl font-extrabold">{L(c.sections.storiesTitle)}</h2>
-            </div>
-            <Button asChild variant="outline" className="rounded-lg"><Link to="/blog">View all stories <ArrowRight /></Link></Button>
-          </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">{blog.map((p) => <PostCard key={p.id} post={p} />)}</div>
-        </div>
-      </section>
 
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="grid items-center gap-8 rounded-[2rem] bg-navy p-10 text-paper md:grid-cols-[1fr_auto] md:p-14">
