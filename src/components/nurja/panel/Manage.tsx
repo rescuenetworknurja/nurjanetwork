@@ -18,7 +18,7 @@ import { IMAGES, isType1, type Responder, type Zone } from "@/lib/mock-data";
 import { fmtCoord, isLat, isLng, parseCoordPair } from "@/lib/geo";
 import { toXY, toLatLng } from "@/lib/geo-map";
 import { generateVolunteerId } from "@/lib/ids";
-import { listProfiles, setKycStatus } from "@/lib/profile.functions";
+import { getKycReview, listProfiles, setKycStatus } from "@/lib/profile.functions";
 import { cn } from "@/lib/utils";
 import { getPlacesUsage } from "@/lib/places.functions";
 import { PLACES_COST_PER_REQUEST, PLACES_DAILY_LIMIT, estimateCost, usageLevel } from "@/lib/places-usage";
@@ -47,17 +47,20 @@ export function KycSection() {
   const d=useDemo();
   const [filter, setFilter] = useState("pending");
   const [open, setOpen] = useState<ProfileRow | null>(null);
+  const [note, setNote] = useState("");
   const qc = useQueryClient();
+  const reviewQ = useQuery({ queryKey: ["kyc-review", open?.id], queryFn: () => getKycReview({ data: { userId: open!.id } }), enabled: !!open });
   const profilesQ = useQuery({
     queryKey: ADMIN_PROFILES_KEY,
     queryFn: () => listProfiles(),
     refetchInterval: 15000,
   });
   const mut = useMutation({
-    mutationFn: (v: { userId: string; status: "approved" | "rejected" }) => setKycStatus({ data: v }),
+    mutationFn: (v: { userId: string; status: "approved" | "rejected" }) => setKycStatus({ data: { ...v, ...(note.trim() ? { note: note.trim() } : {}) } }),
     onSuccess: (_r: unknown, v: { userId: string; status: "approved" | "rejected" }) => {
       void qc.invalidateQueries({ queryKey: ADMIN_PROFILES_KEY });
-      setOpen(null);
+      setOpen(null); setNote("");
+      void qc.invalidateQueries({ queryKey: ["kyc-review"] });
       toast[v.status === "approved" ? "success" : "error"](`KYC ${v.status}`, {
         description: v.status === "approved"
           ? "SOS unlocks in the user's NURJA app automatically."
@@ -109,6 +112,23 @@ export function KycSection() {
                 <div className="grid grid-cols-2 gap-3">
                   {Object.entries(d.kycDocuments[open.id]??{}).map(([label,src])=><a key={label} href={src} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border"><img src={src} alt={label} className="aspect-video w-full object-contain" /><p className="p-2 text-xs">{label}</p></a>)}
                 </div>
+                {reviewQ.data?.birthReg || reviewQ.data?.guardian ? (
+                  <div className="rounded-xl border border-amber/40 p-4 text-sm">
+                    <p className="text-xs font-bold uppercase text-amber">Under 18 — guardian consent</p>
+                    <p className="mt-2 text-xs text-muted-foreground">Birth registration number</p>
+                    <p className="font-mono font-bold tracking-wider">{reviewQ.data.birthReg || "Not provided"}</p>
+                    {reviewQ.data.guardian && <p className="mt-2">Guardian: <b>{reviewQ.data.guardian.name}</b> · {reviewQ.data.guardian.relation} · <span className="font-mono">{reviewQ.data.guardian.phone}</span></p>}
+                    <p className={cn("mt-1 text-xs font-semibold", reviewQ.data.guardian?.consent ? "text-emerald" : "text-crimson")}>{reviewQ.data.guardian?.consent ? "Guardian consent given" : "Guardian consent missing"}</p>
+                  </div>
+                ) : null}
+                {reviewQ.data?.review && (
+                  <div className="rounded-xl bg-muted p-3 text-xs">
+                    <p className="font-semibold">Last decision: <span className="capitalize">{reviewQ.data.review.status}</span> by {reviewQ.data.review.reviewer}</p>
+                    <p className="text-muted-foreground">{new Date(reviewQ.data.review.at).toLocaleString("en-GB")}</p>
+                    {reviewQ.data.review.note && <p className="mt-1">“{reviewQ.data.review.note}”</p>}
+                  </div>
+                )}
+                <div className="space-y-1"><Label>Review note (optional)</Label><Textarea value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} placeholder="Reason for approval or rejection" /></div>
                 <p className="rounded-lg bg-amber-soft p-3 text-xs text-amber">Verify the NID number against the user's physical card or submitted documents before approving. Approving unlocks the SOS button in their app automatically.</p>
                 <div className="grid grid-cols-2 gap-2 pt-2">
                   <Button variant="outline" className="border-crimson text-crimson" disabled={mut.isPending} onClick={() => mut.mutate({ userId: open.id, status: "rejected" })}><X /> Reject</Button>

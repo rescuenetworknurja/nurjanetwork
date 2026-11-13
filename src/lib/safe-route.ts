@@ -67,23 +67,26 @@ export function detourPoints(zone: Zone, from: LatLng, to: LatLng): LatLng[] {
   return [[c[0] + py * off, c[1] + px * off * lngScale], [c[0] - py * off, c[1] - px * off * lngScale]];
 }
 
-async function osrm(points: LatLng[], alternatives: boolean): Promise<Candidate[]> {
+export type TravelMode = "car" | "foot";
+// The public OSRM demo only routes cars; walking uses the OpenStreetMap Germany foot router.
+const ROUTERS: Record<TravelMode, string> = { car: "https://router.project-osrm.org/route/v1/driving", foot: "https://routing.openstreetmap.de/routed-foot/route/v1/driving" };
+async function osrm(points: LatLng[], alternatives: boolean, mode: TravelMode = "car"): Promise<Candidate[]> {
   const coords = points.map((p) => `${p[1]},${p[0]}`).join(";");
-  const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&alternatives=${alternatives}`);
+  const r = await fetch(`${ROUTERS[mode]}/${coords}?overview=full&geometries=geojson&alternatives=${alternatives}`);
   if (!r.ok) return [];
   const j = (await r.json()) as { routes?: { distance: number; duration: number; geometry: { coordinates: [number, number][] } }[] };
   return (j.routes ?? []).map((x) => ({ path: x.geometry.coordinates.map(([lng, lat]) => [lat, lng] as LatLng), meters: x.distance, seconds: x.duration }));
 }
 
 /** Fetch direct + alternative + detour routes and rank them by safety. */
-export async function findSafeRoutes(from: LatLng, to: LatLng, zones: Zone[]): Promise<{ ranked: Scored[]; fastest: Scored | null }> {
-  const base = await osrm([from, to], true);
+export async function findSafeRoutes(from: LatLng, to: LatLng, zones: Zone[], mode: TravelMode = "car"): Promise<{ ranked: Scored[]; fastest: Scored | null }> {
+  const base = await osrm([from, to], true, mode);
   if (!base.length) return { ranked: [], fastest: null };
   let ranked = rankRoutes(base, zones);
   const fastest = rankRoutes([base[0]!], zones)[0] ?? null;
   if (ranked[0] && ranked[0].crossings > 0) {
     const crossed = highRiskCrossings(ranked[0].hits).slice(0, 2).map((h) => h.zone);
-    const detours = await Promise.all(crossed.flatMap((z) => detourPoints(z, from, to).map((w) => osrm([from, w, to], false).catch(() => []))));
+    const detours = await Promise.all(crossed.flatMap((z) => detourPoints(z, from, to).map((w) => osrm([from, w, to], false, mode).catch(() => []))));
     ranked = rankRoutes([...base, ...detours.flat()], zones);
   }
   return { ranked: ranked.slice(0, 3), fastest };

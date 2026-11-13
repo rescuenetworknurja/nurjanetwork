@@ -68,7 +68,7 @@ export const setAccountStatus = createServerFn({ method: "POST" })
 export const setKycStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { userId: string; status: "pending" | "approved" | "rejected" }) => input,
+    (input: unknown) => z.object({ userId: z.string().uuid(), status: z.enum(["pending", "approved", "rejected"]), note: z.string().trim().max(500).optional() }).parse(input),
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
@@ -77,6 +77,10 @@ export const setKycStatus = createServerFn({ method: "POST" })
       .update({ kyc_status: data.status })
       .eq("id", data.userId);
     if (error) throw new Error(error.message);
+    // Audit: who decided, when, and why (one small row per user, replaced on each decision).
+    const { data: me } = await context.supabase.from("profiles").select("full_name,phone").eq("id", context.userId).maybeSingle();
+    const { error: auditError } = await context.supabase.from("live_records").upsert({ collection: "kyc_reviews", id: data.userId, published: false, content: { status: data.status, note: data.note ?? "", reviewerId: context.userId, reviewer: me?.full_name || me?.phone || "Admin", at: new Date().toISOString() } }, { onConflict: "collection,id" });
+    if (auditError) throw new Error("KYC saved but review log failed: " + auditError.message);
     return { ok: true };
   });
 
@@ -102,4 +106,21 @@ export const setUserRole = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
     return { ok: true };
+  });
+
+export const getKycReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const [{ data: sub }, { data: review }] = await Promise.all([
+      context.supabase.from("kyc_submissions").select("dob,birth_reg,guardian").eq("user_id", data.userId).maybeSingle(),
+      context.supabase.from("live_records").select("content").eq("collection", "kyc_reviews").eq("id", data.userId).maybeSingle(),
+    ]);
+    return {
+      dob: (sub?.dob as string | null) ?? null,
+      birthReg: (sub?.birth_reg as string | null) ?? null,
+      guardian: (sub?.guardian as { name?: string; phone?: string; relation?: string; consent?: boolean } | null) ?? null,
+      review: (review?.content as { status: string; note: string; reviewer: string; at: string } | null) ?? null,
+    };
   });

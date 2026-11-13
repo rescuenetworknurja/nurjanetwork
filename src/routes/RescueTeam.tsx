@@ -350,7 +350,12 @@ function Navigate({ type1, myCode }: { type1: boolean; myCode: string }) {
   const now = useNow();
   const sos = d.sos;
   const units = useNetworkUnits(sos?.startedAt, sos?.acceptedBy ?? [], d.responders);
+  const mine = d.responders.find((r) => r.id === d.responderId);
+  const opened = useRef<{ id: string; lat: number; lng: number } | null>(null);
+  if (sos?.lat !== undefined && sos.lng !== undefined && opened.current?.id !== sos.id) opened.current = { id: sos.id, lat: sos.lat, lng: sos.lng };
   if (!sos) return null;
+  const eta = estimateEta(mine, sos);
+  const moved = opened.current && sos.lat !== undefined && sos.lng !== undefined ? estimateEta(opened.current, sos)!.km * 1000 : 0;
   const arrived = sos.arrivedBy?.some((r) => r.code === myCode) ?? false;
   const victim=sos.lat!==undefined&&sos.lng!==undefined?toXY(sos.lat,sos.lng):undefined;
   const navigateUrl=sos.lat!==undefined&&sos.lng!==undefined?`https://www.google.com/maps/dir/?api=1&destination=${sos.lat},${sos.lng}`:undefined;
@@ -363,7 +368,9 @@ function Navigate({ type1, myCode }: { type1: boolean; myCode: string }) {
         </div>
       )}
       <LiveMapLazy className="h-64 lg:min-h-[380px]" victim={victim} units={units} zones={d.zones} />
-      {navigateUrl && <Button asChild className="mx-4 mt-4"><a href={navigateUrl} target="_blank" rel="noreferrer"><Navigation /> Navigate</a></Button>}
+      {eta && <p className="mx-4 mt-3 text-center text-sm font-semibold">{eta.km < 10 ? eta.km.toFixed(1) : Math.round(eta.km)} km · Vehicle ~{eta.driveMin} min · On foot ~{eta.walkMin} min</p>}
+      {moved > 100 && <p className="mx-4 mt-2 rounded-lg bg-amber-soft p-2.5 text-center text-xs font-semibold text-amber">Victim has moved. Tap Navigate again for the updated route.</p>}
+      {navigateUrl && <Button asChild className="mx-4 mt-3"><a href={navigateUrl} target="_blank" rel="noreferrer" onClick={() => { if (sos.lat !== undefined && sos.lng !== undefined) opened.current = { id: sos.id, lat: sos.lat, lng: sos.lng }; }}><Navigation /> Navigate</a></Button>}
       <div className="space-y-2 p-4">
         <div className="rounded-2xl border bg-card p-3.5">
           <p className="text-xs text-muted-foreground">Victim</p>

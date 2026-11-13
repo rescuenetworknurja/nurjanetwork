@@ -200,7 +200,9 @@ export const updateLiveLocation = createServerFn({ method: "POST" }).middleware(
       if (i.user_id !== context.userId || i.status !== "active") throw new Error("Active owned incident required");
       const { error } = await supabaseAdmin.from("incidents").update({ lat: data.lat, lng: data.lng, accuracy: data.accuracy, location_at: now }).eq("id", i.id).eq("status", "active");
       if (error) throw new Error("Location update failed");
-      await supabaseAdmin.from("incident_locations").insert({ incident_id: i.id, lat: data.lat, lng: data.lng, accuracy: data.accuracy });
+      // Live position updates every 3 s; the stored trail keeps one point per ~10 s to limit database growth.
+      const { data: lastPt } = await supabaseAdmin.from("incident_locations").select("created_at").eq("incident_id", i.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (!lastPt || Date.now() - new Date(lastPt.created_at).getTime() >= 9000) await supabaseAdmin.from("incident_locations").insert({ incident_id: i.id, lat: data.lat, lng: data.lng, accuracy: data.accuracy });
     } else {
       const { error } = await supabaseAdmin.from("responders").update({ lat: data.lat, lng: data.lng, location_at: now }).eq("user_id", context.userId).eq("fixed", false);
       if (error) throw new Error("Location update failed");
@@ -364,4 +366,21 @@ export const listBriefings = createServerFn({ method: "POST" }).middleware([requ
     const { data: rows, error } = await context.supabase.from("incident_events").select("id,created_at,details").eq("incident_id", data.incidentId).eq("event", "briefing").order("created_at", { ascending: false }).limit(20);
     if (error) throw new Error("Briefings unavailable");
     return (rows ?? []).map((r) => { const x = r.details as Record<string, unknown>; return { id: r.id, at: r.created_at, summary: String(x["summary"] ?? ""), notes: String(x["notes"] ?? ""), priority: (x["priority"] as Briefing["priority"]) ?? "medium", lat: typeof x["lat"] === "number" ? x["lat"] : null, lng: typeof x["lng"] === "number" ? x["lng"] : null, label: String(x["label"] ?? "") } satisfies Briefing; });
+  });
+
+/** Victim movement trail + responder accept/arrival times for case reports; caller must be able to see the incident. */
+export const getIncidentTimeline = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ incidentId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { requireIncident } = await import("./live.server"); const i = await requireIncident(context.supabase, data.incidentId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: locs }, { data: assigns }] = await Promise.all([
+      supabaseAdmin.from("incident_locations").select("lat,lng,created_at").eq("incident_id", i.id).order("created_at").limit(5000),
+      supabaseAdmin.from("dispatch_assignments").select("state,created_at,arrived_at,distance_km,responders(name,code)").eq("incident_id", i.id).order("created_at"),
+    ]);
+    return {
+      startedAt: i.created_at,
+      trail: (locs ?? []).map((l) => ({ lat: l.lat, lng: l.lng, at: l.created_at })),
+      responders: (assigns ?? []).map((a) => { const r = a.responders as unknown as { name: string; code: string } | null; return { name: r?.name ?? "", code: r?.code ?? "", state: a.state, assignedAt: a.created_at, arrivedAt: a.arrived_at, distanceKm: a.distance_km }; }),
+    };
   });

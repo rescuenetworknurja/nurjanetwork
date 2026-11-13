@@ -28,3 +28,11 @@ describe("incident frame evidence", () => {
     expect(appendIncidentEvidence([frame], next, "SOS-2")).toEqual([frame, next]);
   });
 });
+import { sampleTrail } from "./evidence-report";
+describe("sampleTrail", () => {
+  it("keeps first and last and limits to 20 points", () => {
+    const pts = Array.from({ length: 100 }, (_, i) => i);
+    const s = sampleTrail(pts, 20);
+    expect(s).toHaveLength(20); expect(s[0]).toBe(0); expect(s[19]).toBe(99);
+  });
+});

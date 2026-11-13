@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { type LatLng } from "@/lib/routing";
 import { findPlace } from "@/lib/place-search";
-import { findSafeRoutes, type Scored } from "@/lib/safe-route";
+import { findSafeRoutes, type Scored, type TravelMode } from "@/lib/safe-route";
 import { useTripShare, trackUrl } from "@/lib/trip-share";
 import { Radio, Share2, MessageSquare, ArrowUpDown, Circle, Clock, Fingerprint, KeyRound, LogOut, MapPin, Phone, Route as RouteIcon, ShieldCheck, ShieldAlert, Lock, UserRound, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +32,7 @@ export function SafeRouteTab() {
   const [busy, setBusy] = useState(false);
   const [opts, setOpts] = useState<{ ranked: Scored[]; fastest: Scored | null; ends: [LatLng, LatLng] } | null>(null);
   const [pick, setPick] = useState(0);
+  const [mode, setMode] = useState<TravelMode>("car");
   const [shareOpen, setShareOpen] = useState(false);
   const trip = useTripShare(me);
   const chosen = opts?.ranked[pick];
@@ -59,7 +60,7 @@ export function SafeRouteTab() {
       const [a, b] = await Promise.all([resolve(from), resolve(to)]);
       if (!a) { toast.error(from === MY_LOC ? "Your location is not available yet" : "Start place not found"); return; }
       if (!b) { toast.error("Destination not found"); return; }
-      const r = await findSafeRoutes(a, b, zones);
+      const r = await findSafeRoutes(a, b, zones, mode);
       const top = r.ranked[0];
       window.__lovableEvents?.track?.("project.safe_route_search", { result: top ? (top.crossings ? "no_safe_alternative" : "safe") : "no_route", option_count: r.ranked.length });
       if (top?.crossings) window.__lovableEvents?.track?.("project.safe_route_no_safe_alternative", { high_risk_crossings: top.crossings });
@@ -84,6 +85,9 @@ export function SafeRouteTab() {
             <Input value={to} onChange={(e) => setTo(e.target.value)} onKeyDown={(e) => e.key === "Enter" && start()} className="h-10 rounded-lg bg-muted border-0" placeholder="Destination" />
           </div>
           <button className="grid h-9 w-9 place-items-center rounded-lg bg-muted" onClick={() => { setFrom(to); setTo(from); }}><ArrowUpDown className="h-4 w-4" /></button>
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-1.5">
+          {(["car", "foot"] as const).map((m) => <button key={m} onClick={() => { setMode(m); setOpts(null); }} className={cn("rounded-lg py-1.5 text-xs font-semibold", mode === m ? "bg-emerald text-paper" : "bg-muted text-muted-foreground")}>{m === "car" ? "Vehicle" : "Walking"}</button>)}
         </div>
       </div>
 

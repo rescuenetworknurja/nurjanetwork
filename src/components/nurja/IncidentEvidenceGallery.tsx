@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useDemo } from "@/lib/demo-store";
 import { useT } from "@/lib/i18n";
 import { filterIncidentEvidence } from "@/lib/evidence";
+import { getIncidentTimeline } from "@/lib/live.functions";
 import { buildEvidenceReport, deliverEvidenceReport } from "@/lib/evidence-report";
 
 export function IncidentEvidenceGallery({ incidentId }: { incidentId: string }) {
@@ -31,7 +32,8 @@ export function IncidentEvidenceGallery({ incidentId }: { incidentId: string }) 
           try {
             const c = d.cases.find((item) => item.id === incidentId);
             const victim = d.sos?.id === incidentId ? d.sos.victim : c?.victim ?? "";
-            const blob = await buildEvidenceReport(incidentId, records, d.lang, victim, { area: c?.area, date: c?.date, outcome: c?.outcome, duration: c?.duration });
+            const timeline = await getIncidentTimeline({ data: { incidentId } }).catch(() => undefined);
+            const blob = await buildEvidenceReport(incidentId, records, d.lang, victim, { area: c?.area, date: c?.date, outcome: c?.outcome, duration: c?.duration, timeline });
             setReport({ blob, version });
           } catch (e) { console.error(e); toast.error(tr("Could not prepare PDF report", "PDF রিপোর্ট তৈরি করা যায়নি")); }
           finally { setGenerating(false); }

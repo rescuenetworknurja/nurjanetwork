@@ -31,5 +31,10 @@
 - [x] Audible responder siren (generated, no file).
 - [x] Location every 3 s with in-memory resend of missed points.
 - [x] Volunteer ID collision retry.
+- [x] KYC: under-18 guardian consent/birth reg shown; reviewer, time, note saved.
+- [x] Responder live distance + "victim moved" notice.
+- [x] Walking safe routes.
+- [x] Case PDF: victim trail + responder dispatch/arrival times.
+- [ ] API key settings form, auto-account for volunteers, seamless camera switch, auto risk zones — pending.
 - [ ] Offline video, offline app, evidence video — skipped: large storage.
 - [ ] Nearby-5 SMS, push notifications — need SMS cost/push setup decision.

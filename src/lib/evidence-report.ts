@@ -10,7 +10,14 @@ async function toJpeg(src: string) {
   return canvas.toDataURL("image/jpeg", 0.85);
 }
 
-export type CaseSummary = { area?: string | undefined; date?: string | undefined; outcome?: string | undefined; duration?: string | undefined };
+export type CaseTimeline = { trail: { lat: number; lng: number; at: string }[]; responders: { name: string; code: string; state: string; assignedAt: string; arrivedAt: string | null; distanceKm: number }[] };
+export type CaseSummary = { area?: string | undefined; date?: string | undefined; outcome?: string | undefined; duration?: string | undefined; timeline?: CaseTimeline | undefined };
+
+/** Keeps at most `max` evenly spaced points, always including first and last. */
+export function sampleTrail<T>(trail: T[], max: number): T[] {
+  if (trail.length <= max) return trail;
+  return Array.from({ length: max }, (_, i) => trail[Math.round((i * (trail.length - 1)) / (max - 1))]!);
+}
 
 export async function buildEvidenceReport(incidentId: string, records: IncidentEvidence[], lang: "en" | "bn", victim: string, summary: CaseSummary = {}) {
   const { PDFDocument } = await import("pdf-lib");
@@ -35,6 +42,38 @@ export async function buildEvidenceReport(incidentId: string, records: IncidentE
     const img = await pdf.embedPng(canvas.toDataURL("image/png"));
     const h = img.height * 535 / img.width;
     pdf.addPage([595, 842]).drawImage(img, { x: 30, y: 842 - 40 - h, width: 535, height: h });
+  }
+  if (summary.timeline && (summary.timeline.trail.length || summary.timeline.responders.length)) {
+    const tl = summary.timeline;
+    const canvas = document.createElement("canvas"); canvas.width = 1100; canvas.height = 1556;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Report rendering unavailable");
+    const font = bn ? '"Noto Sans Bengali", "Hind Siliguri", sans-serif' : '"Manrope", sans-serif';
+    const colors = getComputedStyle(document.documentElement);
+    const ink = colors.getPropertyValue("--ink") || "#000";
+    ctx.fillStyle = colors.getPropertyValue("--paper") || "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = ink;
+    const time = (iso: string | null) => iso ? new Date(iso).toLocaleTimeString(bn ? "bn-BD" : "en-GB") : "—";
+    let y = 50;
+    const line = (text: string, size = 22, bold = false) => { ctx.font = `${bold ? "bold " : ""}${size}px ${font}`; ctx.fillText(text, 30, y); y += size + 14; };
+    line(t("Responder timeline", "রেসপন্ডারের সময়রেখা"), 32, true);
+    if (!tl.responders.length) line("—");
+    for (const r of tl.responders) line(`${r.name} (${r.code}) · ${t("dispatched", "পাঠানো")} ${time(r.assignedAt)} · ${t("arrived", "পৌঁছেছে")} ${time(r.arrivedAt)} · ${r.distanceKm.toFixed(1)} km`);
+    y += 10; line(`${t("Victim movement", "ভুক্তভোগীর চলাচল")} · ${tl.trail.length} ${t("points", "পয়েন্ট")}`, 32, true);
+    if (tl.trail.length > 1) {
+      const lats = tl.trail.map((p) => p.lat), lngs = tl.trail.map((p) => p.lng);
+      const [minLat, maxLat, minLng, maxLng] = [Math.min(...lats), Math.max(...lats), Math.min(...lngs), Math.max(...lngs)];
+      const box = { x: 30, y, w: 1040, h: 420 };
+      const span = Math.max(maxLat - minLat, maxLng - minLng, 0.0005);
+      const px = (p: { lat: number; lng: number }) => [box.x + 20 + ((p.lng - minLng) / span) * (box.w - 40), box.y + box.h - 20 - ((p.lat - minLat) / span) * (box.h - 40)] as const;
+      ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.strokeRect(box.x, box.y, box.w, box.h);
+      ctx.strokeStyle = colors.getPropertyValue("--crimson") || "#E11D48"; ctx.lineWidth = 4; ctx.beginPath();
+      tl.trail.forEach((p, i) => { const [a, b] = px(p); if (i) ctx.lineTo(a, b); else ctx.moveTo(a, b); }); ctx.stroke();
+      ctx.fillStyle = ink; y += box.h + 30;
+    }
+    for (const p of sampleTrail(tl.trail, 20)) line(`${time(p.at)} · ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`, 20);
+    const img = await pdf.embedPng(canvas.toDataURL("image/png"));
+    pdf.addPage([595, 842]).drawImage(img, { x: 30, y: 30, width: 535, height: 782 });
   }
   for (const [index, record] of records.entries()) {
     const canvas = document.createElement("canvas");
