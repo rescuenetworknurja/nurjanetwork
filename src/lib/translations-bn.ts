@@ -372,6 +372,12 @@ export const BN: Record<string, string> = {
   "POLICE PATROL": "পুলিশ পেট্রোল", "POLICE FARI": "পুলিশ ফাঁড়ি", "POLICE STATION": "পুলিশ স্টেশন", "VOLUNTEER": "ভলান্টিয়ার", "POLICE OFFICER": "পুলিশ অফিসার",
   "📍 Fixed GPS installation — position set by Control Panel": "📍 ফিক্সড জিপিএস ইনস্টলেশন — অবস্থান কন্ট্রোল প্যানেল থেকে নির্ধারিত",
   "📡 Live device GPS while Online": "📡 অনলাইনে থাকলে লাইভ ডিভাইস জিপিএস",
+  "Topic": "বিষয়", "All time": "সব সময়", "Last 7 days": "শেষ ৭ দিন", "Last 30 days": "শেষ ৩০ দিন",
+  "Last 90 days": "শেষ ৯০ দিন", "This year": "এই বছর", "Custom date range": "নিজের তারিখ",
+  "From": "থেকে", "To": "পরয়ন্ত", "Order": "ক্রম", "Newest first": "নতুন আগে", "Oldest first": "পুরনো আগে",
+  "Clear filters": "ফিল্টার সরান", "Showing": "দেখাচ্ছ", "of": "এর মধ্যে", "stories": "টা গল্প",
+  "No stories match these filters": "এই ফিল্টারে কোনো গল্প মেলেনি",
+  "Try another topic or a wider date range.": "অন্য বিষয় বা বড় সময়ের সীমা দেখুন।",
 };
 
 /** Pattern rules for strings that contain dynamic values. $1.. are kept as-is. */
