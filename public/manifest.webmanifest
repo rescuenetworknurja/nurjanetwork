@@ -1,0 +1,14 @@
+{
+  "id": "/NURJASOS",
+  "name": "NURJA SOS",
+  "short_name": "NURJA SOS",
+  "start_url": "/NURJASOS",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#E11D48",
+  "background_color": "#F8FAFC",
+  "icons": [
+    { "src": "/nurja-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/nurja-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

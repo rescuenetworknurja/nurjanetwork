@@ -3,6 +3,9 @@
  * Keys are the exact English text as rendered (whitespace-trimmed).
  */
 export const BN: Record<string, string> = {
+  "Install NURJASOS": "NURJASOS ইনস্টল করুন",
+  "Install button text": "ইনস্টল বাটনের লেখা",
+  "Installation instructions": "ইনস্টল করার নির্দেশনা",
   "Share": "শেয়ার",
   "Share this story": "এই গল্পটি শেয়ার করুন",
   "Share as photocard": "ফটোকার্ড হিসেবে শেয়ার করুন",

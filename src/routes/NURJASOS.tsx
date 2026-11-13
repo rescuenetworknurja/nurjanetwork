@@ -19,6 +19,8 @@ export const Route = createFileRoute("/NURJASOS")({
       { name: "description", content: "One-tap SOS with live camera, GPS and nearest police and volunteer dispatch." },
       { property: "og:title", content: "NURJA SOS — Women Safety App" },
       { property: "og:description", content: "One-tap SOS with live camera, GPS and nearest police and volunteer dispatch." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: NurjaApp,

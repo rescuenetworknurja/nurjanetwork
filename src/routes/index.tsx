@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SiteLayout } from "@/components/nurja/SiteLayout";
 import { VolunteerDialog } from "@/components/nurja/VolunteerDialog";
 import { PostCard } from "@/components/nurja/PostCard";
+import { InstallNurjaButton } from "@/components/nurja/InstallNurjaButton";
 import { useDemo } from "@/lib/demo-store";
 import hero from "@/assets/hero-night-street.jpg";
 
@@ -17,6 +18,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "One tap SOS that alerts nearby police and verified volunteers, streams live video and saves evidence." },
       { property: "og:title", content: "NURJA — Women Safety & Rapid Rescue Network" },
       { property: "og:description", content: "One tap SOS that alerts nearby police and verified volunteers, streams live video and saves evidence." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Home,
@@ -52,7 +55,7 @@ function Home() {
             </p>
             <div className="flex flex-wrap gap-3">
               <VolunteerDialog><Button size="lg" className="h-12 rounded-lg px-6 shadow-sos">{L(c.hero.cta)} <ArrowRight /></Button></VolunteerDialog>
-              <Button asChild size="lg" variant="outline" className="h-12 rounded-lg px-6"><a href="#how-it-works" onClick={(e) => { e.preventDefault(); document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" }); }}>How It Works</a></Button>
+              <InstallNurjaButton />
             </div>
             <div className="grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-5">
               <Stat label="Women protected" value={rescued.toLocaleString()} />

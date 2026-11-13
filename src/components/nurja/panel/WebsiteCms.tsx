@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useDemo } from "@/lib/demo-store";
 import { useT } from "@/lib/i18n";
 import { IMAGES, type Post } from "@/lib/mock-data";
-import type { Bi, CardItem, IconKey, Inquiry, WebsiteContent } from "@/lib/website-content";
+import { seedWebsite, type Bi, type CardItem, type IconKey, type Inquiry, type WebsiteContent } from "@/lib/website-content";
 import { cn } from "@/lib/utils";
 import { CMS_ICONS } from "../cms-icons";
 import { Card, PageHead } from "./Dashboard";
@@ -109,6 +109,8 @@ export function WebsiteCmsSection() {
               <BiField label={tr("Headline", "শিরোনাম")} value={h.headline} onChange={(headline) => up("hero", { headline })} hint={tr("Wrap words in [square brackets] to show them in crimson.", "লাল রঙে দেখাতে শব্দগুলো [বন্ধনী]-তে রাখুন।")} />
               <BiField label={tr("Sub-headline", "উপ-শিরোনাম")} value={h.sub} onChange={(sub) => up("hero", { sub })} area />
               <BiField label={tr("Button text", "বাটনের লেখা")} value={h.cta} onChange={(cta) => up("hero", { cta })} />
+              <BiField label={tr("Install button text", "ইনস্টল বাটনের লেখা")} value={h.installCta ?? seedWebsite.hero.installCta ?? { en: "", bn: "" }} onChange={(installCta) => up("hero", { installCta })} />
+              <BiField label={tr("Installation instructions", "ইনস্টল করার নির্দেশনা")} value={h.installHelp ?? seedWebsite.hero.installHelp ?? { en: "", bn: "" }} onChange={(installHelp) => up("hero", { installHelp })} area />
               <div className="space-y-1.5"><Label>{tr("Hero image URL (leave empty for default)", "হিরো ছবির লিংক (ডিফল্টের জন্য খালি রাখুন)")}</Label>
                 <div className="flex gap-2"><Input value={h.image} onChange={(e) => up("hero", { image: e.target.value })} placeholder="https://…" />
                   <label className="grid h-9 w-11 shrink-0 cursor-pointer place-items-center rounded-lg border"><ImageIcon className="h-4 w-4" /><input type="file" accept="image/*" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (!x) return; const r = new FileReader(); r.onload = () => up("hero", { image: String(r.result) }); r.readAsDataURL(x); }} /></label>
