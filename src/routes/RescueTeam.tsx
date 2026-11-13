@@ -103,7 +103,7 @@ function Login() {
         <form onSubmit={submit} className="space-y-4 rounded-2xl border border-paper/10 bg-navy-3/80 p-6 shadow-2xl backdrop-blur">
           <div className="space-y-1.5">
             <Label className="text-paper/80">Mobile Number / ID</Label>
-            <Input required value={id} onChange={(e) => setId(e.target.value)} placeholder="01XXXXXXXXX · THANA-NRG-01 · V-J75UN2 · TF-9042" className="border-paper/15 bg-navy font-mono text-paper placeholder:text-paper/30" />
+            <Input required value={id} onChange={(e) => setId(e.target.value)} placeholder="01XXXXXXXXX" className="border-paper/15 bg-navy font-mono text-paper placeholder:text-paper/30" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-paper/80">Password</Label>
