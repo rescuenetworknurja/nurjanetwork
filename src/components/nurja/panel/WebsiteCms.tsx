@@ -73,7 +73,7 @@ export function WebsiteCmsSection() {
   const dirty = JSON.stringify(draft) !== JSON.stringify(d.websiteContent);
   useEffect(() => { if (!dirty) setDraft(d.websiteContent); }, [d.websiteContent]); // eslint-disable-line react-hooks/exhaustive-deps
   const up = <K extends keyof WebsiteContent>(k: K, v: Partial<WebsiteContent[K]>) => setDraft((s) => ({ ...s, [k]: { ...s[k], ...v } }));
-  const publish = () => { d.set({ websiteContent: draft }); toast.success(tr("Website updated", "ওয়েবসাইট হালনাগাদ হয়েছে"), { description: tr("Changes are live on the public website.", "পরিবর্তনগুলো পাবলিক ওয়েবসাইটে চালু হয়েছে।") }); };
+  const publish = async () => { try{await d.set({ websiteContent: draft });}catch{return;} toast.success(tr("Website updated", "ওয়েবসাইট হালনাগাদ হয়েছে"), { description: tr("Changes are live on the public website.", "পরিবর্তনগুলো পাবলিক ওয়েবসাইটে চালু হয়েছে।") }); };
   const newMsgs = d.inquiries.filter((q) => q.status === "new").length;
 
   const SaveBar = () => (
@@ -225,18 +225,18 @@ function BlogManager() {
   const { tr } = useT();
   const [edit, setEdit] = useState<PostDraft | null>(null);
   const open = (p?: Post) => setEdit(p ? { id: p.id, title: p.title, titleBn: p.titleBn ?? "", excerpt: p.excerpt, excerptBn: p.excerptBn ?? "", body: p.body, bodyBn: p.bodyBn ?? "", image: p.image ?? "", youtube: p.youtube ?? "", tag: p.tag, blog: p.targets.blog, app: p.targets.app || p.targets.rescue, published: p.published !== false } : { ...blankPost });
-  const save = (e: React.FormEvent) => {
+  const save = async (e: React.FormEvent) => {
     e.preventDefault(); if (!edit) return;
     if (edit.youtube && !toEmbed(edit.youtube)) { toast.error(tr("That YouTube link doesn't look right", "ইউটিউব লিংকটি সঠিক নয়")); return; }
     const post: Post = { id: edit.id ?? `p${Date.now()}`, title: edit.title, titleBn: edit.titleBn || undefined, excerpt: edit.excerpt || edit.body.slice(0, 140), excerptBn: edit.excerptBn || undefined, body: edit.body, bodyBn: edit.bodyBn || undefined,
       image: edit.image || undefined, youtube: edit.youtube ? toEmbed(edit.youtube) : undefined, tag: edit.tag, published: edit.published,
       date: d.posts.find((p) => p.id === edit.id)?.date ?? new Date().toISOString().slice(0, 10), author: d.posts.find((p) => p.id === edit.id)?.author ?? "NURJA Control",
       targets: { blog: edit.blog, app: edit.app, rescue: edit.app } };
-    d.set((s) => ({ posts: edit.id ? s.posts.map((p) => (p.id === edit.id ? post : p)) : [post, ...s.posts] }));
+    try{await d.set((s) => ({ posts: edit.id ? s.posts.map((p) => (p.id === edit.id ? post : p)) : [post, ...s.posts] }));}catch{return;}
     toast.success(edit.published ? tr("Post published", "পোস্ট প্রকাশিত হয়েছে") : tr("Saved as draft", "খসড়া হিসেবে সংরক্ষিত")); setEdit(null);
   };
   const togglePub = (p: Post) => d.set((s) => ({ posts: s.posts.map((x) => (x.id === p.id ? { ...x, published: x.published === false } : x)) }));
-  const del = (p: Post) => { d.set((s) => ({ posts: s.posts.filter((x) => x.id !== p.id) })); toast(tr("Post deleted", "পোস্ট মুছে ফেলা হয়েছে")); };
+  const del = async (p: Post) => {try{await d.set((s) => ({ posts: s.posts.filter((x) => x.id !== p.id) }));}catch{return;} toast(tr("Post deleted", "পোস্ট মুছে ফেলা হয়েছে")); };
   const e = edit;
   return (
     <>
@@ -361,7 +361,7 @@ function VolunteerPipeline() {
             </div>
             {a.status === "pending" && (
               <div className="flex flex-col gap-2">
-                <Button onClick={() => { const id = d.approveVolunteer(a.id); toast.success(tr("Volunteer approved", "ভলান্টিয়ার অনুমোদিত"), { description: `ID ${id}` }); }}><Check /> {tr("Approve & Auto-Generate Volunteer ID", "অনুমোদন ও ভলান্টিয়ার আইডি তৈরি")}</Button>
+                <Button onClick={async () => {try{const id=await d.approveVolunteer(a.id);toast.success(tr("Volunteer approved", "ভলান্টিয়ার অনুমোদিত"),{description:`ID ${id}`});}catch(e){toast.error(e instanceof Error?e.message:"Approval failed");}}}><Check /> {tr("Approve & Auto-Generate Volunteer ID", "অনুমোদন ও ভলান্টিয়ার আইডি তৈরি")}</Button>
                 <Button variant="outline" onClick={() => { d.rejectVolunteer(a.id); toast(tr("Application rejected", "আবেদন বাতিল")); }}>{tr("Reject", "বাতিল")}</Button>
               </div>
             )}

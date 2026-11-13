@@ -25,16 +25,10 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-function useTicker(base: number, step: number) {
-  const [v, setV] = useState(base);
-  useEffect(() => { const i = setInterval(() => setV((x) => x + Math.floor(Math.random() * step)), 2200); return () => clearInterval(i); }, [step]);
-  return v;
-}
-
 function Home() {
   const { posts, sos, websiteContent: c } = useDemo();
   const L = useBi();
-  const rescued = useTicker(c.stats.users, 3), volunteers = useTicker(c.stats.volunteers, 2);
+  const rescued = c.stats.users, volunteers = c.stats.volunteers;
   const blog = posts.filter((p) => p.targets.blog && p.published !== false).slice(0, 3);
   const headline = L(c.hero.headline).split(/\[|\]/);
   return (
@@ -63,11 +57,6 @@ function Home() {
           </div>
           <div className="relative">
             <img src={c.hero.image || hero} alt="A woman walking safely on a Dhaka street at night" width={1600} height={1008} className="aspect-[4/5] w-full rounded-[2rem] object-cover shadow-2xl lg:aspect-[4/5]" />
-            <div className="absolute -bottom-6 -left-4 w-64 rounded-2xl border bg-card p-4 shadow-card sm:-left-8">
-              <p className="flex items-center gap-2 text-xs font-bold uppercase text-crimson"><Radio className="h-3.5 w-3.5 animate-blink" /> Dispatch</p>
-              <p className="mt-1 text-sm font-semibold">2 patrols · 1 fari · 1 station · 10 volunteers alerted</p>
-              <p className="mt-1 text-xs text-muted-foreground">Nearest unit arriving in 3 min</p>
-            </div>
           </div>
         </div>
       </section>

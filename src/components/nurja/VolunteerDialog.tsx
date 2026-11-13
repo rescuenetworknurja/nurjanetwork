@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useDemo } from "@/lib/demo-store";
 import { isValidBdPhone } from "@/lib/ids";
+import { imageToDataUrl } from "@/lib/media";
 
 export function VolunteerDialog({ children }: { children: ReactNode }) {
   const { submitVolunteer } = useDemo();
@@ -16,11 +17,11 @@ export function VolunteerDialog({ children }: { children: ReactNode }) {
   const [f, setF] = useState({ name: "", phone: "", email: "", address: "", nid: "", occupation: "", motivation: "" });
   const up = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValidBdPhone(f.phone)) { toast.error("Phone must be 11 digits like 01XXXXXXXXX"); return; }
     if (!photo) { toast.error("Please upload a photo of your NID"); return; }
-    submitVolunteer({ ...f, hasPhoto: true });
+    try { await submitVolunteer({ ...f, hasPhoto: true, photo: await imageToDataUrl(photo) }); } catch { return; }
     toast.success("Application sent to Control Panel", { description: "Your Volunteer ID (e.g., V-J75UN2) will be generated upon approval." });
     setOpen(false); setPhoto(null);
     setF({ name: "", phone: "", email: "", address: "", nid: "", occupation: "", motivation: "" });

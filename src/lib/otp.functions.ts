@@ -100,7 +100,7 @@ export const resetPasswordWithOtp = createServerFn({ method: "POST" })
 /** Creates the account only for a phone verified by OTP in the last 30 minutes. */
 export const registerVerifiedPhone = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
-    z.object({ phone: phoneSchema, password: z.string().min(8).max(72), fullName: z.string().trim().min(1).max(120) }).parse(d),
+    z.object({ phone: phoneSchema, password: z.string().min(8).max(72), fullName: z.string().trim().min(1).max(120), pin: z.string().regex(/^\d{6}$/), dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), emergencyPhone: phoneSchema, emergencyName: z.string().max(120), relation: z.string().min(1).max(80), birthReg: z.string().optional(), guardian: z.object({name:z.string(),phone:phoneSchema,relation:z.string(),consent:z.literal(true)}).optional(), documents: z.record(z.string(),z.string().max(15_000_000)) }).parse(d),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -108,13 +108,32 @@ export const registerVerifiedPhone = createServerFn({ method: "POST" })
     if (!row?.verified_at || Date.now() - new Date(row.verified_at).getTime() > SIGNUP_WINDOW_MINUTES * 60_000) {
       return { ok: false as const, error: "unverified" as const };
     }
-    const { error } = await supabaseAdmin.auth.admin.createUser({
+    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: `${data.phone}@phone.nurja.com`,
       password: data.password,
       email_confirm: true,
       user_metadata: { full_name: data.fullName, phone: data.phone },
     });
     if (error) return { ok: false as const, error: /already/i.test(error.message) ? ("exists" as const) : ("failed" as const) };
+    if (!created.user) throw new Error("Registration failed");
+    const id=created.user.id;
+    try {
+      const { hashCode } = await import("./otp.server");
+      const { savePrivateImage } = await import("./live.server");
+      const birth=new Date(data.dob); const today=new Date(); let age=today.getFullYear()-birth.getFullYear();
+      if(today.getMonth()<birth.getMonth() || (today.getMonth()===birth.getMonth()&&today.getDate()<birth.getDate()))age--;
+      if(!Number.isFinite(birth.getTime()) || age<5)throw new Error("Invalid birth date");
+      if(age<18 && (!data.guardian || !/^\d{17}$/.test(data.birthReg??"") || !data.documents["guardianNid"]))throw new Error("Guardian documents required");
+      if(age>=18 && ["nidFront","nidBack","selfie"].some(k=>!data.documents[k]))throw new Error("KYC documents required");
+      const documents:Record<string,string>={};
+      for(const [label,src] of Object.entries(data.documents))documents[label]=await savePrivateImage(`kyc/${id}/${label}`,src);
+      const [{error:profileError},{error:securityError},{error:kycError}]=await Promise.all([
+        supabaseAdmin.from("profiles").update({dob:data.dob,emergency_contact_name:data.emergencyName,emergency_contact_phone:data.emergencyPhone,emergency_relation:data.relation}).eq("id",id),
+        supabaseAdmin.from("user_security").insert({user_id:id,pin_hash:await hashCode(id,data.pin)}),
+        supabaseAdmin.from("kyc_submissions").insert({user_id:id,dob:data.dob,birth_reg:data.birthReg??null,guardian:data.guardian??null,documents}),
+      ]);
+      if(profileError||securityError||kycError)throw new Error("Registration details could not be saved");
+    } catch(error) { await supabaseAdmin.auth.admin.deleteUser(id); throw error; }
     await supabaseAdmin.from("phone_otps").delete().eq("phone", data.phone);
     return { ok: true as const };
   });

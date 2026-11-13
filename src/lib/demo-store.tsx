@@ -1,19 +1,21 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  seedCases, seedKyc, seedPosts, seedResponders, seedVolunteerApps, seedZones,
   type CaseRecord, type KycStatus, type KycSubmission, type Post, type Responder, type VolunteerApp, type Zone,
 } from "./mock-data";
-import { generateVolunteerId } from "./ids";
-import { seedUsers, type AccountStatus, type AppUser } from "./users";
-import { seedInquiries, seedWebsite, type Inquiry, type WebsiteContent } from "./website-content";
-import { appendIncidentEvidence, updateEvidenceTags, type IncidentEvidence } from "./evidence";
-import { persistEvidenceState } from "./demo-persistence";
-import { updateIncidentStatus } from "./incident-status";
+import { type AccountStatus, type AppUser } from "./users";
+import { seedWebsite, type Inquiry, type WebsiteContent } from "./website-content";
+import { type IncidentEvidence } from "./evidence";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession, normalizePhone } from "./auth";
+import { getPublicRecords, getLiveSnapshot, saveRecord, submitPublicInquiry, submitVolunteerApplication, createResponder, approveLiveVolunteer, startLiveSos, completeLiveSos, respondToLiveSos, cancelLiveSos, setLiveCamera, setDutyStatus, updateLiveLocation, saveLiveEvidence, editLiveEvidenceTags } from "./live.functions";
+import { setAccountStatus, setKycStatus as saveKycStatus } from "./profile.functions";
+import { geoToMap } from "./geo";
+import { toast } from "sonner";
 
 export type ResponderType = 1 | 2;
 export type SosState = {
   id: string; startedAt: number; camera: "back" | "front"; victim: string; phone: string; area: string;
-  acceptedBy: string[];
+  acceptedBy: string[]; userId?: string; lat?: number; lng?: number; smsStatus?: string;
   arrivedBy?: { code: string; arrivedAt: string }[];
 };
 export type DemoState = {
@@ -26,6 +28,10 @@ export type DemoState = {
   responderOnline: boolean;
   rescueAuth: "splash" | "login" | "app";
   sos: SosState | null;
+  incidents: SosState[];
+  kycDocuments: Record<string, Record<string, string>>;
+  liveLoading: boolean;
+  liveError: string | null;
   kyc: KycSubmission[];
   volunteerApps: VolunteerApp[];
   responders: Responder[];
@@ -42,51 +48,48 @@ export type DemoState = {
 const initial: DemoState = {
   lang: "bn",
   appView: "main",
-  user: { name: "Nadia Hossain", phone: "01712349876", dob: "1999-03-14", adult: true, emergencyName: "Rehana Hossain", emergencyPhone: "01819876543", relation: "Mother", pin: "123456" },
+  user: { name: "", phone: "", dob: "", adult: true, emergencyName: "", emergencyPhone: "", relation: "", pin: "" },
   selfKycId: "self",
   responderType: 2,
-  responderId: "r5",
-  responderOnline: true,
+  responderId: "",
+  responderOnline: false,
   rescueAuth: "splash",
-  sos: null,
-  kyc: [{ id: "self", name: "Nadia Hossain", phone: "01712349876", dob: "1999-03-14", type: "adult", status: "approved", submittedAt: "Just now" }, ...seedKyc],
-  volunteerApps: seedVolunteerApps,
-  responders: seedResponders,
-  zones: seedZones,
-  posts: seedPosts,
-  cases: seedCases,
+  sos: null, incidents: [], kycDocuments: {}, liveLoading: true, liveError: null,
+  kyc: [], volunteerApps: [], responders: [], zones: [], posts: [], cases: [],
   evidence: [],
   apiKeys: {},
   websiteContent: seedWebsite,
-  inquiries: seedInquiries,
-  users: seedUsers,
+  inquiries: [],
+  users: [],
 };
 
-const KEY = "nurja-demo-v1";
+const KEY = "nurja-preferences-v2";
 
 type Ctx = DemoState & {
-  set: (patch: Partial<DemoState> | ((s: DemoState) => Partial<DemoState>)) => void;
+  set: (patch: Partial<DemoState> | ((s: DemoState) => Partial<DemoState>)) => Promise<void>;
+  refresh: () => Promise<void>;
+  selectIncident: (id: string) => void;
   selfKyc: KycStatus;
   setSelfKyc: (s: KycStatus) => void;
   setAdult: (adult: boolean) => void;
-  triggerSos: () => void;
-  stopSos: (outcome?: string) => void;
-  markArrived: (code: string) => void;
-  markRescued: () => void;
+  triggerSos: () => Promise<void>;
+  stopSos: (outcome?: string, pin?: string) => Promise<void>;
+  markArrived: (code: string) => Promise<void>;
+  markRescued: () => Promise<void>;
   saveEvidence: (record: IncidentEvidence) => Promise<"saved" | "incident" | "storage">;
   setEvidenceTags: (id: string, tags: string[]) => Promise<boolean>;
-  switchCamera: () => void;
-  acceptSos: (code: string) => void;
+  switchCamera: () => Promise<void>;
+  acceptSos: (code: string) => Promise<void>;
   setKycStatus: (id: string, s: KycStatus) => void;
-  submitVolunteer: (a: Omit<VolunteerApp, "id" | "status" | "submittedAt">) => void;
-  approveVolunteer: (id: string) => string;
+  submitVolunteer: (a: Omit<VolunteerApp, "id" | "status" | "submittedAt"> & { photo: string }) => Promise<void>;
+  approveVolunteer: (id: string) => Promise<string>;
   rejectVolunteer: (id: string) => void;
-  addResponder: (r: Omit<Responder, "id">) => void;
-  submitInquiry: (q: Pick<Inquiry, "name" | "contact" | "subject" | "message">) => void;
+  addResponder: (r: Omit<Responder, "id">) => Promise<void>;
+  submitInquiry: (q: Pick<Inquiry, "name" | "contact" | "subject" | "message">) => Promise<void>;
   selfStatus: AccountStatus;
   selfBanReason: string | undefined;
-  setUserStatus: (id: string, status: AccountStatus, reason?: string) => void;
-  setUserKyc: (id: string, kyc: KycStatus) => void;
+  setUserStatus: (id: string, status: AccountStatus, reason?: string) => Promise<void>;
+  setUserKyc: (id: string, kyc: KycStatus) => Promise<void>;
   markUserFalseSos: (id: string) => void;
   reset: () => void;
 };
@@ -95,118 +98,89 @@ const StoreCtx = createContext<Ctx | null>(null);
 
 export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DemoState>(initial);
-  const hydrated = useRef(false);
-
-  useEffect(() => {
+  const stateRef = useRef(state); stateRef.current = state;
+  const session = useSession();
+  const selectedIncident = useRef<string | null>(null);
+  const generation = useRef(0);
+  const local = useCallback((patch: Partial<DemoState>) => setState(s => ({ ...s, ...patch })), []);
+  const refresh = useCallback(async () => {
+    const version = generation.current;
     try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setState({ ...initial, ...JSON.parse(raw) });
-    } catch { /* ignore */ }
-    hydrated.current = true;
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === KEY && e.newValue) setState({ ...initial, ...JSON.parse(e.newValue) });
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
-  useEffect(() => {
-    if (hydrated.current) {
-      try { localStorage.setItem(KEY, JSON.stringify(state)); }
-      catch { /* Explicit evidence actions report persistence failures without crashing the app. */ }
+      const rows = session.user ? (await getLiveSnapshot()) : null;
+      const records = rows?.records ?? await getPublicRecords();
+      if (version !== generation.current) return;
+      const read = <T,>(collection: string): T[] => records.filter(r => r.collection === collection).map(r => r.content as unknown as T);
+      const patch: Partial<DemoState> = { posts: read<Post>("posts"), zones: read<Zone>("zones"), inquiries: read<Inquiry>("inquiries"), volunteerApps: read<VolunteerApp>("volunteerApps"), liveLoading: false, liveError: null };
+      const website = read<WebsiteContent>("website")[0]; if (website) patch.websiteContent = website;
+      if (rows) {
+        const units: Responder[] = rows.responders.map(r => ({ ...(r.details as object), id:r.id, name:r.name, code:r.code, phone:r.phone, area:r.area, kind:r.kind as Responder["kind"], fixed:r.fixed, online:r.online, ...(r.lat !== null && r.lng !== null ? {lat:r.lat,lng:r.lng,...geoToMap(r.lat,r.lng)} : {}) }));
+        const incidents = rows.incidents.filter(i => i.status === "active").map(i => ({ id:i.id, userId:i.user_id, startedAt:new Date(i.created_at).getTime(), camera:i.camera as "back"|"front", victim:i.victim, phone:i.phone, area:i.area || (i.lat !== null && i.lng !== null ? `${i.lat.toFixed(5)}, ${i.lng.toFixed(5)}` : ""), ...(i.lat !== null && i.lng !== null ? {lat:i.lat,lng:i.lng} : {}), smsStatus:i.sms_status, acceptedBy:rows.assignments.filter(a=>a.incident_id===i.id && ["accepted","arrived"].includes(a.state)).map(a=>units.find(r=>r.id===a.responder_id)?.code ?? ""), arrivedBy: rows.assignments.filter(a=>a.incident_id===i.id && a.arrived_at).map(a=>({code:units.find(r=>r.id===a.responder_id)?.code ?? "",arrivedAt:a.arrived_at ?? ""})) }));
+        const p=rows.profile; const mine=rows.responders.find(r=>r.user_id===session.user?.id);
+        patch.responders=units; patch.incidents=incidents;
+        patch.sos=incidents.find(i=>i.id===selectedIncident.current) ?? incidents.find(i=>i.userId===session.user?.id) ?? (rows.roles.some(r=>r==="admin"||r==="responder") ? incidents[0] ?? null : null);
+        patch.responderId=mine?.id ?? ""; patch.responderOnline=mine?.online ?? false; patch.responderType=mine && ["patrol","fari","station"].includes(mine.kind) ? 1:2;
+        patch.cases=rows.incidents.filter(i=>i.status!=="active").map(i=>({id:i.id,victim:i.victim,area:i.area,date:i.created_at,outcome:i.outcome ?? i.status,duration:`${Math.max(0,Math.round((new Date(i.ended_at ?? i.updated_at).getTime()-new Date(i.created_at).getTime())/60000))}m`}));
+        patch.users=rows.profiles.map(u=>({id:u.id,name:u.full_name,phone:u.phone??"",dob:u.dob??"",address:"",idNumber:u.nid_number??rows.submissions.find(s=>s.user_id===u.id)?.birth_reg??"",kyc:u.kyc_status as KycStatus,status:u.account_status as AccountStatus,banReason:u.status_reason??undefined,sosCount:rows.incidents.filter(i=>i.user_id===u.id).length,falseCount:u.false_count,lat:u.last_lat??NaN,lng:u.last_lng??NaN,registeredAt:u.created_at,emergency:{name:u.emergency_contact_name??"",phone:u.emergency_contact_phone??"",relation:u.emergency_relation??""}}));
+        patch.kyc=rows.profiles.map(u=>({id:u.id,name:u.full_name,phone:u.phone??"",dob:u.dob??"",type:u.dob && new Date().getFullYear()-new Date(u.dob).getFullYear()<18?"minor":"adult",status:u.kyc_status as KycStatus,submittedAt:u.created_at}));
+        patch.kycDocuments=Object.fromEntries(rows.submissions.map(s=>[s.user_id,s.documents])); patch.evidence=rows.evidence;
+        if(p) { patch.selfKycId=p.id; patch.user={name:p.full_name,phone:p.phone??"",dob:p.dob??"",adult:!p.dob || new Date().getFullYear()-new Date(p.dob).getFullYear()>=18,emergencyName:p.emergency_contact_name??"",emergencyPhone:p.emergency_contact_phone??"",relation:p.emergency_relation??"",pin:""}; }
+      }
+      local(patch);
+    } catch { if(version===generation.current) local({liveLoading:false,liveError:"Live data unavailable"}); }
+  }, [session.user?.id, local]);
+  useEffect(()=>{ generation.current++; local({...initial,lang:stateRef.current.lang,appView:stateRef.current.appView}); void refresh(); },[session.user?.id,refresh,local]);
+  useEffect(()=>{
+    const timer=setInterval(()=>void refresh(),10000);
+    const channel=supabase.channel(`nurja-live-${crypto.randomUUID()}`);
+    for(const table of ["incidents","dispatch_assignments","responders","live_records","incident_evidence"]) channel.on("postgres_changes",{event:"*",schema:"public",table},()=>void refresh());
+    channel.subscribe(status=>{if(status==="SUBSCRIBED") void refresh();});
+    return()=>{clearInterval(timer);void supabase.removeChannel(channel);};
+  },[refresh]);
+  useEffect(()=>{try {const p=JSON.parse(localStorage.getItem(KEY)??"{}");if(p.lang==="en"||p.lang==="bn")local({lang:p.lang}); localStorage.removeItem("nurja-demo-v1");}catch{}},[local]);
+  useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify({lang:state.lang}));}catch{}},[state.lang]);
+  useEffect(()=>{
+    const id=state.sos?.userId===session.user?.id?state.sos?.id:undefined;
+    const mine=state.responders.find(r=>r.id===state.responderId);
+    if(!id && (!mine || mine.fixed || !state.responderOnline))return;
+    let last=0;
+    const watch=navigator.geolocation.watchPosition(p=>{if(Date.now()-last<10000)return;last=Date.now();void updateLiveLocation({data:{...(id?{incidentId:id}:{}),lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy}}).catch(()=>local({liveError:"Location update failed"}));},()=>local({liveError:"Location permission required"}),{enableHighAccuracy:true,maximumAge:5000});
+    return()=>navigator.geolocation.clearWatch(watch);
+  },[state.sos?.id,state.responderId,state.responderOnline,session.user?.id]);
+  const run=async(task:()=>Promise<unknown>)=>{try{await task();await refresh();}catch(e){toast.error(stateRef.current.lang==="bn"?"সংরক্ষণ করা যায়নি; আবার চেষ্টা করুন।":"Could not save; try again.");throw e;}};
+  const set:Ctx["set"]=async input=>{
+    const current=stateRef.current; const patch=typeof input==="function"?input(current):input;
+    const localPatch={...patch};
+    for(const key of ["websiteContent","posts","zones","inquiries","volunteerApps"] as const) {
+      const value=patch[key]; if(!value)continue; delete localPatch[key];
+      if(key==="websiteContent") {await run(()=>saveRecord({data:{collection:"website",id:"main",content:value as unknown as Record<string,unknown>}}));continue;}
+      const previous=current[key]; const next=value as {id:string}[];
+      for(const item of next)if(JSON.stringify(item)!==JSON.stringify(previous.find(p=>p.id===item.id))) await run(()=>saveRecord({data:{collection:key,id:item.id,content:item as unknown as Record<string,unknown>}}));
+      for(const item of previous)if(!next.some(n=>n.id===item.id))await run(()=>saveRecord({data:{collection:key,id:item.id,content:null}}));
     }
-  }, [state]);
-
-  const set: Ctx["set"] = useCallback((patch) => {
-    setState((s) => ({ ...s, ...(typeof patch === "function" ? patch(s) : patch) }));
-  }, []);
-
-  const setKycStatus = (id: string, status: KycStatus) =>
-    set((s) => ({ kyc: s.kyc.map((k) => (k.id === id ? { ...k, status } : k)) }));
-
-  const ctx: Ctx = {
-    ...state,
-    set,
-    setEvidenceTags: async (id, tags) => {
-      if (!state.evidence.some((item) => item.id === id)) return false;
-      const next = { ...state, evidence: updateEvidenceTags(state.evidence, id, tags) };
-      try {
-        const persisted = await persistEvidenceState(KEY, next);
-        setState((current) => ({ ...current, evidence: persisted.evidence }));
-        return true;
-      } catch { return false; }
-    },
-    saveEvidence: async (record) => {
-      const evidence = appendIncidentEvidence(state.evidence, record, state.sos?.id);
-      if (!evidence) return "incident";
-      const next = { ...state, evidence };
-      try {
-        const persisted = await persistEvidenceState(KEY, next);
-        setState((current) => ({ ...current, evidence: persisted.evidence }));
-        return "saved";
-      } catch { return "storage"; }
-    },
-    selfKyc: state.kyc.find((k) => k.id === state.selfKycId)?.status ?? "pending",
-    setSelfKyc: (st) => setKycStatus(state.selfKycId, st),
-    setAdult: (adult) =>
-      set((s) => {
-        const dob = adult ? "1999-03-14" : "2010-06-21";
-        return {
-          user: { ...s.user, adult, dob },
-          kyc: s.kyc.map((k) => k.id === s.selfKycId ? { ...k, dob, type: adult ? "adult" : "minor",
-            ...(adult ? {} : { birthReg: "20109876543210987", guardian: { name: s.user.emergencyName, phone: s.user.emergencyPhone, relation: s.user.relation } }) } : k),
-        };
-      }),
-    triggerSos: () =>
-      set((s) => ({
-        sos: { id: `SOS-2611-${Math.floor(1000 + Math.random() * 8999)}`, startedAt: Date.now(), camera: "back",
-          victim: s.user.name, phone: s.user.phone, area: "Toyenbee Circular Rd, Motijheel, Dhaka", acceptedBy: [] },
-        users: s.users.map((u) => (u.id === "self" ? { ...u, sosCount: u.sosCount + 1 } : u)),
-      })),
-    markArrived: (code) => set((s) => s.sos ? { sos: updateIncidentStatus(s.sos, { interface: "RescueTeam", status: "arrived", code }) } : {}),
-    markRescued: () => set((s) => {
-      if (!s.sos) return {};
-      const secs = Math.max(1, Math.round((Date.now() - s.sos.startedAt) / 1000));
-      const rec: CaseRecord = { id: s.sos.id, victim: s.sos.victim, area: "Motijheel", date: "Just now", outcome: "Rescued safely — confirmed by control room",
-        duration: `${Math.floor(secs / 60)}m ${String(secs % 60).padStart(2, "0")}s` };
-      return { sos: updateIncidentStatus(s.sos, { interface: "rpanel", status: "rescued" }), cases: [rec, ...s.cases] };
-    }),
-    stopSos: (outcome = "SOS deactivated") =>
-      set((s) => {
-        if (!s.sos) return {};
-        const secs = Math.max(1, Math.round((Date.now() - s.sos.startedAt) / 1000));
-        const rec: CaseRecord = { id: s.sos.id, victim: s.sos.victim, area: "Motijheel", date: "Just now", outcome,
-          duration: `${Math.floor(secs / 60)}m ${String(secs % 60).padStart(2, "0")}s` };
-        return { sos: null, cases: [rec, ...s.cases] };
-      }),
-    switchCamera: () => set((s) => (s.sos ? { sos: { ...s.sos, camera: s.sos.camera === "back" ? "front" : "back" } } : {})),
-    acceptSos: (code) => set((s) => (s.sos && !s.sos.acceptedBy.includes(code) ? { sos: { ...s.sos, acceptedBy: [...s.sos.acceptedBy, code] } } : {})),
-    setKycStatus,
-    submitVolunteer: (a) =>
-      set((s) => ({ volunteerApps: [{ ...a, id: `a${Date.now()}`, status: "pending", submittedAt: "Just now" }, ...s.volunteerApps] })),
-    approveVolunteer: (id) => {
-      const vid = generateVolunteerId();
-      set((s) => {
-        const app = s.volunteerApps.find((a) => a.id === id);
-        return {
-          volunteerApps: s.volunteerApps.map((a) => (a.id === id ? { ...a, status: "approved", volunteerId: vid } : a)),
-          responders: app ? [...s.responders, { id: `r${Date.now()}`, name: app.name, kind: "volunteer", code: vid, area: app.address, phone: app.phone, online: false, nid: app.nid, hasPhoto: app.hasPhoto, x: 30 + Math.random() * 40, y: 30 + Math.random() * 40 }] : s.responders,
-        };
-      });
-      return vid;
-    },
-    rejectVolunteer: (id) => set((s) => ({ volunteerApps: s.volunteerApps.map((a) => (a.id === id ? { ...a, status: "rejected" } : a)) })),
-    addResponder: (r) => set((s) => ({ responders: [...s.responders, { ...r, id: `r${Date.now()}` }] })),
-    submitInquiry: (q) => set((s) => ({ inquiries: [{ ...q, id: `q${Date.now()}`, at: new Date().toISOString().slice(0, 16).replace("T", " "), status: "new", notes: "" }, ...s.inquiries] })),
-    selfStatus: state.users.find((u) => u.id === "self")?.status ?? "active",
-    selfBanReason: state.users.find((u) => u.id === "self")?.banReason,
-    setUserStatus: (id, status, reason) =>
-      set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, status, banReason: status === "active" ? undefined : reason ?? u.banReason } : u)) })),
-    setUserKyc: (id, kyc) => set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, kyc } : u)) })),
-    markUserFalseSos: (id) => set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, falseCount: u.falseCount + 1 } : u)) })),
-    reset: () => setState((s) => ({ ...initial, lang: s.lang })),
+    if(patch.responderOnline!==undefined){delete localPatch.responderOnline;await run(()=>setDutyStatus({data:{online:patch.responderOnline ?? false}}));}
+    local(localPatch);
   };
-
+  const ctx:Ctx={...state,set,refresh,selectIncident:id=>{selectedIncident.current=id;local({sos:state.incidents.find(i=>i.id===id)??null});},
+    selfKyc:state.kyc.find(k=>k.id===state.selfKycId)?.status??"pending",setSelfKyc:status=>local({kyc:state.kyc.map(k=>k.id===state.selfKycId?{...k,status}:k)}),setAdult:()=>{},
+    selfStatus:state.users.find(u=>u.id===state.selfKycId)?.status??"active",selfBanReason:state.users.find(u=>u.id===state.selfKycId)?.banReason,
+    triggerSos:async()=>{const p=await new Promise<GeolocationPosition>((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:15000,maximumAge:5000}));await run(()=>startLiveSos({data:{lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy}}));},
+    stopSos:async(outcome,pin)=>{if(!state.sos)return;await run(()=>pin?cancelLiveSos({data:{id:state.sos?.id??"",pin}}):completeLiveSos({data:{id:state.sos?.id??"",status:"closed",outcome:outcome??"Closed by control room"}}));},
+    markRescued:async()=>{if(state.sos)await run(()=>completeLiveSos({data:{id:state.sos?.id??"",status:"rescued",outcome:"Rescued safely — confirmed by control room"}}));},
+    markArrived:async()=>{if(state.sos)await run(()=>respondToLiveSos({data:{id:state.sos?.id??"",state:"arrived"}}));},
+    acceptSos:async()=>{if(state.sos)await run(()=>respondToLiveSos({data:{id:state.sos?.id??"",state:"accepted"}}));},
+    switchCamera:async()=>{if(state.sos)await run(()=>setLiveCamera({data:{id:state.sos?.id??"",camera:state.sos?.camera==="back"?"front":"back"}}));},
+    saveEvidence:async record=>{try{await saveLiveEvidence({data:{id:record.id,incidentId:record.incidentId,src:record.src,capturedAt:record.capturedAt,camera:record.camera,tags:record.tags??[]}});await refresh();return "saved";}catch{return "storage";}},
+    setEvidenceTags:async(id,tags)=>{try{await editLiveEvidenceTags({data:{id,tags}});await refresh();return true;}catch{return false;}},
+    setKycStatus:(id,status)=>{void run(()=>saveKycStatus({data:{userId:id,status}}));},
+    submitInquiry:async q=>{await run(()=>submitPublicInquiry({data:q}));},
+    submitVolunteer:async a=>{await run(()=>submitVolunteerApplication({data:{name:a.name,phone:normalizePhone(a.phone),email:a.email,address:a.address,nid:a.nid,occupation:a.occupation,motivation:a.motivation,photo:a.photo}}));},
+    approveVolunteer:async id=>{const result=await approveLiveVolunteer({data:{id}});await refresh();return result.code;},
+    rejectVolunteer:id=>{const a=state.volunteerApps.find(a=>a.id===id);if(a)void set({volunteerApps:state.volunteerApps.map(v=>v.id===id?{...v,status:"rejected"}:v)});},
+    addResponder:async r=>{if(!r.password)throw new Error("Password required"); const {password,...details}=r;await run(()=>createResponder({data:{name:r.name,phone:normalizePhone(r.phone),password,code:r.code,kind:r.kind,area:r.area,...(r.lat!==undefined?{lat:r.lat}:{}),...(r.lng!==undefined?{lng:r.lng}:{}),details}}));},
+    setUserStatus:async(id,status,reason)=>{await run(()=>setAccountStatus({data:{userId:id,status,...(reason?{reason}:{})}}));},
+    setUserKyc:async(id,status)=>{await run(()=>saveKycStatus({data:{userId:id,status}}));},
+    markUserFalseSos:()=>{},reset:()=>local({...initial,lang:state.lang}),
+  };
   return <StoreCtx.Provider value={ctx}>{children}</StoreCtx.Provider>;
 }
 

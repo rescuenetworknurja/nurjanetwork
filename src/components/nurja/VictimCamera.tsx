@@ -76,14 +76,14 @@ export function VictimCamera({ camera }: { camera: "back" | "front" }) {
 
   const capture = () => {
     if (!d.sos) return;
-    const image = (open ? viewer.current : feed.current)?.querySelector("img");
-    if (!image?.complete || !image.naturalWidth) {
+    const image = (open ? viewer.current : feed.current)?.querySelector("video");
+    if (!image || image.readyState < 2 || !image.videoWidth) {
       toast.error(tr("Camera frame is not ready", "ক্যামেরার ফ্রেম এখনো প্রস্তুত নয়"));
       return;
     }
     const canvas = document.createElement("canvas");
-    canvas.width = Math.min(1280, image.naturalWidth);
-    canvas.height = Math.round(image.naturalHeight * canvas.width / image.naturalWidth);
+    canvas.width = Math.min(1280, image.videoWidth);
+    canvas.height = Math.round(image.videoHeight * canvas.width / image.videoWidth);
     const context = canvas.getContext("2d");
     if (!context) return;
     try {

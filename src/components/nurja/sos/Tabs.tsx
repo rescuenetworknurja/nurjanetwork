@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useDemo } from "@/lib/demo-store";
+import { changeLivePin } from "@/lib/live.functions";
 import { signOut } from "@/lib/auth";
 import { useNavigate } from "@tanstack/react-router";
 import { ageFromDob } from "@/lib/ids";
@@ -222,13 +223,14 @@ export function ProfileTab() {
   const age = ageFromDob(d.user.dob);
   const self = d.kyc.find((k) => k.id === d.selfKycId);
 
-  const onPin = (v: string) => {
+  const [oldPin,setOldPin]=useState("");
+  const onPin = async (v: string) => {
     setPin(v);
     if (v.length < 6) return;
     if (step === "old") {
-      if (v === d.user.pin) { setStep("new"); setPin(""); } else { toast.error("Current PIN is wrong"); setPin(""); }
+      setOldPin(v);setStep("new");setPin("");
     } else {
-      d.set((s) => ({ user: { ...s.user, pin: v } })); toast.success("Security PIN updated"); setPinOpen(false); setStep("old"); setPin("");
+      try{await changeLivePin({data:{oldPin,newPin:v}});toast.success("Security PIN updated");setPinOpen(false);}catch{toast.error("Current PIN is wrong");}setStep("old");setPin("");setOldPin("");
     }
   };
 
@@ -267,15 +269,11 @@ export function ProfileTab() {
         </Section>
         <Section title="Security">
           <button className="w-full" onClick={() => setPinOpen(true)}><Item icon={KeyRound} label="Reset Security PIN" value="Change" /></button>
-          <Item icon={Fingerprint} label="Biometric unlock" value="On" />
+
         </Section>
         <div className="rounded-2xl border bg-card p-4">
           <p className="mb-3 text-xs font-bold uppercase text-muted-foreground"><LangLabel /></p>
           <LanguageSetting />
-        </div>
-        <div className="flex items-center justify-between rounded-2xl border bg-card p-4">
-          <div><p className="text-sm font-bold">Offline mode</p><p className="text-xs text-muted-foreground">SOS SMS and video chunks work without internet</p></div>
-          <PwaBadge compact />
         </div>
         <div className="flex flex-col items-center gap-1 rounded-2xl border bg-card p-4 text-center">
           <NurjaMark />
@@ -283,14 +281,14 @@ export function ProfileTab() {
           <p className="text-[11px] text-muted-foreground">Women safety & rapid rescue network · v1.0</p>
         </div>
         <Button variant="ghost" className="w-full text-crimson" onClick={async () => { await signOut(); void navigate({ to: "/auth", search: { redirect: "/NURJASOS" } }); }}><LogOut /> Sign out</Button>
-        <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => d.set({ appView: "onboarding" })}>Restart onboarding wizard (demo)</Button>
+
       </div>
 
       <Dialog open={pinOpen} onOpenChange={(o) => { setPinOpen(o); setStep("old"); setPin(""); }}>
         <DialogContent className="max-w-[360px] rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-center font-display">{step === "old" ? "Enter current PIN" : "Choose a new PIN"}</DialogTitle>
-            <DialogDescription className="text-center">{step === "old" ? `current PIN: ${d.user.pin}` : "6 digits, used to stop SOS"}</DialogDescription>
+            <DialogDescription className="text-center">{step === "old" ? "Enter your current 6-digit PIN" : "6 digits, used to stop SOS"}</DialogDescription>
           </DialogHeader>
           <PinInput value={pin} onChange={onPin} autoFocus />
         </DialogContent>

@@ -161,11 +161,11 @@ function UnitForm({ onDone }: { onDone: () => void }) {
     if (isLat(next.lat) && isLng(next.lng)) setPos(geoToMap(+next.lat, +next.lng));
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (fixed && !(isLat(geo.lat) && isLng(geo.lng))) { toast.error("Enter the fixed Latitude & Longitude or pick on the map"); return; }
     const code = f.code || (kind === "station" ? `THANA-DHK-${String(d.responders.filter((r) => r.kind === "station").length + 1).padStart(2, "0")}` : kind === "fari" ? `FARI-NRG-${String(d.responders.filter((r) => r.kind === "fari").length + 1).padStart(2, "0")}` : `PATROL-${100 + d.responders.filter((r) => r.kind === "patrol").length + 1}`);
-    d.addResponder({
+    try { await d.addResponder({
       name: f.name, nameBn: f.nameBn || undefined, kind, code, area: f.area, phone: f.phone, online: false,
       fixed, x: pos?.x ?? 30 + Math.random() * 40, y: pos?.y ?? 30 + Math.random() * 40,
       lat: fixed && isLat(geo.lat) ? +geo.lat : undefined,
@@ -173,7 +173,7 @@ function UnitForm({ onDone }: { onDone: () => void }) {
       inCharge: f.inCharge || undefined, rank: f.rank || undefined, password: f.password || undefined,
       vehicleNo: kind === "patrol" ? f.vehicleNo || undefined : undefined,
       patrolZone: kind === "patrol" ? f.patrolZone || undefined : undefined,
-    });
+    }); } catch {return;}
     toast.success(`Police unit created: ${code}`, { description: `${KIND_LABEL[kind]} · ${fixed ? "Fixed GPS location saved" : "Live GPS from the Patrol App"}` });
     onDone();
   };
@@ -235,16 +235,16 @@ function ResponderForm({ onDone }: { onDone: () => void }) {
   const [autoId] = useState(() => generateVolunteerId());
   const [f, setF] = useState({ name: "", phone: "", password: "", nid: "", area: "", code: "", rank: "", station: "", photo: "" });
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = kind === "volunteer" ? autoId : f.code.toUpperCase();
-    d.addResponder({
+    try { await d.addResponder({
       name: f.name, kind, code, area: f.area, phone: f.phone, online: false,
       nid: f.nid || undefined, password: f.password || undefined, hasPhoto: !!f.photo,
       rank: kind === "officer" ? f.rank || undefined : undefined,
       station: kind === "officer" ? f.station || undefined : undefined,
       x: 30 + Math.random() * 40, y: 30 + Math.random() * 40,
-    });
+    }); } catch {return;}
     toast.success(`Responder account created: ${code}`, { description: `${KIND_LABEL[kind]} · signs in to the Rescue Network app with ${f.phone}` });
     onDone();
   };
@@ -377,7 +377,7 @@ export function NetworkSection() {
               {a.status === "pending" && (
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => { d.rejectVolunteer(a.id); toast("Application rejected"); }}>Reject</Button>
-                  <Button className="bg-emerald hover:bg-emerald/90" onClick={() => { const id = d.approveVolunteer(a.id); toast.success(`Approved — Volunteer ID ${id}`, { description: `${a.name} has been added to the Rescue Network.` }); }}>
+                  <Button className="bg-emerald hover:bg-emerald/90" onClick={async () => {try{const id=await d.approveVolunteer(a.id);toast.success(`Approved — Volunteer ID ${id}`);}catch(e){toast.error(e instanceof Error?e.message:"Approval failed");}}}>
                     <Check /> Approve & Generate Volunteer ID
                   </Button>
                 </div>
@@ -456,10 +456,10 @@ export function PublisherSection() {
   const [f, setF] = useState(blank);
   const toEmbed = (u: string) => { const m = u.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/); return m ? `https://www.youtube.com/embed/${m[1]}` : undefined; };
   const preview = { id: "preview", title: f.title || "Your story title", excerpt: f.body.slice(0, 140) || "Story text preview…", body: f.body, image: f.image || undefined, youtube: toEmbed(f.youtube), tag: f.tag, date: "Today", author: "NURJA Control", targets: f.targets };
-  const publish = (e: React.FormEvent) => {
+  const publish = async (e: React.FormEvent) => {
     e.preventDefault();
     if (f.youtube && !toEmbed(f.youtube)) { toast.error("That YouTube link doesn't look right"); return; }
-    d.set((s) => ({ posts: [{ ...preview, id: `p${Date.now()}`, date: new Date().toISOString().slice(0, 10) }, ...s.posts] }));
+    try {await d.set((s) => ({ posts: [{ ...preview, id: `p${Date.now()}`, date: new Date().toISOString().slice(0, 10) }, ...s.posts] }));}catch{return;}
     const where = [f.targets.app && "NURJA app", f.targets.rescue && "Rescue Network", f.targets.blog && "Website blog"].filter(Boolean).join(", ");
     toast.success("Published", { description: `Live on: ${where}` }); setF(blank);
   };
@@ -477,7 +477,7 @@ export function PublisherSection() {
             <div className="space-y-1.5"><Label>Photo</Label>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(IMAGES).map(([k, src]) => <button type="button" key={k} onClick={() => setF({ ...f, image: f.image === src ? "" : src })} className={cn("overflow-hidden rounded-lg border-2", f.image === src ? "border-primary" : "border-transparent")}><img src={src} alt={k} className="h-14 w-20 object-cover" /></button>)}
-                <label className="grid h-14 w-20 cursor-pointer place-items-center rounded-lg border-2 border-dashed text-muted-foreground"><Plus className="h-5 w-5" /><input type="file" accept="image/*" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (x) setF({ ...f, image: URL.createObjectURL(x) }); }} /></label>
+                <label className="grid h-14 w-20 cursor-pointer place-items-center rounded-lg border-2 border-dashed text-muted-foreground"><Plus className="h-5 w-5" /><input type="file" accept="image/*" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if(x){const reader=new FileReader();reader.onload=()=>setF({...f,image:String(reader.result)});reader.readAsDataURL(x);} }} /></label>
               </div>
             </div>
             <div className="space-y-1.5"><Label className="flex items-center gap-1"><Youtube className="h-4 w-4 text-crimson" /> YouTube link (optional)</Label><Input value={f.youtube} onChange={(e) => setF({ ...f, youtube: e.target.value })} placeholder="https://youtube.com/watch?v=…" /></div>
@@ -495,38 +495,6 @@ export function PublisherSection() {
   );
 }
 
-const API_FIELDS: { group: string; fields: [string, string][] }[] = [
-  { group: "Map API", fields: [["map_provider", "Provider (Google Maps / Mapbox)"], ["map_key", "Map API key"]] },
-  { group: "Live Streaming (LiveKit / Agora)", fields: [["stream_url", "Server URL"], ["stream_key", "API key"], ["stream_secret", "API secret"]] },
-  { group: "Bulk SMS Gateway", fields: [["sms_sender", "Sender ID"], ["sms_key", "Gateway API key"]] },
-  { group: "Push Notifications", fields: [["push_project", "FCM project ID"], ["push_key", "Server key"]] },
-];
-
 export function SettingsSection() {
-  const d = useDemo();
-  const [v, setV] = useState<Record<string, string>>(d.apiKeys);
-  const [show, setShow] = useState<Record<string, boolean>>({});
-  return (
-    <>
-      <PageHead title="API & System Settings" sub="Keys are saved in this browser only for the prototype." />
-      <form className="grid gap-4 lg:grid-cols-2" onSubmit={(e) => { e.preventDefault(); d.set({ apiKeys: v }); toast.success("Settings saved"); }}>
-        {API_FIELDS.map((g) => (
-          <Card key={g.group} className="space-y-3">
-            <div className="flex items-center justify-between"><p className="flex items-center gap-2 font-display font-bold"><KeyRound className="h-4 w-4 text-crimson" />{g.group}</p>
-              <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-bold", g.fields.every(([k]) => d.apiKeys[k]) ? "bg-emerald-soft text-emerald" : "bg-amber-soft text-amber")}>{g.fields.every(([k]) => d.apiKeys[k]) ? "Configured" : "Not set"}</span></div>
-            {g.fields.map(([k, l]) => {
-              const secret = /key|secret/.test(k);
-              return (
-                <div key={k} className="space-y-1.5"><Label>{l}</Label>
-                  <div className="flex gap-2"><Input type={secret && !show[k] ? "password" : "text"} value={v[k] ?? ""} onChange={(e) => setV({ ...v, [k]: e.target.value })} className="font-mono" />
-                    {secret && <Button type="button" variant="outline" size="icon" onClick={() => setShow({ ...show, [k]: !show[k] })}><Eye /></Button>}</div>
-                </div>
-              );
-            })}
-          </Card>
-        ))}
-        <div className="lg:col-span-2"><Button type="submit" size="lg"><Save /> Save settings</Button></div>
-      </form>
-    </>
-  );
+  return <><PageHead title="API & System Settings" sub="NURJA" /><Card><p className="text-sm text-muted-foreground">Private service credentials are managed securely outside this panel.</p></Card></>;
 }

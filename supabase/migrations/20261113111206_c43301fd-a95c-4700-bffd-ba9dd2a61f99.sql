@@ -1,0 +1,2 @@
+CREATE POLICY cms_published_images ON storage.objects FOR SELECT TO anon,authenticated USING (bucket_id='nurja-cms' AND (public.has_role(auth.uid(),'admin') OR EXISTS(SELECT 1 FROM public.live_records r WHERE r.id=(storage.foldername(name))[2] AND r.collection=(storage.foldername(name))[1] AND r.published AND r.collection IN ('website','posts'))));
+REVOKE EXECUTE ON FUNCTION public.respond_to_incident(uuid,text) FROM anon;

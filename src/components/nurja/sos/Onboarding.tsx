@@ -15,6 +15,7 @@ import { ageFromDob, isValidBdPhone } from "@/lib/ids";
 import { normalizePhone, signInWithPhone } from "@/lib/auth";
 import { registerVerifiedPhone, sendRegistrationOtp, verifyRegistrationOtp } from "@/lib/otp.functions";
 import { cn } from "@/lib/utils";
+import { imageToDataUrl } from "@/lib/media";
 
 const RELATIONS = ["Mother", "Father", "Sister", "Brother", "Husband", "Guardian", "Friend"];
 
@@ -137,20 +138,16 @@ export function Onboarding() {
     try {
       // Create the real account first; only then enter the app.
       const phone = normalizePhone(f.phone);
-      const r = await registerVerifiedPhone({ data: { phone, password: f.password, fullName: f.name.trim() } });
+      const documents:Record<string,string>={};
+      for(const [label,src] of Object.entries(adult ? {nidFront:f.nidFront,nidBack:f.nidBack,selfie:f.selfie} : {guardianNid:f.gNid}))if(src)documents[label]=await imageToDataUrl(src);
+      const r = await registerVerifiedPhone({ data: { phone, password: f.password, fullName: f.name.trim(), pin:f.pin,dob:f.dob,emergencyPhone:normalizePhone(f.ePhone),emergencyName:f.eName||f.eRel,relation:f.eRel,documents,...(!adult?{birthReg:f.birthReg,guardian:{name:f.gName,phone:normalizePhone(f.gPhone),relation:f.gRel,consent:true as const}}:{}) } });
       if (!r.ok) {
         if (r.error === "unverified") { toast.error("Phone verification expired. Verify your number again."); setStep(1); setSub(0); return; }
         throw new Error(r.error === "exists" ? "already exists" : "failed");
       }
       await signInWithPhone(phone, f.password);
-      d.set((s) => ({
-        appView: "main",
-        user: { name: f.name, phone: f.phone, dob: f.dob, adult, emergencyName: f.gName || "Family contact", emergencyPhone: f.ePhone, relation: f.eRel, pin: f.pin },
-        kyc: s.kyc.map((k) => k.id === s.selfKycId ? {
-          ...k, name: f.name, phone: f.phone, dob: f.dob, type: adult ? "adult" : "minor", status: "pending", submittedAt: "Just now",
-          ...(adult ? {} : { birthReg: f.birthReg, guardian: { name: f.gName, phone: f.gPhone, relation: f.gRel } }),
-        } : k),
-      }));
+      await d.set({appView:"main"});
+      await d.refresh();
       toast.success("KYC submitted for review", { description: "SOS unlocks as soon as the Control Panel approves you." });
       setStep(1); setSub(0);
     } catch (err) {

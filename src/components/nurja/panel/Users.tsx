@@ -14,6 +14,7 @@ import { ageFromDob } from "@/lib/ids";
 import { fmtCoord } from "@/lib/geo";
 import { BAN_REASONS, filterUsers, isMinor, userDossierCsv, usersToCsv, type AccountStatus, type AppUser, type UserFilter } from "@/lib/users";
 import { cn } from "@/lib/utils";
+import { flagLiveIncident } from "@/lib/live.functions";
 import { Card, PageHead } from "./Dashboard";
 
 const FILTERS: { id: UserFilter; label: string }[] = [
@@ -37,11 +38,11 @@ function downloadCsv(name: string, text: string) {
   URL.revokeObjectURL(a.href);
 }
 
-function DocTile({ label, round }: { label: string; round?: boolean }) {
+function DocTile({ label, round, src }: { label: string; round?: boolean; src?: string | undefined }) {
   return (
     <div className="overflow-hidden rounded-xl border">
       <div className={cn("grid place-items-center bg-muted", round ? "aspect-square" : "aspect-[1.6]")}>
-        <div className="text-center text-muted-foreground"><FileImage className="mx-auto h-8 w-8" /><p className="mt-1 text-[11px]">{label}.jpg</p></div>
+        {src?<a href={src} target="_blank" rel="noreferrer"><img src={src} alt={label} className="h-full w-full object-contain" /></a>:<p className="text-xs text-muted-foreground">Not provided</p>}
       </div>
       <p className="px-3 py-2 text-xs font-semibold">{label}</p>
     </div>
@@ -60,20 +61,19 @@ export function UsersSection() {
   const list = filterUsers(d.users, query, filter);
   const casesFor = (u: AppUser) => d.cases.filter((c) => c.victim === u.name || (u.id === "self" && c.victim === d.user.name));
 
-  const confirmBan = () => {
+  const confirmBan = async () => {
     if (!banTarget) return;
-    d.setUserStatus(banTarget.id, banAction, banReason);
+    try{await d.setUserStatus(banTarget.id, banAction, banReason);}catch{return;}
     toast[banAction === "banned" ? "error" : "warning"](`${banTarget.name} — ${STATUS_LABEL[banAction]}`, {
-      description: banTarget.id === "self" ? "The NURJA app is now locked for the demo user." : `Reason: ${banReason}`,
+      description: `Reason: ${banReason}`,
     });
     setBanTarget(null); setOpen(null);
   };
-  const restore = (u: AppUser) => {
-    d.setUserStatus(u.id, "active");
+  const restore = async (u: AppUser) => {
+    try{await d.setUserStatus(u.id, "active");}catch{return;}
     toast.success(`${u.name} — account restored`, { description: u.id === "self" ? "The NURJA app is unlocked again." : undefined });
   };
-  const resetSecurity = (u: AppUser, what: "password" | "PIN") =>
-    toast.success(`${what === "PIN" ? "6-digit SOS PIN" : "Login password"} reset for ${u.name}`, { description: "A temporary credential was sent via SMS (demo)." });
+  const resetSecurity = () => toast.info("Use the verified password reset flow in NURJASOS");
 
   return (
     <>
@@ -117,7 +117,7 @@ export function UsersSection() {
                     {u.status === "active"
                       ? <Button size="sm" variant="outline" className="border-crimson text-crimson" onClick={() => { setBanTarget(u); setBanAction("suspended"); setBanReason(BAN_REASONS[0]); }}><Ban /> Ban</Button>
                       : <Button size="sm" variant="outline" className="border-emerald text-emerald" onClick={() => restore(u)}><RotateCcw /> Unban</Button>}
-                    <Button size="sm" variant="ghost" title="Reset PIN / password" onClick={() => resetSecurity(u, "PIN")}><KeyRound /></Button>
+                    <Button size="sm" variant="ghost" title="Reset PIN / password" onClick={() => resetSecurity()}><KeyRound /></Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -160,7 +160,7 @@ export function UsersSection() {
                   <div className="flex items-center gap-2">
                     <p className="flex-1"><b>{open.emergency.name}</b> ({open.emergency.relation}) · <span className="font-mono">{open.emergency.phone}</span></p>
                     <Button size="icon" variant="ghost" title="Copy number" onClick={() => { void navigator.clipboard?.writeText(open.emergency.phone); toast("Number copied"); }}><Copy className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" title="Call" onClick={() => toast(`Calling ${open.emergency.name}… (demo)`)}><PhoneCall className="h-4 w-4" /></Button>
+                    <Button size="icon" variant="ghost" title="Call" onClick={() => {window.location.href=`tel:${open.emergency.phone}`;}}><PhoneCall className="h-4 w-4" /></Button>
                   </div>
                 </div>
 
@@ -176,14 +176,14 @@ export function UsersSection() {
                           <p className="mt-1 flex items-center gap-1 text-emerald"><Check className="h-4 w-4" /> Consent signed {open.guardian.consentAt}</p>
                         </div>
                       )}
-                      <DocTile label="Guardian NID" />
+                      <DocTile label="Guardian NID" src={d.kycDocuments[open.id]?.["guardianNid"]} />
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-3"><DocTile label="NID Front" /><DocTile label="NID Back" /><div className="col-span-2 mx-auto w-1/2"><DocTile label="Live Selfie" round /></div></div>
+                    <div className="grid grid-cols-2 gap-3"><DocTile label="NID Front" src={d.kycDocuments[open.id]?.["nidFront"]} /><DocTile label="NID Back" src={d.kycDocuments[open.id]?.["nidBack"]} /><div className="col-span-2 mx-auto w-1/2"><DocTile label="Live Selfie" round src={d.kycDocuments[open.id]?.["selfie"]} /></div></div>
                   )}
                   <div className="mt-3 flex gap-2">
-                    <Button size="sm" variant="outline" className="border-emerald text-emerald" onClick={() => { d.setUserKyc(open.id, "approved"); setOpen({ ...open, kyc: "approved" }); toast.success("KYC re-verified / approved"); }}><Check /> Re-verify KYC</Button>
-                    <Button size="sm" variant="outline" className="border-crimson text-crimson" onClick={() => { d.setUserKyc(open.id, "rejected"); setOpen({ ...open, kyc: "rejected" }); toast.error("KYC approval revoked"); }}><Ban /> Revoke KYC</Button>
+                    <Button size="sm" variant="outline" className="border-emerald text-emerald" onClick={async () => {try{await d.setUserKyc(open.id,"approved");setOpen({...open,kyc:"approved"});toast.success("KYC re-verified / approved");}catch{}}}><Check /> Re-verify KYC</Button>
+                    <Button size="sm" variant="outline" className="border-crimson text-crimson" onClick={async () => {try{await d.setUserKyc(open.id,"rejected");setOpen({...open,kyc:"rejected"});toast.info("KYC approval revoked");}catch{}}}><Ban /> Revoke KYC</Button>
                   </div>
                 </div>
 
@@ -196,7 +196,7 @@ export function UsersSection() {
                           <p className="font-mono text-xs font-bold">{c.id} · {c.date}</p>
                           <p className="truncate text-xs text-muted-foreground">{c.area} · {c.outcome} · {c.duration} · Video evidence archived</p>
                         </div>
-                        <Button size="sm" variant="ghost" className="text-crimson" onClick={() => { d.markUserFalseSos(open.id); setOpen({ ...open, falseCount: open.falseCount + 1 }); toast.error("Marked as False Alarm / Prank SOS"); }}><Flag className="h-3.5 w-3.5" /> False</Button>
+                        <Button size="sm" variant="ghost" className="text-crimson" onClick={async () => {try{await flagLiveIncident({data:{id:c.id}});await d.refresh();toast.info("Marked as False Alarm / Prank SOS");}catch{toast.error("Flag failed");}}}><Flag className="h-3.5 w-3.5" /> False</Button>
                       </div>
                     ))}
                     {!casesFor(open).length && <p className="text-sm text-muted-foreground">No SOS incidents on record.</p>}
@@ -206,8 +206,8 @@ export function UsersSection() {
                 <div className="rounded-xl border p-4">
                   <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Security controls</p>
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="outline" onClick={() => resetSecurity(open, "password")}><KeyRound /> Reset login password</Button>
-                    <Button size="sm" variant="outline" onClick={() => resetSecurity(open, "PIN")}><KeyRound /> Reset 6-digit SOS PIN</Button>
+                    <Button size="sm" variant="outline" onClick={() => resetSecurity()}><KeyRound /> Reset login password</Button>
+                    <Button size="sm" variant="outline" onClick={() => resetSecurity()}><KeyRound /> Reset 6-digit SOS PIN</Button>
                   </div>
                 </div>
 

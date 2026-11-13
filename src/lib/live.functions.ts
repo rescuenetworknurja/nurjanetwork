@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
-import type { Post, Zone, VolunteerApp, Responder } from "./mock-data";
+import type { Post, Zone, VolunteerApp } from "./mock-data";
 import type { WebsiteContent, Inquiry } from "./website-content";
 
 export const getPublicRecords = createServerFn({ method: "GET" }).handler(async () => {
@@ -28,7 +28,7 @@ export const getLiveSnapshot = createServerFn({ method: "POST" }).middleware([re
     client.from("user_roles").select("role").eq("user_id", context.userId),
     client.from("live_records").select("*").limit(1000),
     client.from("incidents").select("*").order("created_at", { ascending: false }).limit(500),
-    client.from("responders").select("*\ template_placeholder") ,
+    client.from("responders").select("*"),
     client.from("dispatch_assignments").select("*").limit(1000),
     client.from("profiles").select("*").limit(1000),
     client.from("kyc_submissions").select("*").limit(1000),
@@ -74,12 +74,12 @@ export const saveRecord = createServerFn({ method: "POST" }).middleware([require
       if (!url) throw new Error("Public image URL unavailable");
       return `${url}/storage/v1/object/public/nurja-cms/${path}`;
     };
-    if (data.collection === "posts") content.image = await storeImage(content.image);
-    if (data.collection === "website" && content.hero && typeof content.hero === "object") {
-      const hero = content.hero as Record<string, unknown>;
-      content.hero = { ...hero, image: await storeImage(hero.image) };
+    if (data.collection === "posts") content["image"] = await storeImage(content["image"]);
+    if (data.collection === "website" && content["hero"] && typeof content["hero"] === "object") {
+      const hero = content["hero"] as Record<string, unknown>;
+      content["hero"] = { ...hero, image: await storeImage(hero["image"]) };
     }
-    const published = data.collection === "website" || data.collection === "zones" || (data.collection === "posts" && content.published !== false);
+    const published = data.collection === "website" || data.collection === "zones" || (data.collection === "posts" && content["published"] !== false);
     const { error } = await context.supabase.from("live_records").upsert({ id: data.id, collection: data.collection, content: content as Database["public"]["Tables"]["live_records"]["Insert"]["content"], published });
     if (error) throw new Error("Save failed");
     return { ok: true };
@@ -115,7 +115,7 @@ export const createResponder = createServerFn({ method: "POST" }).middleware([re
     if (error || !created.user) throw new Error("Could not create account; check for an existing phone");
     const id = created.user.id;
     const { error: roleError } = await supabaseAdmin.from("user_roles").upsert({ user_id: id, role: "responder" }, { onConflict: "user_id,role" });
-    const { error: unitError } = await supabaseAdmin.from("responders").insert({ user_id: id, code: data.code, kind: data.kind, name: data.name, phone: data.phone, area: data.area, fixed: ["station", "fari"].includes(data.kind), lat: data.lat, lng: data.lng, details: (data.details ?? {}) as Database["public"]["Tables"]["responders"]["Insert"]["details"] });
+    const { error: unitError } = await supabaseAdmin.from("responders").insert({ user_id: id, code: data.code, kind: data.kind, name: data.name, phone: data.phone, area: data.area, fixed: ["station", "fari"].includes(data.kind), lat: data.lat ?? null, lng: data.lng ?? null, details: (data.details ?? {}) as NonNullable<Database["public"]["Tables"]["responders"]["Insert"]["details"]> });
     if (roleError || unitError) { await supabaseAdmin.auth.admin.deleteUser(id); throw new Error("Responder could not be saved"); }
     return { ok: true };
   });

@@ -11,6 +11,8 @@ import { LiveMapLazy } from "../LiveMapLazy";
 import type { MapUnit } from "../TacticalMap";
 import { PinInput } from "./ui";
 import { Slogan } from "@/lib/i18n";
+import { geoToMap } from "@/lib/geo";
+import { distanceKm } from "@/lib/live-rules";
 
 export function useNow(ms = 1000) {
   const [n, setN] = useState(() => Date.now());
@@ -18,49 +20,15 @@ export function useNow(ms = 1000) {
   return n;
 }
 
-/** Responder positions converge on the victim over ~90 seconds. */
-export function useConvergingUnits(startedAt: number | undefined, accepted: string[] = []) {
-  const now = useNow(1000);
-  const t = startedAt ? Math.min(1, (now - startedAt) / 90000) : 0;
-  const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
-  const units: (MapUnit & { dist: number })[] = [
-    ...DISPATCH_UNITS.map((u) => ({ ...u, x: lerp(u.x, VICTIM_POS.x, t * 0.85), y: lerp(u.y, VICTIM_POS.y, t * 0.85), eta: Math.max(0, Math.ceil((u.eta ?? 0) * (1 - t))), dist: +(u.dist * (1 - t * 0.85)).toFixed(1) })),
-    ...VOLUNTEER_POS.map((v, i) => {
-      const k = i < 3 || accepted.includes(v.label) ? t * 0.9 : t * 0.2;
-      return { ...v, kind: "volunteer" as const, x: lerp(v.x, VICTIM_POS.x, k), y: lerp(v.y, VICTIM_POS.y, k), eta: Math.max(0, Math.ceil(v.eta * (1 - k))), dist: +(v.dist * (1 - k)).toFixed(1) };
-    }),
-  ];
-  return units;
-}
-
-/**
- * Units built from the Rescue Network directory (demo store). Fixed units
- * (Thana/Fari) stay put; patrols, officers and online volunteers converge on
- * the victim during an active SOS. Pads volunteers up to 10 for the visual.
- */
-export function useNetworkUnits(startedAt: number | undefined, accepted: string[] = [], responders: Responder[] = []) {
-  const now = useNow(1000);
-  const t = startedAt ? Math.min(1, (now - startedAt) / 90000) : 0;
-  const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
-  const placed = responders.filter((r) => r.x !== undefined && r.y !== undefined);
-  const units: (MapUnit & { dist: number })[] = placed.map((r, i) => {
-    const fixed = isFixedUnit(r.kind);
-    const isVol = r.kind === "volunteer" || r.kind === "officer";
-    const k = fixed ? 0 : isVol ? (accepted.includes(r.code) ? t * 0.9 : t * 0.2) : t * 0.85;
-    const baseEta = 2 + (i % 5);
-    return {
-      id: r.id, label: isVol ? r.code : r.name, kind: r.kind,
-      x: lerp(r.x!, VICTIM_POS.x, k), y: lerp(r.y!, VICTIM_POS.y, k),
-      eta: Math.max(0, Math.ceil(baseEta * (1 - k))), dist: +((0.5 + i * 0.22) * (1 - k * 0.85)).toFixed(1),
-      gps: fixed ? ("fixed" as const) : ("live" as const),
-    };
+/** Real directory coordinates only; no simulated convergence or extra units. */
+export function useNetworkUnits(_startedAt: number | undefined, _accepted: string[] = [], responders: Responder[] = []): (MapUnit & {dist:number})[] {
+  const {sos}=useDemo();
+  return responders.flatMap(r=>{
+    if(r.lat===undefined||r.lng===undefined)return [];
+    const position=geoToMap(r.lat,r.lng);
+    const dist=sos?.lat!==undefined && sos.lng!==undefined?distanceKm({lat:sos.lat,lng:sos.lng},{lat:r.lat,lng:r.lng}):0;
+    return [{id:r.id,label:r.kind==="volunteer"||r.kind==="officer"?r.code:r.name,kind:r.kind,...position,dist:Number(dist.toFixed(2)),gps:r.fixed?"fixed" as const:"live" as const}];
   });
-  const volCount = units.filter((u) => u.kind === "volunteer").length;
-  VOLUNTEER_POS.slice(0, Math.max(0, 10 - volCount)).forEach((v, i) => {
-    const k = accepted.includes(v.label) ? t * 0.9 : t * 0.2;
-    units.push({ ...v, id: `vf${i}`, kind: "volunteer", x: lerp(v.x, VICTIM_POS.x, k), y: lerp(v.y, VICTIM_POS.y, k), eta: Math.max(0, Math.ceil(v.eta * (1 - k))), dist: +(v.dist * (1 - k)).toFixed(1), gps: "live" });
-  });
-  return units;
 }
 
 export function HomeTab() {
@@ -70,7 +38,7 @@ export function HomeTab() {
 
   useEffect(() => {
     if (count === null) return;
-    if (count === 0) { d.triggerSos(); setCount(null); return; }
+    if (count === 0) { setCount(null); void d.triggerSos().catch(() => toast.error("SOS could not be sent. Check location permission and internet. Call 999.")); return; }
     const t = setTimeout(() => setCount(count - 1), 1000);
     return () => clearTimeout(t);
   }, [count]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -129,9 +97,9 @@ export function HomeTab() {
       <div className="relative space-y-3 px-5 pb-28">
         <div className="grid grid-cols-3 gap-2">
           {[
-            { I: Car, v: "2 Patrols", s: "0.6 km", c: "text-navy" },
-            { I: ShieldCheck, v: "10 Volunteers", s: "Online", c: "text-emerald" },
-            { I: Video, v: "Dual-Cam", s: "& Audio Ready", c: "text-crimson" },
+            { I: Car, v: `${d.responders.filter(r=>r.kind==="patrol" && r.online).length} Patrols`, s: "Online", c: "text-navy" },
+            { I: ShieldCheck, v: `${d.responders.filter(r=>r.kind==="volunteer" && r.online).length} Volunteers`, s: "Online", c: "text-emerald" },
+            { I: Video, v: "Camera", s: "Permission required", c: "text-crimson" },
           ].map(({ I, v, s, c }) => (
             <div key={v} className="rounded-lg border border-border/90 bg-card/90 p-2.5 shadow-sm backdrop-blur-sm">
               <I className={cn("h-4 w-4", c)} />
@@ -164,10 +132,10 @@ export function HomeTab() {
 
 function ActiveSos() {
   const d = useDemo();
-  const sos = d.sos!;
-  const units = useNetworkUnits(sos.startedAt, sos.acceptedBy, d.responders);
+  const sos = d.sos;
+  const units = useNetworkUnits(sos?.startedAt, sos?.acceptedBy, d.responders);
   const now = useNow(1000);
-  const secs = Math.floor((now - sos.startedAt) / 1000);
+  const secs = Math.floor((now - (sos?.startedAt ?? now)) / 1000);
   const [hold, setHold] = useState(0);
   const [pinOpen, setPinOpen] = useState(false);
   const [pin, setPin] = useState("");
@@ -184,13 +152,13 @@ function ActiveSos() {
   };
   const endHold = () => { if (timer.current) clearInterval(timer.current); timer.current = null; setHold(0); };
 
-  const submitPin = (v: string) => {
+  const submitPin = async (v: string) => {
     setPin(v);
     if (v.length < 6) return;
-    if (v === d.user.pin) { d.stopSos("SOS stopped by user with PIN"); setPinOpen(false); toast.success("SOS deactivated", { description: "Evidence has been archived. Stay safe." }); }
-    else { toast.error("Wrong PIN. SOS is still active."); setTimeout(() => setPin(""), 300); }
+    try { await d.stopSos("SOS stopped by user with PIN",v); setPinOpen(false); toast.success("SOS deactivated"); } catch { toast.error("Wrong PIN. SOS is still active."); setPin(""); }
   };
 
+  if (!sos) return null;
   const police = units.filter((u) => u.kind !== "volunteer");
   const vols = units.filter((u) => u.kind === "volunteer").sort((a, b) => a.dist - b.dist).slice(0, 4);
   const KIcon = { patrol: Car, fari: Siren, station: Building2 } as const;
@@ -208,18 +176,18 @@ function ActiveSos() {
         <div className="relative">
           <CameraFeed camera={sos.camera} className="aspect-video" />
           <span className="absolute bottom-9 left-3 right-3 rounded-lg bg-crimson/90 px-2 py-1 text-[10px] font-bold text-paper">
-            LIVE STREAMING ({sos.camera === "back" ? "Back" : "Front"} Camera) + Saving Offline Video Chunks
+            {sos.camera === "back" ? "Back camera" : "Front camera"}
           </span>
         </div>
 
         <div className="rounded-2xl border border-crimson/30 bg-crimson-soft p-3.5">
           <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-crimson"><ShieldAlert className="h-3.5 w-3.5" /> Alert dispatch status</p>
-          <p className="mt-1 text-sm font-semibold leading-snug">Alerted Nearest 2 Patrol Units, 1 Police Fari, 1 Police Station, 10 Volunteers + Sent SOS SMS to 5 Nearest Devices</p>
-          <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground"><MessageSquare className="h-3 w-3" /> SMS with live link sent to {d.user.relation} ({d.user.emergencyPhone})</p>
+          <p className="mt-1 text-sm font-semibold leading-snug">{units.length} responders assigned · {sos.acceptedBy.length} accepted</p>
+          <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground"><MessageSquare className="h-3 w-3" /> SMS: {sos.smsStatus ?? "pending"}</p>
         </div>
 
         <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
-          <LiveMapLazy className="h-56" victim={VICTIM_POS} units={units} />
+          <LiveMapLazy className="h-56" victim={sos.lat!==undefined && sos.lng!==undefined?geoToMap(sos.lat,sos.lng):undefined} units={units} />
           <div className="divide-y">
             <p className="px-3.5 py-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Incoming responders</p>
             {police.map((u) => { const I = KIcon[u.kind as keyof typeof KIcon] ?? Car; return (
@@ -242,7 +210,7 @@ function ActiveSos() {
               HOLD TO STOP SOS
             </span>
           </button>
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">Your Security PIN will be required. Demo PIN: {d.user.pin}</p>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">Your Security PIN will be required.</p>
         </div>
       </div>
 
@@ -265,7 +233,7 @@ function Row({ icon, tone, title, sub, eta }: { icon: React.ReactNode; tone: str
     <div className="flex items-center gap-3 px-3.5 py-2.5">
       <div className={cn("grid h-8 w-8 place-items-center rounded-full text-paper", tone)}>{icon}</div>
       <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{title}</p><p className="text-[11px] text-muted-foreground">{sub}</p></div>
-      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold tabular-nums">{eta === 0 ? "Arrived" : `${eta} min`}</span>
+      {eta !== undefined && <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold tabular-nums">{eta === 0 ? "Arrived" : `${eta} min`}</span>}
     </div>
   );
 }

@@ -14,6 +14,8 @@ export const Route = createFileRoute("/our-story")({
       { name: "description", content: "Why we built NURJA: a rescue network that brings police and community volunteers together for women's safety." },
       { property: "og:title", content: "Our Story — NURJA" },
       { property: "og:description", content: "Why we built NURJA: a rescue network that brings police and community volunteers together." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Story,

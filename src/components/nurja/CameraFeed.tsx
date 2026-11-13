@@ -1,24 +1,49 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import heroImg from "@/assets/hero-night-street.jpg";
+import { useDemo } from "@/lib/demo-store";
+import { getVideoAccess } from "@/lib/video.functions";
+import { VideoOff } from "lucide-react";
 
-/** Simulated live camera stream. */
 export function CameraFeed({ camera = "back", className, label, fit = "cover" }: { camera?: "back" | "front"; className?: string; label?: string; fit?: "cover" | "contain" }) {
-  const [t, setT] = useState(0);
-  useEffect(() => { const i = setInterval(() => setT((v) => v + 1), 1000); return () => clearInterval(i); }, []);
-  const mm = String(Math.floor(t / 60)).padStart(2, "0"), ss = String(t % 60).padStart(2, "0");
+  const d = useDemo();
+  const video = useRef<HTMLVideoElement>(null);
+  const [status, setStatus] = useState("Connecting camera");
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    const id = d.sos?.id;
+    if (!id) return;
+    let disposed = false;
+    let room: import("livekit-client").Room | undefined;
+    const connect = async () => {
+      try {
+        const access = await getVideoAccess({ data: { incidentId: id } });
+        if (disposed) return;
+        if (!access.configured) { setStatus("Live video service is not connected"); return; }
+        const { Room, RoomEvent, Track } = await import("livekit-client");
+        room = new Room();
+        room.on(RoomEvent.TrackSubscribed, track => { if (track.kind === Track.Kind.Video && video.current) { track.attach(video.current); setLive(true); } });
+        room.on(RoomEvent.TrackUnsubscribed, () => { setLive(false); setStatus("Camera disconnected"); });
+        room.on(RoomEvent.Disconnected, () => { setLive(false); setStatus("Camera disconnected"); });
+        await room.connect(access.url, access.token);
+        if (disposed) { await room.disconnect(); return; }
+        if (access.publisher) {
+          await room.localParticipant.setCameraEnabled(true, { facingMode: camera === "back" ? "environment" : "user" });
+          // Camera consent is requested by the browser; denied audio does not cancel SOS.
+          await room.localParticipant.setMicrophoneEnabled(true).catch(() => {});
+          const track = room.localParticipant.getTrackPublication(Track.Source.Camera)?.track;
+          if (track && video.current) { track.attach(video.current); video.current.muted = true; setLive(true); }
+        } else setStatus("Waiting for user camera");
+      } catch { if (!disposed) { setStatus("Camera unavailable — SOS remains active"); setLive(false); } }
+    };
+    void connect();
+    return () => { disposed = true; void room?.disconnect(); setLive(false); };
+  }, [d.sos?.id, camera]);
   return (
-    <div className={cn("relative overflow-hidden rounded-2xl bg-ink", className)}>
-      <img src={heroImg} alt="" className={cn("absolute inset-0 h-full w-full opacity-70", fit === "contain" ? "object-contain" : cn("object-cover animate-noise", camera === "front" ? "scale-150 object-[40%_30%] blur-[1px]" : "scale-110 object-[60%_60%]"))} />
-      <div className="absolute inset-0 bg-gradient-to-b from-ink/50 via-transparent to-ink/70" />
-      <div className="pointer-events-none absolute inset-x-0 h-1/3 bg-gradient-to-b from-transparent via-paper/5 to-transparent animate-scan" />
-      <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-crimson px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-paper">
-        <span className="h-1.5 w-1.5 rounded-full bg-paper animate-blink" /> Live
-      </div>
-      <div className="absolute right-3 top-3 rounded bg-ink/60 px-1.5 py-0.5 font-mono text-[10px] text-paper">{mm}:{ss}</div>
-      <div className="absolute inset-x-3 bottom-3 text-[10px] font-semibold text-paper/90">
-        {label ?? `${camera === "back" ? "Back" : "Front"} camera · 720p · 23.7756°N 90.4206°E`}
-      </div>
+    <div className={cn("relative min-h-40 overflow-hidden rounded-lg bg-ink text-paper", className)}>
+      <video ref={video} autoPlay playsInline className={cn("absolute inset-0 h-full w-full", fit === "contain" ? "object-contain" : "object-cover")} />
+      {!live && <div className="absolute inset-0 grid place-content-center gap-3 px-4 text-center text-sm"><VideoOff className="mx-auto h-8 w-8 text-muted-foreground" /><p>{status}</p></div>}
+      {live && <span className="absolute left-3 top-3 rounded bg-crimson px-2 py-1 text-xs font-bold">Live</span>}
+      {live && <p className="absolute bottom-3 left-3 text-xs">{label ?? (camera === "back" ? "Back camera" : "Front camera")}</p>}
     </div>
   );
 }

@@ -15,7 +15,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNetworkUnits, useNow } from "@/components/nurja/sos/Home";
 import { useDemo } from "@/lib/demo-store";
 import { AuthGate } from "@/components/nurja/AuthGate";
-import { useSession } from "@/lib/auth";
+import { useSession, signOut } from "@/lib/auth";
+import { signInResponder } from "@/lib/live.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { geoToMap } from "@/lib/geo";
 import { VICTIM_POS, findAccount, isType1, type Responder } from "@/lib/mock-data";
 import { LanguageSetting, Slogan, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -48,18 +51,7 @@ const KIND_SHORT: Record<Responder["kind"], string> = { patrol: "POLICE PATROL",
 function RescueApp() {
   const d = useDemo();
   const session = useSession();
-  // A real signed-in account skips the demo splash/login and must hold the
-  // responder role; without a session the demo login flow stays available.
-  if (session.user) {
-    return (
-      <AuthGate requireRole="responder" redirectTo="/RescueTeam">
-        <Shell />
-      </AuthGate>
-    );
-  }
-  if (d.rescueAuth === "splash") return <Splash />;
-  if (d.rescueAuth === "login") return <Login />;
-  return <Shell />;
+  return <AuthGate requireRole="responder" redirectTo="/RescueTeam" signedOut={d.rescueAuth === "login" ? <Login /> : <Splash />}><Shell /></AuthGate>;
 }
 
 /* ---------------- Step 0: Tactical splash ---------------- */
@@ -78,9 +70,9 @@ function Splash() {
         <Slogan className="mt-1 text-xs text-paper/60" />
         <p className="mt-8 flex items-center gap-2 rounded-full bg-paper/5 px-4 py-2 font-mono text-[11px] text-emerald">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald animate-blink" />
-          Connecting to Central Dispatch & GPS Satellite…
+          Rescue Network
         </p>
-        <Button size="lg" className="mt-6 h-13 w-full rounded-lg text-base font-bold" onClick={() => d.set({ rescueAuth: "login" })}>
+        <Button size="lg" className="mt-6 h-13 w-full rounded-lg text-base font-bold" onClick={() => void signOut()}>
           <ShieldCheck /> Proceed to Responder Login
         </Button>
         <p className="mt-4 text-[11px] text-paper/40">NURJA Emergency Response & Women Safety Ecosystem</p>
@@ -91,31 +83,15 @@ function Splash() {
 
 /* ---------------- Step 1: Responder login ---------------- */
 
-const QUICK_LOGINS = [
-  { label: "Type 1: Police Station / Fari (Fixed GPS)", icon: Building2, match: (r: Responder) => r.kind === "station" },
-  { label: "Type 1: Patrolling Unit (Live GPS)", icon: Car, match: (r: Responder) => r.kind === "patrol" },
-  { label: "Type 2: Volunteer (V-J75UN2)", icon: Shield, match: (r: Responder) => r.code === "V-J75UN2" },
-  { label: "Type 2: Police Officer (TaskForce ID)", icon: BadgeCheck, match: (r: Responder) => r.kind === "officer" },
-];
-
 function Login() {
   const d = useDemo();
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
   const [show, setShow] = useState(false);
 
-  const signInAs = (r: Responder | undefined) => {
-    if (!r) { toast.error("No such account — create it in the Control Panel first"); return; }
-    d.set({ responderType: isType1(r.kind) ? 1 : 2, responderId: r.id, rescueAuth: "app" });
-    toast.success(`Signed in as ${r.name}`, { description: `${KIND_SHORT[r.kind]} · ${r.code}` });
-  };
-
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pw) { toast.error("Enter your password"); return; }
-    const acc = findAccount(d.responders, id);
-    if (!acc) { toast.error("Account not found", { description: "Check the ID / phone, or ask the Control Panel to issue an account." }); return; }
-    signInAs(acc);
+    try { const tokens=await signInResponder({data:{identifier:id,password:pw}}); const {error}=await supabase.auth.setSession(tokens); if(error)throw error; await d.refresh(); } catch {toast.error("Invalid credentials");}
   };
 
   return (
@@ -146,17 +122,6 @@ function Login() {
             className="flex items-center justify-center gap-2 rounded-lg border border-emerald/40 bg-emerald/10 px-3 py-2.5 text-xs font-bold text-emerald transition hover:bg-emerald/20">
             <ShieldCheck className="h-4 w-4" /> Sign in with your NURJA account (phone + password)
           </a>
-          <div className="space-y-2 pt-1">
-            <p className="text-center text-[10px] font-bold uppercase tracking-wider text-paper/40">Quick demo login</p>
-            <div className="grid gap-1.5">
-              {QUICK_LOGINS.map((q) => (
-                <button type="button" key={q.label} onClick={() => signInAs(d.responders.find(q.match))}
-                  className="flex items-center gap-2.5 rounded-lg border border-paper/10 bg-paper/5 px-3 py-2.5 text-left text-xs font-semibold text-paper/80 transition hover:border-emerald/40 hover:bg-emerald/10 hover:text-paper">
-                  <q.icon className="h-4 w-4 shrink-0 text-emerald" />{q.label}
-                </button>
-              ))}
-            </div>
-          </div>
           <p className="border-t border-paper/10 pt-3 text-center text-[11px] leading-relaxed text-paper/40">
             Accounts are issued and managed exclusively by the Central Control Panel (/rpanel).
           </p>
@@ -174,22 +139,16 @@ function Shell() {
   const [dismissed, setDismissed] = useState<string | null>(null);
   const [accepted, setAccepted] = useState<string | null>(null);
   const t1 = d.responderType === 1;
-  const accounts = d.responders.filter((r) => (t1 ? isType1(r.kind) : !isType1(r.kind)));
-  const mine = accounts.find((r) => r.id === d.responderId) ?? accounts[0];
+  const accounts = d.responders.filter((r) => r.id === d.responderId);
+  const mine = accounts.find((r) => r.id === d.responderId) ;
   const myCode = mine?.code ?? "";
   const sos = d.sos && d.responderOnline && dismissed !== d.sos.id ? d.sos : null;
   const navigating = !!sos && (t1 || accepted === sos.id || sos.acceptedBy.includes(myCode));
 
-  useEffect(() => { if (d.sos && t1 && myCode) d.acceptSos(myCode); }, [d.sos?.id, t1, myCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const switchType = (n: 1 | 2) => {
-    const first = d.responders.find((r) => (n === 1 ? isType1(r.kind) : !isType1(r.kind)));
-    d.set({ responderType: n, ...(first ? { responderId: first.id } : {}) });
-  };
-  const onSim = () => { setDismissed(null); setAccepted(null); if (!d.sos) d.triggerSos(); else toast("An SOS is already active"); };
 
   const alertCard = sos && !navigating && !t1 && (
-    <SosAlertCard sosId={sos.id} victim={sos.victim} area={sos.area} onDecline={() => setDismissed(sos.id)} onAccept={() => { setAccepted(sos.id); d.acceptSos(myCode); toast.success("Accepted. Navigation started."); }} />
+    <SosAlertCard sosId={sos.id} victim={sos.victim} area={sos.area} onDecline={() => setDismissed(sos.id)} onAccept={async () => { try {await d.acceptSos(myCode);setAccepted(sos.id);toast.success("Accepted. Navigation started.");}catch{} }} />
   );
 
   return (
@@ -219,10 +178,10 @@ function Shell() {
             <p className="mt-1 truncate text-sm font-bold text-paper">{mine?.name}</p>
             <p className="mt-0.5 text-[11px] text-paper/50">{mine?.fixed ? "📍 Fixed GPS installation" : "📡 Live device GPS"}{mine?.vehicleNo ? ` · ${mine.vehicleNo}` : ""}</p>
           </div>
-          <Button variant="outline" className="w-full border-paper/15 bg-transparent text-paper/70 hover:bg-paper/5 hover:text-paper" onClick={() => d.set({ rescueAuth: "login" })}><LogOut /> Logout</Button>
+          <Button variant="outline" className="w-full border-paper/15 bg-transparent text-paper/70 hover:bg-paper/5 hover:text-paper" onClick={() => void signOut()}><LogOut /> Logout</Button>
         </div>
         <div className="border-t border-paper/10 p-2 lg:hidden">
-          <button onClick={() => d.set({ rescueAuth: "login" })} title="Logout" className="grid w-full place-items-center rounded-xl py-2.5 text-paper/60 hover:bg-paper/5"><LogOut className="h-5 w-5" /></button>
+          <button onClick={() => void signOut()} title="Logout" className="grid w-full place-items-center rounded-xl py-2.5 text-paper/60 hover:bg-paper/5"><LogOut className="h-5 w-5" /></button>
         </div>
       </aside>
 
@@ -230,23 +189,10 @@ function Shell() {
       <div className="flex min-w-0 flex-1 flex-col pb-[calc(4rem+max(1rem,env(safe-area-inset-bottom)))] md:pb-0">
         {/* Mobile header */}
         <div className="shrink-0 bg-navy px-4 pb-3 pt-4 md:hidden">
-          <div className="grid grid-cols-2 gap-1 rounded-xl bg-navy-3 p-1">
-            {[1, 2].map((n) => (
-              <button key={n} onClick={() => switchType(n as 1 | 2)}
-                className={cn("rounded-lg px-2 py-1.5 text-[11px] font-bold leading-tight", d.responderType === n ? "bg-paper text-ink" : "text-paper/60")}>
-                {n === 1 ? "Type 1 · Station / Fari / Patrol" : "Type 2 · Volunteer / Officer"}
-              </button>
-            ))}
-          </div>
           <div className="mt-3 flex items-center gap-3">
             <RescueMark label="" />
             <div className="min-w-0 flex-1">
-              <Select value={mine?.id ?? ""} onValueChange={(id) => d.set({ responderId: id })}>
-                <SelectTrigger className="h-auto border-0 bg-transparent p-0 font-display text-sm font-bold text-paper shadow-none focus:ring-0 [&>svg]:text-paper/60"><SelectValue placeholder="Pick an account" /></SelectTrigger>
-                <SelectContent>
-                  {accounts.map((r) => <SelectItem key={r.id} value={r.id}>{r.name} · {r.code}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <p className="font-display text-sm font-bold text-paper">{mine?.name ?? "No account"}</p>
               <span className={cn("mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-bold", t1 ? "bg-crimson text-paper" : "bg-emerald text-paper")}>
                 {mine ? `TYPE ${t1 ? "1" : "2"} · ${KIND_SHORT[mine.kind]} ${mine.code}` : "NO ACCOUNT"}
               </span>
@@ -260,7 +206,7 @@ function Shell() {
           {tab === "map" && (
             <div className="flex min-h-full shrink-0 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_380px]">
               <div className="flex min-w-0 flex-col">
-                {navigating ? <Navigate type1={t1} myCode={myCode} /> : <DispatchHome mine={mine} onSim={onSim} />}
+                {navigating ? <Navigate type1={t1} myCode={myCode} /> : <DispatchHome mine={mine} />}
                 {d.sos && <div className="px-4 pb-4 lg:hidden"><VictimCamera camera={d.sos.camera} /></div>}
               </div>
               <SidePanel alert={alertCard} navigating={navigating} />
@@ -355,10 +301,10 @@ function SidePanel({ alert, navigating }: { alert: React.ReactNode; navigating: 
 
 /* ---------------- Tabs ---------------- */
 
-function DispatchHome({ onSim, mine }: { onSim: () => void; mine: Responder | undefined }) {
+function DispatchHome({ mine }: { mine: Responder | undefined }) {
   const d = useDemo();
   const online = d.responders.filter((r) => r.online);
-  const others = d.responders.filter((r) => r.id !== mine?.id && r.x !== undefined).map((r) => ({ id: r.id, label: r.name, kind: r.kind, x: r.x!, y: r.y!, gps: (r.fixed ? "fixed" : "live") as "fixed" | "live" }));
+  const others = d.responders.filter((r) => r.id !== mine?.id && r.x !== undefined).map((r) => ({ id: r.id, label: r.name, kind: r.kind, x: r.x ?? 0, y: r.y ?? 0, gps: (r.fixed ? "fixed" : "live") as "fixed" | "live" }));
   return (
     <div className="relative flex flex-1 flex-col">
       <div aria-hidden className="pointer-events-none absolute inset-0 tactical-grid opacity-60" />
@@ -371,12 +317,9 @@ function DispatchHome({ onSim, mine }: { onSim: () => void; mine: Responder | un
         </div>
         <div className={cn("rounded-2xl border p-4", d.responderOnline ? "border-emerald/30 bg-emerald-soft" : "bg-card")}>
           <p className="flex items-center gap-2 text-sm font-bold"><Radio className={cn("h-4 w-4", d.responderOnline && "animate-blink text-emerald")} /> {d.responderOnline ? "Standing by for alerts" : "Go online to receive alerts"}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Area: Motijheel · Radius 3 km</p>
+          <p className="mt-1 text-xs text-muted-foreground">{mine?.area ?? ""}</p>
         </div>
-        <Button size="lg" className="h-14 w-full rounded-lg text-base font-bold" disabled={!d.responderOnline} onClick={onSim}>
-          <Siren /> Simulate Incoming SOS Alert
-        </Button>
-        <p className="text-center text-[11px] text-muted-foreground">Or trigger SOS from the NURJA app — it shows up here live.</p>
+
       </div>
     </div>
   );
@@ -389,15 +332,8 @@ function Navigate({ type1, myCode }: { type1: boolean; myCode: string }) {
   const units = useNetworkUnits(sos?.startedAt, sos?.acceptedBy ?? [], d.responders);
   if (!sos) return null;
   const arrived = sos.arrivedBy?.some((r) => r.code === myCode) ?? false;
-  const progress = Math.min(1, (now - sos.startedAt) / 90000);
-  const dist = (0.8 * (1 - progress)).toFixed(2);
-  const steps = [
-    { i: ArrowUp, t: "Head south on Shapla Chattar", d: "200 m" },
-    { i: CornerUpLeft, t: "Turn left onto Toyenbee Circular Rd", d: "450 m" },
-    { i: CornerUpRight, t: "Victim on right, near Sonali Bank gate", d: "150 m" },
-  ];
-  const cur = Math.min(2, Math.floor(progress * 3));
-  const S = steps[cur]!;
+  const victim=sos.lat!==undefined&&sos.lng!==undefined?geoToMap(sos.lat,sos.lng):undefined;
+  const navigateUrl=sos.lat!==undefined&&sos.lng!==undefined?`https://www.google.com/maps/dir/?api=1&destination=${sos.lat},${sos.lng}`:undefined;
   return (
     <div className="flex flex-1 flex-col">
       {type1 && (
@@ -406,27 +342,17 @@ function Navigate({ type1, myCode }: { type1: boolean; myCode: string }) {
           <p className="text-[11px] opacity-80">{sos.id} · Priority 1 · Report on arrival</p>
         </div>
       )}
-      <div className="flex items-center gap-3 bg-emerald px-4 py-3 text-paper">
-        <S.i className="h-9 w-9" />
-        <div className="min-w-0 flex-1"><p className="truncate font-display text-lg font-bold leading-tight">{S.t}</p><p className="truncate text-xs opacity-80">then {steps[Math.min(2, cur + 1)]!.t.toLowerCase()}</p></div>
-        <p className="shrink-0 font-display text-xl font-extrabold">{S.d}</p>
-      </div>
-      <div className="relative">
-        <LiveMapLazy className="h-64 tactical-grid lg:h-full lg:min-h-[380px]" victim={VICTIM_POS} route={ROUTE_TO_VICTIM} units={units.filter((u) => u.kind !== "volunteer" || u.id === "v0")} zones={d.zones} />
-        <div className="absolute bottom-3 left-3 rounded-xl bg-navy/90 px-3 py-2 text-paper">
-          <p className="text-[10px] uppercase opacity-60">Distance to victim</p>
-          <p className="font-display text-xl font-extrabold">{dist} km · {Math.max(0, Math.ceil(3 * (1 - progress)))} min</p>
-        </div>
-      </div>
+      <LiveMapLazy className="h-64 lg:min-h-[380px]" victim={victim} units={units} zones={d.zones} />
+      {navigateUrl && <Button asChild className="mx-4 mt-4"><a href={navigateUrl} target="_blank" rel="noreferrer"><Navigation /> Navigate</a></Button>}
       <div className="space-y-2 p-4">
         <div className="rounded-2xl border bg-card p-3.5">
           <p className="text-xs text-muted-foreground">Victim</p>
           <p className="font-bold">{sos.victim} · {sos.area}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{sos.acceptedBy.length} responders accepted · 2 patrols, 1 fari, 1 station dispatched</p>
+          <p className="mt-1 text-xs text-muted-foreground">{sos.acceptedBy.length} responders accepted</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" className="h-12 rounded-lg" onClick={() => toast("Calling control room…")}><Phone /> Control room</Button>
-          <Button className="h-12 rounded-lg bg-emerald hover:bg-emerald/90" disabled={arrived || !sos.acceptedBy.includes(myCode)} onClick={() => { d.markArrived(myCode); toast.success("Arrival recorded. SOS remains active."); }}><Navigation /> {arrived ? "Arrived" : "Mark arrived"}</Button>
+          <Button variant="outline" className="h-12 rounded-lg" onClick={() => {if(d.websiteContent.contact.phone)window.location.href=`tel:${d.websiteContent.contact.phone}`;}} disabled={!d.websiteContent.contact.phone}><Phone /> Control room</Button>
+          <Button className="h-12 rounded-lg bg-emerald hover:bg-emerald/90" disabled={arrived || !sos.acceptedBy.includes(myCode)} onClick={async () => {try{await d.markArrived(myCode);toast.success("Arrival recorded. SOS remains active.");}catch{}}}><Navigation /> {arrived ? "Arrived" : "Mark arrived"}</Button>
         </div>
       </div>
     </div>
@@ -471,18 +397,15 @@ function ProfileT({ type1, mine }: { type1: boolean; mine: Responder | undefined
           {approved.map((a) => <p key={a.id} className="mt-2 flex justify-between text-sm"><span>{a.name}</span><span className="font-mono font-bold text-emerald">{a.volunteerId}</span></p>)}
         </div>
       )}
-      <div className="grid grid-cols-3 gap-2 text-center">
-        {[{ l: "Rescues", v: 23 }, { l: "Avg ETA", v: "3.4m" }, { l: "Rating", v: "4.9" }].map((s) => <div key={s.l} className="rounded-2xl border bg-card p-3"><p className="font-display text-xl font-extrabold">{s.v}</p><p className="text-[10px] text-muted-foreground">{s.l}</p></div>)}
-      </div>
       <div className="rounded-2xl border bg-card p-4">
         <p className="mb-3 text-xs font-bold uppercase text-muted-foreground">{tr("Settings", "সেটিংস")}</p>
         <label className={cn("mb-4 flex items-center justify-between gap-3 rounded-lg px-3 py-3 text-sm font-bold", d.responderOnline ? "bg-emerald/15 text-emerald" : "bg-paper/5 text-paper/60")}>
           <span className="flex items-center gap-2"><Radio className="h-4 w-4 shrink-0" />{d.responderOnline ? "Online — receiving alerts" : "Offline"}</span>
-          <Switch aria-label={tr("Online", "অনলাইন")} checked={d.responderOnline} onCheckedChange={(v) => { d.set({ responderOnline: v }); toast(v ? "You're online and receiving alerts" : "You're offline"); }} className="shrink-0 data-[state=checked]:bg-emerald" />
+          <Switch aria-label={tr("Online", "অনলাইন")} checked={d.responderOnline} onCheckedChange={async (v) => {try{await d.set({ responderOnline: v });toast(v ? "You're online and receiving alerts" : "You're offline");}catch{}}} className="shrink-0 data-[state=checked]:bg-emerald" />
         </label>
         <LanguageSetting dark />
       </div>
-      <Button variant="outline" className="w-full border-crimson/40 text-crimson hover:bg-crimson/10" onClick={() => { d.set({ rescueAuth: "login" }); toast("Signed out"); }}>
+      <Button variant="outline" className="w-full border-crimson/40 text-crimson hover:bg-crimson/10" onClick={() => void signOut()}>
         <LogOut /> {tr("Logout", "লগআউট")}
       </Button>
     </div>

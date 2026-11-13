@@ -18,6 +18,8 @@ export const Route = createFileRoute("/contact")({
       { name: "description", content: "Get in touch with the NURJA team for partnerships, volunteering or support." },
       { property: "og:title", content: "Contact Us — NURJA" },
       { property: "og:description", content: "Get in touch with the NURJA team for partnerships, volunteering or support." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Contact,
@@ -29,10 +31,9 @@ function Contact() {
   const L = useBi();
   const blank = { name: "", contact: "", subject: "", message: "" };
   const [f, setF] = useState(blank);
-  const send = (e: React.FormEvent) => {
+  const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    d.submitInquiry(f); setF(blank);
-    toast.success("Message sent. We'll reply within 24 hours.");
+    try { await d.submitInquiry(f); setF(blank); toast.success("Message sent"); } catch { /* The shared action reports failure. */ }
   };
   const rows = [
     { i: Phone, t: `${c.phone} · Hotline ${c.hotline}` },
