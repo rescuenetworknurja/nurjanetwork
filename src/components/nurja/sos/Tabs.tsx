@@ -290,7 +290,7 @@ export function ProfileTab() {
         <DialogContent className="max-w-[360px] rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-center font-display">{step === "old" ? "Enter current PIN" : "Choose a new PIN"}</DialogTitle>
-            <DialogDescription className="text-center">{step === "old" ? `Demo current PIN: ${d.user.pin}` : "6 digits, used to stop SOS"}</DialogDescription>
+            <DialogDescription className="text-center">{step === "old" ? `current PIN: ${d.user.pin}` : "6 digits, used to stop SOS"}</DialogDescription>
           </DialogHeader>
           <PinInput value={pin} onChange={onPin} autoFocus />
         </DialogContent>
