@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Home, Route as RouteIcon, ShieldAlert, UserRound, Users } from "lucide-react";
 import { PhoneFrame } from "@/components/nurja/PhoneFrame";
 import { Onboarding, SignedOutSplash } from "@/components/nurja/sos/Onboarding";
@@ -7,6 +8,8 @@ import { HomeTab } from "@/components/nurja/sos/Home";
 import { CommunityTab, ProfileTab, SafeRouteTab } from "@/components/nurja/sos/Tabs";
 import { useDemo } from "@/lib/demo-store";
 import { AuthGate } from "@/components/nurja/AuthGate";
+import { useSession } from "@/lib/auth";
+import { getMyProfile } from "@/lib/profile.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/NURJASOS")({
@@ -34,6 +37,26 @@ function SignedOutView() {
   return <PhoneFrame>{d.appView === "onboarding" ? <Onboarding /> : <SignedOutSplash />}</PhoneFrame>;
 }
 
+/** Polls the real profile and mirrors kyc_status into the UI store, so an
+ *  admin approval in the Control Panel unlocks SOS automatically. */
+function ProfileSync() {
+  const d = useDemo();
+  const session = useSession();
+  const q = useQuery({
+    queryKey: ["my-profile", session.user?.id],
+    queryFn: () => getMyProfile(),
+    enabled: !!session.user,
+    refetchInterval: 10000,
+  });
+  useEffect(() => {
+    const k = q.data?.profile?.kyc_status;
+    if ((k === "approved" || k === "rejected" || k === "pending") && k !== d.selfKyc) {
+      d.setSelfKyc(k);
+    }
+  }, [q.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
 function NurjaApp() {
   const d = useDemo();
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("home");
@@ -41,6 +64,7 @@ function NurjaApp() {
   return (
     <AuthGate redirectTo="/NURJASOS" signedOut={<SignedOutView />}>
     <PhoneFrame>
+      <ProfileSync />
       {locked ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
           <span className="relative grid h-24 w-24 place-items-center rounded-full bg-crimson text-paper shadow-sos">

@@ -89,15 +89,14 @@ export function HomeTab() {
         <button className="relative grid h-10 w-10 place-items-center rounded-lg border bg-card shadow-sm"><Bell className="h-5 w-5" /><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-crimson" /></button>
       </header>
       <div className="relative px-5 pt-3">
-        <button onClick={() => d.setSelfKyc(locked ? "approved" : "pending")}
+        <div
           className={cn("flex w-full items-center gap-3 rounded-lg border p-3 text-left shadow-sm transition", locked ? "border-amber/30 bg-amber-soft" : "border-emerald/30 bg-emerald-soft")}>
           <div className={cn("grid h-9 w-9 place-items-center rounded-full text-paper", locked ? "bg-amber" : "bg-emerald")}>{locked ? <Lock className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}</div>
           <div className="flex-1">
             <p className="text-sm font-bold">{locked ? "KYC Pending — SOS Locked" : "KYC Approved — SOS Active"}</p>
-            <p className="text-[11px] text-muted-foreground">{locked ? "Waiting for Control Panel review" : `${d.user.adult ? "Adult 18+" : "Under 18 Minor"} profile verified`}</p>
+            <p className="text-[11px] text-muted-foreground">{locked ? "Waiting for Control Panel review — unlocks automatically once approved" : `${d.user.adult ? "Adult 18+" : "Under 18 Minor"} profile verified`}</p>
           </div>
-          <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-bold text-muted-foreground">Demo toggle</span>
-        </button>
+        </div>
       </div>
 
       <div className="relative flex flex-1 flex-col items-center justify-center py-4">

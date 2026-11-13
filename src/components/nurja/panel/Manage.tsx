@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Check, Eye, FileImage, ImageIcon, KeyRound, MapPin, Plus, Satellite, Save, Trash2, UserPlus, X, Youtube } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, Eye, ImageIcon, KeyRound, MapPin, Plus, Satellite, Save, Trash2, UserPlus, X, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +14,10 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDemo } from "@/lib/demo-store";
-import { IMAGES, isType1, type KycSubmission, type Responder, type Zone } from "@/lib/mock-data";
+import { IMAGES, isType1, type Responder, type Zone } from "@/lib/mock-data";
 import { fmtCoord, geoToMap, isLat, isLng, mapToGeo, parseCoordPair } from "@/lib/geo";
-import { ageFromDob, generateVolunteerId } from "@/lib/ids";
+import { generateVolunteerId } from "@/lib/ids";
+import { listProfiles, setKycStatus } from "@/lib/profile.functions";
 import { cn } from "@/lib/utils";
 import { LiveMapLazy } from "../LiveMapLazy";
 import { PostCard } from "../PostCard";
@@ -24,47 +26,64 @@ import { Card, PageHead } from "./Dashboard";
 const statusTone = (s: string) => s === "approved" ? "bg-emerald-soft text-emerald" : s === "rejected" ? "bg-crimson-soft text-crimson" : "bg-amber-soft text-amber";
 const Pill = ({ s }: { s: string }) => <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold capitalize", statusTone(s))}>{s}</span>;
 
-function DocTile({ label, round }: { label: string; round?: boolean }) {
-  return (
-    <div className="overflow-hidden rounded-xl border">
-      <div className={cn("grid place-items-center bg-muted", round ? "aspect-square" : "aspect-[1.6]")}>
-        <div className="text-center text-muted-foreground"><FileImage className="mx-auto h-8 w-8" /><p className="mt-1 text-[11px]">{label}.jpg</p></div>
-      </div>
-      <p className="px-3 py-2 text-xs font-semibold">{label}</p>
-    </div>
-  );
-}
+type ProfileRow = {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  nid_number: string | null;
+  kyc_status: string;
+  account_status: string;
+  created_at: string;
+};
+
+/** Shared query so the sidebar badge and this section stay in sync. */
+export const ADMIN_PROFILES_KEY = ["admin-profiles"] as const;
 
 export function KycSection() {
-  const d = useDemo();
   const [filter, setFilter] = useState("pending");
-  const [open, setOpen] = useState<KycSubmission | null>(null);
-  const list = d.kyc.filter((k) => filter === "all" || k.status === filter);
-  const act = (k: KycSubmission, s: "approved" | "rejected") => {
-    d.setKycStatus(k.id, s); setOpen(null);
-    toast[s === "approved" ? "success" : "error"](`${k.name} ${s}`, { description: k.id === d.selfKycId ? (s === "approved" ? "SOS is now unlocked in the NURJA app." : "The user will be asked to resubmit.") : undefined });
-  };
+  const [open, setOpen] = useState<ProfileRow | null>(null);
+  const qc = useQueryClient();
+  const profilesQ = useQuery({
+    queryKey: ADMIN_PROFILES_KEY,
+    queryFn: () => listProfiles(),
+    refetchInterval: 15000,
+  });
+  const mut = useMutation({
+    mutationFn: (v: { userId: string; status: "approved" | "rejected" }) => setKycStatus({ data: v }),
+    onSuccess: (_r: unknown, v: { userId: string; status: "approved" | "rejected" }) => {
+      void qc.invalidateQueries({ queryKey: ADMIN_PROFILES_KEY });
+      setOpen(null);
+      toast[v.status === "approved" ? "success" : "error"](`KYC ${v.status}`, {
+        description: v.status === "approved"
+          ? "SOS unlocks in the user's NURJA app automatically."
+          : "The user will be asked to resubmit their documents.",
+      });
+    },
+    onError: (e: unknown) => toast.error("Could not update KYC", { description: e instanceof Error ? e.message : String(e) }),
+  });
+  const rows = ((profilesQ.data ?? []) as ProfileRow[]).filter((p) => filter === "all" || p.kyc_status === filter);
+  const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   return (
     <>
-      <PageHead title="KYC Approval Queue" sub="Review adult and under-18 submissions">
+      <PageHead title="KYC Approval Queue" sub="Review real user submissions — approval unlocks SOS in the app automatically">
         <Tabs value={filter} onValueChange={setFilter}><TabsList>{["pending", "approved", "rejected", "all"].map((f) => <TabsTrigger key={f} value={f} className="capitalize">{f}</TabsTrigger>)}</TabsList></Tabs>
       </PageHead>
       <Card className="p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Profile</TableHead><TableHead>Documents</TableHead><TableHead>Submitted</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>NID Number</TableHead><TableHead>Joined</TableHead><TableHead>KYC Status</TableHead><TableHead>Account</TableHead><TableHead /></TableRow></TableHeader>
           <TableBody>
-            {list.map((k) => (
-              <TableRow key={k.id}>
-                <TableCell className="font-semibold">{k.name}{k.id === d.selfKycId && <span className="ml-2 rounded bg-accent px-1.5 text-[10px] text-accent-foreground">Demo user</span>}</TableCell>
-                <TableCell className="font-mono text-xs">{k.phone}</TableCell>
-                <TableCell><span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", k.type === "adult" ? "bg-secondary" : "bg-amber-soft text-amber")}>{k.type === "adult" ? "Adult 18+" : "Under 18"} · {ageFromDob(k.dob)}y</span></TableCell>
-                <TableCell className="text-xs text-muted-foreground">{k.type === "adult" ? "NID front/back + selfie" : "Birth reg + NOC + guardian NID"}</TableCell>
-                <TableCell className="text-xs">{k.submittedAt}</TableCell>
-                <TableCell><Pill s={k.status} /></TableCell>
-                <TableCell className="text-right"><Button size="sm" variant="outline" onClick={() => setOpen(k)}><Eye /> Review</Button></TableCell>
+            {rows.map((p) => (
+              <TableRow key={p.id}>
+                <TableCell className="font-semibold">{p.full_name || "—"}</TableCell>
+                <TableCell className="font-mono text-xs">{p.phone ?? "—"}</TableCell>
+                <TableCell className="font-mono text-xs">{p.nid_number ?? "—"}</TableCell>
+                <TableCell className="text-xs">{fmtDate(p.created_at)}</TableCell>
+                <TableCell><Pill s={p.kyc_status} /></TableCell>
+                <TableCell className="text-xs capitalize text-muted-foreground">{p.account_status}</TableCell>
+                <TableCell className="text-right"><Button size="sm" variant="outline" onClick={() => setOpen(p)}><Eye /> Review</Button></TableCell>
               </TableRow>
             ))}
-            {!list.length && <TableRow><TableCell colSpan={7} className="py-10 text-center text-muted-foreground">Nothing here</TableCell></TableRow>}
+            {!rows.length && <TableRow><TableCell colSpan={7} className="py-10 text-center text-muted-foreground">{profilesQ.isPending ? "Loading users…" : "Nothing here"}</TableCell></TableRow>}
           </TableBody>
         </Table>
       </Card>
@@ -72,24 +91,20 @@ export function KycSection() {
         <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
           {open && (
             <>
-              <SheetHeader><SheetTitle className="font-display">{open.name}</SheetTitle><SheetDescription>{open.type === "adult" ? "Adult 18+" : "Under 18 Minor"} · DOB {open.dob} · {open.phone}</SheetDescription></SheetHeader>
+              <SheetHeader><SheetTitle className="font-display">{open.full_name || "Unnamed user"}</SheetTitle><SheetDescription>{open.phone ?? "No phone"} · Joined {fmtDate(open.created_at)}</SheetDescription></SheetHeader>
               <div className="space-y-4 px-4 py-4">
-                {open.type === "adult" ? (
-                  <div className="grid grid-cols-2 gap-3"><DocTile label="NID Front" /><DocTile label="NID Back" /><div className="col-span-2 mx-auto w-1/2"><DocTile label="Live Selfie" round /></div></div>
-                ) : (
-                  <>
-                    <div className="rounded-xl border p-4 text-sm"><p className="text-xs text-muted-foreground">Birth Registration No.</p><p className="font-mono text-base font-bold tracking-wider">{open.birthReg}</p></div>
-                    <div className="rounded-xl border p-4 text-sm">
-                      <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Guardian NOC</p>
-                      <p>Name: <b>{open.guardian?.name}</b></p><p>Phone: <b>{open.guardian?.phone}</b></p><p>Relationship: <b>{open.guardian?.relation}</b></p>
-                      <p className="mt-2 flex items-center gap-1 text-emerald"><Check className="h-4 w-4" /> Legal consent signed</p>
-                    </div>
-                    <DocTile label="Guardian NID" />
-                  </>
-                )}
+                <div className="rounded-xl border p-4 text-sm">
+                  <p className="text-xs text-muted-foreground">NID Number</p>
+                  <p className="font-mono text-base font-bold tracking-wider">{open.nid_number ?? "Not provided"}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-xl border p-4"><p className="text-xs text-muted-foreground">KYC Status</p><Pill s={open.kyc_status} /></div>
+                  <div className="rounded-xl border p-4"><p className="text-xs text-muted-foreground">Account</p><p className="font-bold capitalize">{open.account_status}</p></div>
+                </div>
+                <p className="rounded-lg bg-amber-soft p-3 text-xs text-amber">Verify the NID number against the user's physical card or submitted documents before approving. Approving unlocks the SOS button in their app automatically.</p>
                 <div className="grid grid-cols-2 gap-2 pt-2">
-                  <Button variant="outline" className="border-crimson text-crimson" onClick={() => act(open, "rejected")}><X /> Reject</Button>
-                  <Button className="bg-emerald hover:bg-emerald/90" onClick={() => act(open, "approved")}><Check /> Approve</Button>
+                  <Button variant="outline" className="border-crimson text-crimson" disabled={mut.isPending} onClick={() => mut.mutate({ userId: open.id, status: "rejected" })}><X /> Reject</Button>
+                  <Button className="bg-emerald hover:bg-emerald/90" disabled={mut.isPending} onClick={() => mut.mutate({ userId: open.id, status: "approved" })}><Check /> Approve</Button>
                 </div>
               </div>
             </>

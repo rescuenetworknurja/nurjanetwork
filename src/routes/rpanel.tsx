@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Globe, ChevronsLeft, FileCheck2, LayoutDashboard, Map, Moon, Newspaper, Settings, Siren, Sun, UserCog, Users } from "lucide-react";
 import { RescueMark } from "@/components/nurja/Brand";
 import { DashboardSection, IncidentSection } from "@/components/nurja/panel/Dashboard";
-import { HazardSection, KycSection, NetworkSection, PublisherSection, SettingsSection } from "@/components/nurja/panel/Manage";
+import { ADMIN_PROFILES_KEY, HazardSection, KycSection, NetworkSection, PublisherSection, SettingsSection } from "@/components/nurja/panel/Manage";
+import { listProfiles } from "@/lib/profile.functions";
 import { UsersSection } from "@/components/nurja/panel/Users";
 import { WebsiteCmsSection } from "@/components/nurja/panel/WebsiteCms";
 import { useDemo } from "@/lib/demo-store";
@@ -42,7 +44,9 @@ function Panel() {
   const [sec, setSec] = useState("dashboard");
   const [dark, setDark] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
-  const badge = (id: string) => id === "kyc" ? d.kyc.filter((k) => k.status === "pending").length : id === "users" ? d.users.filter((u) => u.status !== "active").length : id === "network" ? d.volunteerApps.filter((a) => a.status === "pending").length : id === "website" ? d.inquiries.filter((q) => q.status === "new").length : id === "incident" && d.sos ? 1 : 0;
+  const profilesQ = useQuery({ queryKey: ADMIN_PROFILES_KEY, queryFn: () => listProfiles(), refetchInterval: 15000 });
+  const pendingKyc = (profilesQ.data ?? []).filter((p) => p.kyc_status === "pending").length;
+  const badge = (id: string) => id === "kyc" ? pendingKyc : id === "users" ? d.users.filter((u) => u.status !== "active").length : id === "network" ? d.volunteerApps.filter((a) => a.status === "pending").length : id === "website" ? d.inquiries.filter((q) => q.status === "new").length : id === "incident" && d.sos ? 1 : 0;
   return (
     <AuthGate requireRole="admin" redirectTo="/rpanel">
     <div className={cn("flex min-h-screen bg-background text-foreground", dark && "dark")}>

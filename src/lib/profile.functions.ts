@@ -72,6 +72,21 @@ export const setAccountStatus = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const setKycStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: { userId: string; status: "pending" | "approved" | "rejected" }) => input,
+  )
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { error } = await context.supabase
+      .from("profiles")
+      .update({ kyc_status: data.status })
+      .eq("id", data.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const setUserRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
