@@ -152,7 +152,7 @@ export default function LiveMap({
       )}
       {endpoints && <><Marker position={endpoints[0]} icon={pinIcon("#0f172a")} /><Marker position={endpoints[1]} icon={pinIcon("#10b981")} /></>}
       {me && <Marker position={me} icon={meIcon} zIndexOffset={2000} />}
-      <FitTo points={path} focus={me} />
+      <FitTo points={path} focus={me ?? (victim ? toLatLng(victim.x,victim.y) : units[0] ? toLatLng(units[0].x,units[0].y) : undefined)} />
     </MapContainer>
   );
 }

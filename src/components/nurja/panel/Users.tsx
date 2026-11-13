@@ -134,7 +134,7 @@ export function UsersSection() {
             <>
               <SheetHeader>
                 <SheetTitle className="font-display">{open.name}</SheetTitle>
-                <SheetDescription>{open.id === "self" ? "Demo user · " : ""}{open.phone} · {isMinor(open) ? "Under-18 Minor" : "18+ Adult"} · {ageFromDob(open.dob)}y</SheetDescription>
+                <SheetDescription>{open.phone} · {isMinor(open) ? "Under-18 Minor" : "18+ Adult"} · {ageFromDob(open.dob)}y</SheetDescription>
               </SheetHeader>
               <div className="space-y-4 px-4 py-4">
                 <div className="flex flex-wrap items-center gap-2">
@@ -227,7 +227,7 @@ export function UsersSection() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="font-display">Suspend / Ban {banTarget?.name}</DialogTitle>
-            <DialogDescription>{banTarget?.id === "self" ? "This is the active demo user — the NURJA app will lock immediately." : "The user loses access to the NURJA app immediately."}</DialogDescription>
+            <DialogDescription>The user loses access to the NURJA app immediately.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5"><Label>Action type</Label>

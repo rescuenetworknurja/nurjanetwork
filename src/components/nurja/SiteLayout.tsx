@@ -16,7 +16,8 @@ const LINKS = [
 ] as const;
 
 export function SiteLayout({ children }: { children: ReactNode }) {
-  const c = useDemo().websiteContent.contact;
+  const website=useDemo().websiteContent;
+  const c=website.contact;
   const L = useBi();
   const [open, setOpen] = useState(false);
   return (
@@ -33,7 +34,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           </nav>
           <div className="ml-auto hidden items-center gap-3 md:flex">
             <LangToggle />
-            <VolunteerDialog><Button className="rounded-lg">Become a Volunteer</Button></VolunteerDialog>
+            <VolunteerDialog><Button className="rounded-lg" data-no-tr>{L(website.hero.cta)}</Button></VolunteerDialog>
           </div>
           <LangToggle className="ml-auto md:hidden" />
           <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">{open ? <X /> : <Menu />}</button>
@@ -63,9 +64,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           <div className="space-y-2 text-sm text-paper/60">
             <p className="font-display font-bold text-paper">Emergency</p>
             <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-crimson" /> National helpline {c.hotline}</p>
-            <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-crimson" /> {c.phone}</p>
+            {c.phone && <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-crimson" /> {c.phone}</p>}
             <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-crimson" /> Women & child 109</p>
-            <p className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0" /> {L(c.address)}</p>
+            {L(c.address) && <p className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0" /> {L(c.address)}</p>}
           </div>
         </div>
         <div className="border-t border-paper/10 py-5 text-center text-xs text-paper/40">© 2026 NURJA Rescue Network. All rights reserved.</div>

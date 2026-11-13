@@ -100,12 +100,13 @@ export const resetPasswordWithOtp = createServerFn({ method: "POST" })
 /** Creates the account only for a phone verified by OTP in the last 30 minutes. */
 export const registerVerifiedPhone = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
-    z.object({ phone: phoneSchema, password: z.string().min(8).max(72), fullName: z.string().trim().min(1).max(120), pin: z.string().regex(/^\d{6}$/), dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), emergencyPhone: phoneSchema, emergencyName: z.string().max(120), relation: z.string().min(1).max(80), birthReg: z.string().optional(), guardian: z.object({name:z.string(),phone:phoneSchema,relation:z.string(),consent:z.literal(true)}).optional(), documents: z.record(z.string(),z.string().max(15_000_000)) }).parse(d),
+    z.object({ phone: phoneSchema, password: z.string().min(8).max(72), fullName: z.string().trim().min(1).max(120), code:z.string().regex(/^\d{6}$/), pin: z.string().regex(/^\d{6}$/), dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), emergencyPhone: phoneSchema, emergencyName: z.string().max(120), relation: z.string().min(1).max(80), birthReg: z.string().optional(), guardian: z.object({name:z.string(),phone:phoneSchema,relation:z.string(),consent:z.literal(true)}).optional(), documents: z.record(z.string(),z.string().max(15_000_000)) }).parse(d),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row } = await supabaseAdmin.from("phone_otps").select("verified_at").eq("phone", data.phone).maybeSingle();
-    if (!row?.verified_at || Date.now() - new Date(row.verified_at).getTime() > SIGNUP_WINDOW_MINUTES * 60_000) {
+    const { data: row } = await supabaseAdmin.from("phone_otps").select("verified_at,code_hash").eq("phone", data.phone).maybeSingle();
+    const {hashCode}=await import("./otp.server");
+    if (!row?.verified_at || row.code_hash!==await hashCode(data.phone,data.code) || Date.now() - new Date(row.verified_at).getTime() > SIGNUP_WINDOW_MINUTES * 60_000) {
       return { ok: false as const, error: "unverified" as const };
     }
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
@@ -129,7 +130,7 @@ export const registerVerifiedPhone = createServerFn({ method: "POST" })
       for(const [label,src] of Object.entries(data.documents))documents[label]=await savePrivateImage(`kyc/${id}/${label}`,src);
       const [{error:profileError},{error:securityError},{error:kycError}]=await Promise.all([
         supabaseAdmin.from("profiles").update({dob:data.dob,emergency_contact_name:data.emergencyName,emergency_contact_phone:data.emergencyPhone,emergency_relation:data.relation}).eq("id",id),
-        supabaseAdmin.from("user_security").insert({user_id:id,pin_hash:await hashCode(id,data.pin)}),
+        supabaseAdmin.rpc("set_sos_pin",{_user:id,_pin:data.pin}),
         supabaseAdmin.from("kyc_submissions").insert({user_id:id,dob:data.dob,birth_reg:data.birthReg??null,guardian:data.guardian??null,documents}),
       ]);
       if(profileError||securityError||kycError)throw new Error("Registration details could not be saved");

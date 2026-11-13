@@ -6,7 +6,9 @@ export async function hashCode(phone: string, code: string): Promise<string> {
 }
 
 export function makeCode(): string {
-  const n = crypto.getRandomValues(new Uint32Array(1))[0]! % 1_000_000;
+  const value=crypto.getRandomValues(new Uint32Array(1))[0];
+  if(value===undefined)throw new Error("Code generation failed");
+  const n = value % 1_000_000;
   return n.toString().padStart(6, "0");
 }
 

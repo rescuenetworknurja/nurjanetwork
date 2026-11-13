@@ -18,7 +18,17 @@ export const getPublicRecords = createServerFn({ method: "GET" }).handler(async 
   } } });
   const { data, error } = await client.from("live_records").select("id,collection,content").eq("published", true).in("collection", ["website", "posts", "zones"]).limit(1000);
   if (error) throw new Error("Published content unavailable");
-  return data ?? [];
+  const records=data??[];
+  for(const record of records){
+    const content=record.content as Record<string,unknown>;
+    const hero=content["hero"] as Record<string,unknown>|undefined;
+    const image=record.collection==="website"?hero?.["image"]:content["image"];
+    if(typeof image==="string"&&image.startsWith("cms:")){
+      const {data:signed}=await client.storage.from("nurja-cms").createSignedUrl(image.slice(4),900);
+      if(hero)hero["image"]=signed?.signedUrl??"";else content["image"]=signed?.signedUrl??"";
+    }
+  }
+  return records;
 });
 
 export const getLiveSnapshot = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
@@ -35,6 +45,11 @@ export const getLiveSnapshot = createServerFn({ method: "POST" }).middleware([re
     client.from("incident_evidence").select("*").limit(1000),
   ]);
   if (pe || re || ie || ue) throw new Error("Live data unavailable");
+  for(const record of records??[]) {
+    const content=record.content as Record<string,unknown>;const hero=content["hero"] as Record<string,unknown>|undefined;
+    const image=record.collection==="website"?hero?.["image"]:content["image"];
+    if(typeof image==="string"&&image.startsWith("cms:")) {const {data:signed}=await client.storage.from("nurja-cms").createSignedUrl(image.slice(4),900);if(hero)hero["image"]=signed?.signedUrl??"";else content["image"]=signed?.signedUrl??"";}
+  }
   const signedEvidence = await Promise.all((evidence ?? []).map(async (e) => {
     const { data } = await client.storage.from("nurja-private").createSignedUrl(e.storage_path, 900);
     return { id: e.id, incidentId: e.incident_id, src: data?.signedUrl ?? "", capturedAt: e.captured_at, savedAt: e.created_at, camera: e.camera as "front" | "back", responderId: e.responder_id, responderName: e.responder_name, tags: e.tags };
@@ -70,9 +85,7 @@ export const saveRecord = createServerFn({ method: "POST" }).middleware([require
       const path = `${data.collection}/${data.id}/${crypto.randomUUID()}`;
       const { error } = await supabaseAdmin.storage.from("nurja-cms").upload(path, blob, { contentType: blob.type });
       if (error) throw new Error("Image upload failed");
-      const url = process.env["VITE_SUPABASE_URL"];
-      if (!url) throw new Error("Public image URL unavailable");
-      return `${url}/storage/v1/object/public/nurja-cms/${path}`;
+      return `cms:${path}`;
     };
     if (data.collection === "posts") content["image"] = await storeImage(content["image"]);
     if (data.collection === "website" && content["hero"] && typeof content["hero"] === "object") {
@@ -158,6 +171,17 @@ export const startLiveSos = createServerFn({ method: "POST" }).middleware([requi
       } catch { status = "failed"; }
       await supabaseAdmin.from("incidents").update({ sms_status: status }).eq("id", id);
     }
+    const {data:previousDispatch}=await context.supabase.from("incident_events").select("id").eq("incident_id",id).eq("event","dispatch-sms").limit(1);
+    if (!previousDispatch?.length) {
+      const {data:assigned}=await context.supabase.from("dispatch_assignments").select("responder_id").eq("incident_id",id).neq("state","declined");
+      const ids=(assigned??[]).map(a=>a.responder_id);
+      const {data:units}=ids.length ? await context.supabase.from("responders").select("phone").in("id",ids) : {data:[]};
+      const {sendSms}=await import("./otp.server");
+      const results=await Promise.all((units??[]).map(async unit=>{
+        try {await sendSms(unit.phone.replace(/\D/g,""),`NURJA dispatch: ${incident?.victim??"Emergency"} needs help. Open RescueTeam. Location: https://www.google.com/maps?q=${data.lat},${data.lng}`);return true;}catch{return false;}
+      }));
+      await supabaseAdmin.from("incident_events").insert({incident_id:id,actor_id:context.userId,event:"dispatch-sms",details:{sent:results.filter(Boolean).length,failed:results.filter(r=>!r).length}});
+    }
     return { id };
   });
 
@@ -184,6 +208,8 @@ export const updateLiveLocation = createServerFn({ method: "POST" }).middleware(
 export const setDutyStatus = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ online: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
+    const {data:profile}=await context.supabase.from("profiles").select("account_status").eq("id",context.userId).single();
+    if(profile?.account_status!=="active")throw new Error("Account unavailable");
     const { data: unit } = await context.supabase.from("responders").select("id").eq("user_id", context.userId).single();
     if (!unit) throw new Error("Responder account required");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -216,8 +242,8 @@ export const changeLivePin = createServerFn({ method: "POST" }).middleware([requ
   .inputValidator((d: unknown) => z.object({ oldPin: z.string().regex(/^\d{6}$/), newPin: z.string().regex(/^\d{6}$/) }).parse(d))
   .handler(async ({ data, context }) => {
     const { verifyPin } = await import("./live.server"); if (!await verifyPin(context.userId, data.oldPin)) throw new Error("Current PIN is wrong");
-    const { hashCode } = await import("./otp.server"); const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("user_security").update({ pin_hash: await hashCode(context.userId, data.newPin), attempts: 0, locked_until: null }).eq("user_id", context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.rpc("set_sos_pin",{_user:context.userId,_pin:data.newPin});
     if (error) throw new Error("PIN update failed"); return { ok: true };
   });
 export const setLiveCamera = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])

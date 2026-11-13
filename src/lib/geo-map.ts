@@ -22,7 +22,7 @@ export function toLatLng(x: number, y: number): [number, number] {
 export function toXY(lat: number, lng: number): { x: number; y: number } {
   const x = ((lng - MAP_BOUNDS.west) / (MAP_BOUNDS.east - MAP_BOUNDS.west)) * 100;
   const y = ((MAP_BOUNDS.north - lat) / (MAP_BOUNDS.north - MAP_BOUNDS.south)) * 100;
-  return { x: +Math.min(100, Math.max(0, x)).toFixed(1), y: +Math.min(100, Math.max(0, y)).toFixed(1) };
+  return { x, y };
 }
 
 // Zone radius r is in 0-100 map units; the box height is ~20 km, so 1 unit ≈ 200 m.

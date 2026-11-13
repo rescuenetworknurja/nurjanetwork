@@ -15,7 +15,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDemo } from "@/lib/demo-store";
 import { IMAGES, isType1, type Responder, type Zone } from "@/lib/mock-data";
-import { fmtCoord, geoToMap, isLat, isLng, mapToGeo, parseCoordPair } from "@/lib/geo";
+import { fmtCoord, isLat, isLng, parseCoordPair } from "@/lib/geo";
+import { toXY, toLatLng } from "@/lib/geo-map";
 import { generateVolunteerId } from "@/lib/ids";
 import { listProfiles, setKycStatus } from "@/lib/profile.functions";
 import { cn } from "@/lib/utils";
@@ -144,7 +145,7 @@ function UnitForm({ onDone }: { onDone: () => void }) {
   /** Fill the coordinate boxes from a map click. */
   const pickOnMap = (x: number, y: number) => {
     setPos({ x, y });
-    const g = mapToGeo(x, y);
+    const [lat,lng]=toLatLng(x,y);const g={lat,lng};
     setGeo({ lat: fmtCoord(g.lat), lng: fmtCoord(g.lng) });
   };
 
@@ -153,12 +154,12 @@ function UnitForm({ onDone }: { onDone: () => void }) {
     const pair = parseCoordPair(value);
     if (pair) {
       setGeo({ lat: fmtCoord(pair.lat), lng: fmtCoord(pair.lng) });
-      setPos(geoToMap(pair.lat, pair.lng));
+      setPos(toXY(pair.lat, pair.lng));
       return;
     }
     const next = { ...geo, [field]: value };
     setGeo(next);
-    if (isLat(next.lat) && isLng(next.lng)) setPos(geoToMap(+next.lat, +next.lng));
+    if (isLat(next.lat) && isLng(next.lng)) setPos(toXY(+next.lat, +next.lng));
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -167,7 +168,7 @@ function UnitForm({ onDone }: { onDone: () => void }) {
     const code = f.code || (kind === "station" ? `THANA-DHK-${String(d.responders.filter((r) => r.kind === "station").length + 1).padStart(2, "0")}` : kind === "fari" ? `FARI-NRG-${String(d.responders.filter((r) => r.kind === "fari").length + 1).padStart(2, "0")}` : `PATROL-${100 + d.responders.filter((r) => r.kind === "patrol").length + 1}`);
     try { await d.addResponder({
       name: f.name, nameBn: f.nameBn || undefined, kind, code, area: f.area, phone: f.phone, online: false,
-      fixed, x: pos?.x ?? 30 + Math.random() * 40, y: pos?.y ?? 30 + Math.random() * 40,
+      fixed, ...(pos?{x:pos.x,y:pos.y}:{}),
       lat: fixed && isLat(geo.lat) ? +geo.lat : undefined,
       lng: fixed && isLng(geo.lng) ? +geo.lng : undefined,
       inCharge: f.inCharge || undefined, rank: f.rank || undefined, password: f.password || undefined,
@@ -243,7 +244,7 @@ function ResponderForm({ onDone }: { onDone: () => void }) {
       nid: f.nid || undefined, password: f.password || undefined, hasPhoto: !!f.photo,
       rank: kind === "officer" ? f.rank || undefined : undefined,
       station: kind === "officer" ? f.station || undefined : undefined,
-      x: 30 + Math.random() * 40, y: 30 + Math.random() * 40,
+
     }); } catch {return;}
     toast.success(`Responder account created: ${code}`, { description: `${KIND_LABEL[kind]} · signs in to the Rescue Network app with ${f.phone}` });
     onDone();

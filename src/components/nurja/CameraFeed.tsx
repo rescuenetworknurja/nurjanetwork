@@ -21,7 +21,10 @@ export function CameraFeed({ camera = "back", className, label, fit = "cover" }:
         if (!access.configured) { setStatus("Live video service is not connected"); return; }
         const { Room, RoomEvent, Track } = await import("livekit-client");
         room = new Room();
-        room.on(RoomEvent.TrackSubscribed, track => { if (track.kind === Track.Kind.Video && video.current) { track.attach(video.current); setLive(true); } });
+        room.on(RoomEvent.TrackSubscribed, track => {
+          if (track.kind === Track.Kind.Video && video.current) { track.attach(video.current); setLive(true); }
+          if(track.kind===Track.Kind.Audio)track.attach();
+        });
         room.on(RoomEvent.TrackUnsubscribed, () => { setLive(false); setStatus("Camera disconnected"); });
         room.on(RoomEvent.Disconnected, () => { setLive(false); setStatus("Camera disconnected"); });
         await room.connect(access.url, access.token);

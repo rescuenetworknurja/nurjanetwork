@@ -18,7 +18,7 @@ import { AuthGate } from "@/components/nurja/AuthGate";
 import { useSession, signOut } from "@/lib/auth";
 import { signInResponder } from "@/lib/live.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { geoToMap } from "@/lib/geo";
+import { toXY } from "@/lib/geo-map";
 import { VICTIM_POS, findAccount, isType1, type Responder } from "@/lib/mock-data";
 import { LanguageSetting, Slogan, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -282,16 +282,16 @@ function SidePanel({ alert, navigating }: { alert: React.ReactNode; navigating: 
             <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Victim & emergency contact</p>
             <p className="font-bold">{sos.victim}</p>
             <p className="font-mono text-xs text-muted-foreground">{sos.phone}</p>
-            <p className="mt-2 text-xs text-muted-foreground">Emergency: <b className="text-foreground">{d.user.emergencyName}</b> ({d.user.relation}) · <span className="font-mono">{d.user.emergencyPhone}</span></p>
+            <p className="mt-2 text-xs text-muted-foreground">Emergency: <b className="text-foreground">{sos.emergencyName}</b> · <span className="font-mono">{sos.emergencyPhone}</span></p>
           </div>
           <div className="rounded-2xl border bg-card p-4">
             <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Dispatch telemetry</p>
             <div className="space-y-1.5">
               {enRoute.map((u) => (
-                <p key={u.id} className="flex items-center justify-between text-xs"><span className="truncate">{u.label}</span><span className="font-mono font-bold text-emerald">{u.eta} min</span></p>
+                <p key={u.id} className="flex items-center justify-between text-xs"><span className="truncate">{u.label}</span><span className="font-mono font-bold text-emerald">{u.dist} km</span></p>
               ))}
             </div>
-            <p className="mt-2 border-t pt-2 text-[11px] text-muted-foreground">2 patrols · 1 fari · 1 station auto-dispatched · {units.filter((u) => u.kind === "volunteer").length} volunteers alerted</p>
+            <p className="mt-2 border-t pt-2 text-[11px] text-muted-foreground">{units.length} responders assigned · {sos.acceptedBy.length} accepted</p>
           </div>
         </>
       )}
@@ -332,7 +332,7 @@ function Navigate({ type1, myCode }: { type1: boolean; myCode: string }) {
   const units = useNetworkUnits(sos?.startedAt, sos?.acceptedBy ?? [], d.responders);
   if (!sos) return null;
   const arrived = sos.arrivedBy?.some((r) => r.code === myCode) ?? false;
-  const victim=sos.lat!==undefined&&sos.lng!==undefined?geoToMap(sos.lat,sos.lng):undefined;
+  const victim=sos.lat!==undefined&&sos.lng!==undefined?toXY(sos.lat,sos.lng):undefined;
   const navigateUrl=sos.lat!==undefined&&sos.lng!==undefined?`https://www.google.com/maps/dir/?api=1&destination=${sos.lat},${sos.lng}`:undefined;
   return (
     <div className="flex flex-1 flex-col">

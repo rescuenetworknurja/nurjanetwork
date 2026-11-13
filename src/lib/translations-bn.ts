@@ -3,6 +3,25 @@
  * Keys are the exact English text as rendered (whitespace-trimmed).
  */
 export const BN: Record<string, string> = {
+  "Could not download frame": "ফ্রেম ডাউনলোড করা যায়নি",
+  "Message sent": "বার্তা পাঠানো হয়েছে",
+  "Connecting camera": "ক্যামেরা সংযুক্ত হচ্ছে",
+  "Live video service is not connected": "লাইভ ভিডিও সেবা সংযুক্ত নেই",
+  "Camera disconnected": "ক্যামেরা সংযোগ বিচ্ছিন্ন",
+  "Waiting for user camera": "ব্যবহারকারীর ক্যামেরার অপেক্ষায়",
+  "Camera unavailable — SOS remains active": "ক্যামেরা পাওয়া যাচ্ছে না — SOS চালু আছে",
+  "Camera": "ক্যামেরা",
+  "Permission required": "অনুমতি প্রয়োজন",
+  "Back camera": "পেছনের ক্যামেরা",
+  "Front camera": "সামনের ক্যামেরা",
+  "Enter your current 6-digit PIN": "বর্তমান ৬ সংখ্যার PIN দিন",
+  "Private service credentials are managed securely outside this panel.": "সেবার গোপন তথ্য এই প্যানেলের বাইরে নিরাপদে পরিচালিত হয়।",
+  "Use the verified password reset flow in NURJASOS": "NURJASOS-এ যাচাইকৃত পাসওয়ার্ড পুনরুদ্ধার ব্যবহার করুন",
+  "SOS could not be sent. Check location permission and internet. Call 999.": "SOS পাঠানো যায়নি। অবস্থানের অনুমতি ও ইন্টারনেট দেখুন। ৯৯৯-এ কল করুন।",
+  "Not provided": "দেওয়া হয়নি",
+  "Invalid credentials": "লগইন তথ্য সঠিক নয়",
+  "Flag failed": "চিহ্নিত করা যায়নি",
+
   "Install App": "অ্যাপ ইনস্টল করুন",
   "Install NURJASOS": "NURJASOS ইনস্টল করুন",
   "Install button text": "ইনস্টল বাটনের লেখা",

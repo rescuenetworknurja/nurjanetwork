@@ -601,6 +601,7 @@ export type Database = {
     }
     Functions: {
       can_access_incident: { Args: { _id: string }; Returns: boolean }
+      check_sos_pin: { Args: { _pin: string; _user: string }; Returns: boolean }
       complete_incident: {
         Args: { _id: string; _outcome?: string; _status: string }
         Returns: undefined
@@ -630,6 +631,7 @@ export type Database = {
         Returns: undefined
       }
       send_sms_bulksmsbd: { Args: { event: Json }; Returns: Json }
+      set_sos_pin: { Args: { _pin: string; _user: string }; Returns: undefined }
       start_incident: {
         Args: { _accuracy?: number; _lat: number; _lng: number }
         Returns: string

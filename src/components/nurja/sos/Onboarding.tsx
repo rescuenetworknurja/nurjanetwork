@@ -140,7 +140,7 @@ export function Onboarding() {
       const phone = normalizePhone(f.phone);
       const documents:Record<string,string>={};
       for(const [label,src] of Object.entries(adult ? {nidFront:f.nidFront,nidBack:f.nidBack,selfie:f.selfie} : {guardianNid:f.gNid}))if(src)documents[label]=await imageToDataUrl(src);
-      const r = await registerVerifiedPhone({ data: { phone, password: f.password, fullName: f.name.trim(), pin:f.pin,dob:f.dob,emergencyPhone:normalizePhone(f.ePhone),emergencyName:f.eName||f.eRel,relation:f.eRel,documents,...(!adult?{birthReg:f.birthReg,guardian:{name:f.gName,phone:normalizePhone(f.gPhone),relation:f.gRel,consent:true as const}}:{}) } });
+      const r = await registerVerifiedPhone({ data: { phone, password: f.password, fullName: f.name.trim(), code:f.otp, pin:f.pin,dob:f.dob,emergencyPhone:normalizePhone(f.ePhone),emergencyName:f.eName||f.eRel,relation:f.eRel,documents,...(!adult?{birthReg:f.birthReg,guardian:{name:f.gName,phone:normalizePhone(f.gPhone),relation:f.gRel,consent:true as const}}:{}) } });
       if (!r.ok) {
         if (r.error === "unverified") { toast.error("Phone verification expired. Verify your number again."); setStep(1); setSub(0); return; }
         throw new Error(r.error === "exists" ? "already exists" : "failed");

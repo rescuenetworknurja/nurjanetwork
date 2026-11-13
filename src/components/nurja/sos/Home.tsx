@@ -13,6 +13,7 @@ import { PinInput } from "./ui";
 import { Slogan } from "@/lib/i18n";
 import { geoToMap } from "@/lib/geo";
 import { distanceKm } from "@/lib/live-rules";
+import { toXY } from "@/lib/geo-map";
 
 export function useNow(ms = 1000) {
   const [n, setN] = useState(() => Date.now());
@@ -23,9 +24,9 @@ export function useNow(ms = 1000) {
 /** Real directory coordinates only; no simulated convergence or extra units. */
 export function useNetworkUnits(_startedAt: number | undefined, _accepted: string[] = [], responders: Responder[] = []): (MapUnit & {dist:number})[] {
   const {sos}=useDemo();
-  return responders.flatMap(r=>{
+  return responders.filter(r=>!sos || sos.assignedIds?.includes(r.id)).flatMap(r=>{
     if(r.lat===undefined||r.lng===undefined)return [];
-    const position=geoToMap(r.lat,r.lng);
+    const position=toXY(r.lat,r.lng);
     const dist=sos?.lat!==undefined && sos.lng!==undefined?distanceKm({lat:sos.lat,lng:sos.lng},{lat:r.lat,lng:r.lng}):0;
     return [{id:r.id,label:r.kind==="volunteer"||r.kind==="officer"?r.code:r.name,kind:r.kind,...position,dist:Number(dist.toFixed(2)),gps:r.fixed?"fixed" as const:"live" as const}];
   });
@@ -187,13 +188,13 @@ function ActiveSos() {
         </div>
 
         <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
-          <LiveMapLazy className="h-56" victim={sos.lat!==undefined && sos.lng!==undefined?geoToMap(sos.lat,sos.lng):undefined} units={units} />
+          <LiveMapLazy className="h-56" victim={sos.lat!==undefined && sos.lng!==undefined?toXY(sos.lat,sos.lng):undefined} units={units} />
           <div className="divide-y">
             <p className="px-3.5 py-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Incoming responders</p>
             {police.map((u) => { const I = KIcon[u.kind as keyof typeof KIcon] ?? Car; return (
-              <Row key={u.id} icon={<I className="h-4 w-4" />} tone="bg-navy" title={u.label} sub={`${u.dist} km away`} eta={u.eta} />
+              <Row key={u.id} icon={<I className="h-4 w-4" />} tone="bg-navy" title={u.label} sub={`${u.dist} km away`} />
             ); })}
-            {vols.map((u) => <Row key={u.id} icon={<User className="h-4 w-4" />} tone="bg-emerald" title={`Volunteer ${u.label}`} sub={`${u.dist} km · ${sos.acceptedBy.includes(u.label) ? "Accepted" : "Responding"}`} eta={u.eta} />)}
+            {vols.map((u) => <Row key={u.id} icon={<User className="h-4 w-4" />} tone="bg-emerald" title={`Volunteer ${u.label}`} sub={`${u.dist} km · ${sos.acceptedBy.includes(u.label) ? "Accepted" : "Alerted"}`} />)}
           </div>
         </div>
 

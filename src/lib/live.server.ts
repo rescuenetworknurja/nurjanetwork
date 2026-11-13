@@ -23,12 +23,8 @@ export async function savePrivateImage(path: string, src: string) {
   return path;
 }
 export async function verifyPin(userId: string, pin: string) {
-  const { data: row, error } = await supabaseAdmin.from("user_security").select("*").eq("user_id", userId).single();
-  if (error || !row || (row.locked_until && new Date(row.locked_until).getTime() > Date.now())) return false;
-  const valid = row.pin_hash === await hashCode(userId, pin);
-  const attempts = valid ? 0 : row.attempts + 1;
-  await supabaseAdmin.from("user_security").update({ attempts, locked_until: attempts >= 5 ? new Date(Date.now() + 15 * 60_000).toISOString() : null }).eq("user_id", userId);
-  return valid;
+  const {data,error}=await supabaseAdmin.rpc("check_sos_pin",{_user:userId,_pin:pin});
+  return !error && data===true;
 }
 export async function throttleSubmission(contact: string) {
   const fingerprint = await hashCode(contact.toLowerCase().trim(), "public-submission");

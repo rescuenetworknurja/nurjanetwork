@@ -37,8 +37,8 @@ export function LangSync() {
   const langRef = useRef(lang);
   const ctl = useRef<ReturnType<typeof startAutoTranslate> | null>(null);
   useEffect(() => {
-    ctl.current = startAutoTranslate(document.body, () => langRef.current);
-    return () => ctl.current?.stop();
+    const timer=window.setTimeout(()=>{ctl.current=startAutoTranslate(document.body,()=>langRef.current);},300);
+    return () => {window.clearTimeout(timer);ctl.current?.stop();};
   }, []);
   useEffect(() => {
     langRef.current = lang;

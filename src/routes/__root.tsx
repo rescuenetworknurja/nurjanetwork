@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { DemoStoreProvider } from "@/lib/demo-store";
 import { LangSync } from "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
+import { publicRecordsOptions } from "@/lib/public-records";
 
 function NotFoundComponent() {
   return (
@@ -77,6 +78,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  loader: ({context}) => context.queryClient.ensureQueryData(publicRecordsOptions),
   head: () => ({
     // Replace these placeholders with the app's name and description when first building the app.
     // Each content route, / included, must still set its own head(). Never add og:image or

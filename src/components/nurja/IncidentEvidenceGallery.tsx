@@ -75,7 +75,9 @@ export function IncidentEvidenceGallery({ incidentId }: { incidentId: string }) 
           <div className="flex justify-end gap-2 p-2">
             <Button variant="outline" size="icon" title={tr("Edit tags", "ট্যাগ সম্পাদনা করুন")} aria-label={tr("Edit tags", "ট্যাগ সম্পাদনা করুন")} onClick={() => { setEditing(item.id); setDraft((item.tags ?? []).join(", ")); }}><Pencil /></Button>
             <Button variant="outline" size="icon" title={tr("Download frame", "ফ্রেম ডাউনলোড করুন")} aria-label={tr("Download frame", "ফ্রেম ডাউনলোড করুন")} onClick={() => {
-              const link = document.createElement("a"); link.href = item.src; link.download = `${item.incidentId}-${item.id}.${item.src.startsWith("data:image/jpeg") ? "jpg" : "png"}`; link.click();
+              void fetch(item.src).then(r=>r.blob()).then(blob=>{
+                const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=`${item.incidentId}-${item.id}.jpg`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+              }).catch(()=>toast.error(tr("Could not download frame","ফ্রেম ডাউনলোড করা যায়নি")));
             }}><Download /></Button>
           </div>
         </details>
