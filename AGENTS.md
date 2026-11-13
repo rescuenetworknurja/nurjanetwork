@@ -51,3 +51,4 @@ use the editor.
 - Google Places usage is counted per day in live_records (collection places_usage) inside the search server function; searches past the daily limit fall back to OpenStreetMap.
 - Incident evidence images are purged after 7 days (EVIDENCE_RETENTION_DAYS) by a once-per-day check inside getLiveSnapshot, avoiding a cron job.
 - Password reset: /auth uses Supabase email reset links; NURJASOS uses Supabase phone OTP (signInWithOtp/verifyOtp) delivered by the project's BulkSMSBD Send SMS hook, after prepareSmsPasswordReset copies profiles.phone onto the auth user.
+- Service credentials are server-side secrets only; the Control Panel shows configured/missing status, never values or inputs, so keys never reach the browser or app data.

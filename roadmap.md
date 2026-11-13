@@ -35,6 +35,7 @@
 - [x] Responder live distance + "victim moved" notice.
 - [x] Walking safe routes.
 - [x] Case PDF: victim trail + responder dispatch/arrival times.
-- [ ] API key settings form, auto-account for volunteers, seamless camera switch, auto risk zones — pending.
+- [x] API keys: server-side secrets + admin status card.
+- [ ] auto-account for volunteers, seamless camera switch, auto risk zones — pending.
 - [ ] Offline video, offline app, evidence video — skipped: large storage.
 - [ ] Nearby-5 SMS, push notifications — need SMS cost/push setup decision.

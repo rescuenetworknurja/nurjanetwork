@@ -20,6 +20,7 @@ import { toXY, toLatLng } from "@/lib/geo-map";
 import { generateVolunteerId } from "@/lib/ids";
 import { getKycReview, listProfiles, setKycStatus } from "@/lib/profile.functions";
 import { cn } from "@/lib/utils";
+import { getSecretsStatus } from "@/lib/secrets-status.functions";
 import { getPlacesUsage } from "@/lib/places.functions";
 import { PLACES_COST_PER_REQUEST, PLACES_DAILY_LIMIT, estimateCost, usageLevel } from "@/lib/places-usage";
 import { LiveMapLazy } from "../LiveMapLazy";
@@ -556,10 +557,30 @@ export function PublisherSection() {
 }
 
 export function SettingsSection() {
-  return <><PageHead title="API & System Settings" sub="NURJA" /><div className="space-y-4"><PlacesUsageCard /><Card><p className="text-sm text-muted-foreground">Private service credentials are managed securely outside this panel.</p></Card></div></>;
+  return <><PageHead title="API & System Settings" sub="NURJA" /><div className="space-y-4"><PlacesUsageCard /><SecretsStatusCard /></div></>;
 }
 
 /** Approximate Google Places search usage and cost, with a warning near the daily limit. */
+function SecretsStatusCard() {
+  const q = useQuery({ queryKey: ["secrets-status"], queryFn: () => getSecretsStatus() });
+  return (
+    <Card>
+      <p className="font-display font-bold">Service credentials</p>
+      <p className="mt-1 text-xs text-muted-foreground">Keys are stored encrypted on the server and never shown or saved in the app. To add or change a key, open Lovable project Settings → Secrets.</p>
+      <div className="mt-3 space-y-2">
+        {q.isPending && <p className="text-sm text-muted-foreground">Checking…</p>}
+        {q.isError && <p className="text-sm text-crimson">Could not check credentials</p>}
+        {q.data?.map((s) => (
+          <div key={s.service} className="flex items-center justify-between rounded-lg border p-2.5 text-sm">
+            <span>{s.service}</span>
+            {s.missing.length ? <span className="text-xs font-bold text-crimson">Missing: {s.missing.join(", ")}</span> : <span className="flex items-center gap-1 text-xs font-bold text-emerald"><Check className="h-3.5 w-3.5" /> Configured</span>}
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export function PlacesUsageCard() {
   const q = useQuery({ queryKey: ["places-usage"], queryFn: () => getPlacesUsage(), refetchInterval: 60000 });
   const rows = q.data ?? [];

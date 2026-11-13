@@ -43,7 +43,6 @@ export type DemoState = {
   posts: Post[];
   cases: CaseRecord[];
   evidence: IncidentEvidence[];
-  apiKeys: Record<string, string>;
   websiteContent: WebsiteContent;
   inquiries: Inquiry[];
   users: AppUser[];
@@ -61,7 +60,6 @@ const initial: DemoState = {
   sos: null, incidents: [], kycDocuments: {}, liveLoading: true, liveError: null,
   kyc: [], volunteerApps: [], responders: [], zones: [], posts: [], cases: [],
   evidence: [],
-  apiKeys: {},
   websiteContent: seedWebsite,
   inquiries: [],
   users: [],
