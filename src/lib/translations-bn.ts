@@ -418,10 +418,14 @@ export const BN: Record<string, string> = {
   "No stories match these filters": "এই ফিল্টারে কোনো গল্প মেলেনি",
   "Story pagination": "গল্পের পৃষ্ঠা নির্বাচন", "Previous page": "আগের পৃষ্ঠা", "Next page": "পরের পৃষ্ঠা", "Page": "পৃষ্ঠা",
   "Try another topic or a wider date range.": "অন্য বিষয় বা বড় সময়ের সীমা দেখুন।",
+  "Connecting": "সংযোগ হচ্ছে", "Connected": "সংযুক্ত", "Reconnecting": "পুনরায় সংযোগ হচ্ছে", "Disconnected": "সংযোগ বিচ্ছিন্ন", "Service unavailable": "সেবা পাওয়া যাচ্ছে না",
+  "Waiting for camera": "ক্যামেরার অপেক্ষা", "Camera live": "ক্যামেরা লাইভ", "Camera off": "ক্যামেরা বন্ধ", "Camera blocked": "ক্যামেরা অনুমতি নেই",
+  "Stream disconnected — SOS remains active": "স্ট্রিম বিচ্ছিন্ন — SOS চালু আছে", "Camera permission was blocked": "ক্যামেরার অনুমতি দেওয়া হয়নি", "Starting camera": "ক্যামেরা চালু হচ্ছে", "Retry": "আবার চেষ্টা করুন",
 };
 
 /** Pattern rules for strings that contain dynamic values. $1.. are kept as-is. */
 export const BN_PATTERNS: [RegExp, string][] = [
+  [/^Viewers: (\d+)$/, "দর্শক: $1"], [/^Watching: (\d+)$/, "দেখছেন: $1"],
   [/^Sent to (.+)\. Demo: any 6 digits work\.$/, "$1 নাম্বারে পাঠানো হয়েছে। ডেমো: যেকোনো ৬ ডিজিট চলবে।"],
   [/^([\d.]+) km away$/, "$1 কিমি দূরে"],
   [/^Volunteer (V-\w+)$/, "ভলান্টিয়ার $1"],
