@@ -140,11 +140,17 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   }, [session.user?.id, local]);
   useEffect(()=>{ generation.current++; local({...initial,websiteContent:stateRef.current.websiteContent,posts:stateRef.current.posts.filter(p=>p.published!==false),zones:stateRef.current.zones,lang:stateRef.current.lang,appView:stateRef.current.appView}); void refresh(); },[session.user?.id,refresh,local]);
   useEffect(()=>{
-    const timer=setInterval(()=>void refresh(),10000);
+    // Coalesce bursts: realtime events within 400 ms become one snapshot, never two in flight; polling pauses in hidden tabs.
+    let inFlight=false, again=false, pending:ReturnType<typeof setTimeout>|undefined;
+    const run=async()=>{if(inFlight){again=true;return;}inFlight=true;try{await refresh();}finally{inFlight=false;if(again){again=false;void run();}}};
+    const soon=()=>{clearTimeout(pending);pending=setTimeout(()=>void run(),400);};
+    const timer=setInterval(()=>{if(document.visibilityState==="visible")void run();},10000);
+    const onVisible=()=>{if(document.visibilityState==="visible")soon();};
+    document.addEventListener("visibilitychange",onVisible);
     const channel=supabase.channel(`nurja-live-${crypto.randomUUID()}`);
-    for(const table of ["incidents","dispatch_assignments","responders","live_records","incident_evidence"]) channel.on("postgres_changes",{event:"*",schema:"public",table},()=>void refresh());
-    channel.subscribe(status=>{if(status==="SUBSCRIBED") void refresh();});
-    return()=>{clearInterval(timer);void supabase.removeChannel(channel);};
+    for(const table of ["incidents","dispatch_assignments","responders","live_records","incident_evidence"]) channel.on("postgres_changes",{event:"*",schema:"public",table},soon);
+    channel.subscribe(status=>{if(status==="SUBSCRIBED") soon();});
+    return()=>{clearInterval(timer);clearTimeout(pending);document.removeEventListener("visibilitychange",onVisible);void supabase.removeChannel(channel);};
   },[refresh]);
   useEffect(()=>{try {const p=JSON.parse(localStorage.getItem(KEY)??"{}");if(p.lang==="en"||p.lang==="bn")local({lang:p.lang}); localStorage.removeItem("nurja-demo-v1");}catch{}},[local]);
   useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify({lang:state.lang}));}catch{}},[state.lang]);

@@ -5,7 +5,7 @@ import { useBi } from "@/lib/i18n";
 import { CMS_ICONS } from "@/components/nurja/cms-icons";
 import { SiteLayout } from "@/components/nurja/SiteLayout";
 import { LOGOS } from "@/components/nurja/Brand";
-import volunteers from "@/assets/story-volunteers.jpg";
+import volunteers from "@/assets/story-volunteers.webp";
 
 export const Route = createFileRoute("/our-story")({
   head: () => ({

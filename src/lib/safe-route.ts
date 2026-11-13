@@ -72,7 +72,7 @@ export type TravelMode = "car" | "foot";
 const ROUTERS: Record<TravelMode, string> = { car: "https://router.project-osrm.org/route/v1/driving", foot: "https://routing.openstreetmap.de/routed-foot/route/v1/driving" };
 async function osrm(points: LatLng[], alternatives: boolean, mode: TravelMode = "car"): Promise<Candidate[]> {
   const coords = points.map((p) => `${p[1]},${p[0]}`).join(";");
-  const r = await fetch(`${ROUTERS[mode]}/${coords}?overview=full&geometries=geojson&alternatives=${alternatives}`);
+  const r = await fetch(`${ROUTERS[mode]}/${coords}?overview=full&geometries=geojson&alternatives=${alternatives}`, { signal: AbortSignal.timeout(12000) });
   if (!r.ok) return [];
   const j = (await r.json()) as { routes?: { distance: number; duration: number; geometry: { coordinates: [number, number][] } }[] };
   return (j.routes ?? []).map((x) => ({ path: x.geometry.coordinates.map(([lng, lat]) => [lat, lng] as LatLng), meters: x.distance, seconds: x.duration }));

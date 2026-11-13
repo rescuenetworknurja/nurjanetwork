@@ -1,7 +1,7 @@
-import volunteers from "@/assets/story-volunteers.jpg";
-import patrol from "@/assets/story-patrol.jpg";
-import workshop from "@/assets/story-workshop.jpg";
-import hero from "@/assets/hero-night-street.jpg";
+import volunteers from "@/assets/story-volunteers.webp";
+import patrol from "@/assets/story-patrol.webp";
+import workshop from "@/assets/story-workshop.webp";
+import hero from "@/assets/hero-night-street.webp";
 import { mapToGeo } from "./geo";
 
 export type KycStatus = "pending" | "approved" | "rejected";

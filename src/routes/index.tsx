@@ -9,7 +9,7 @@ import { VolunteerDialog } from "@/components/nurja/VolunteerDialog";
 import { PostCard } from "@/components/nurja/PostCard";
 import { InstallNurjaButton } from "@/components/nurja/InstallNurjaButton";
 import { useDemo } from "@/lib/demo-store";
-import hero from "@/assets/hero-night-street.jpg";
+import hero from "@/assets/hero-night-street.webp";
 
 export const Route = createFileRoute("/")({
   head: () => ({
