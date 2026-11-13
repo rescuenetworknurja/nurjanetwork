@@ -78,14 +78,14 @@ function Home() {
           <p className="text-sm font-bold uppercase tracking-widest text-crimson">{L(c.sections.howEyebrow)}</p>
           <h2 className="mt-2 text-4xl font-extrabold">{L(c.sections.howTitle)}</h2>
         </div>
-        <ol className="mt-10 grid gap-4 md:grid-cols-4">
+        <ol className="mt-10 grid gap-4 md:grid-cols-4 md:gap-8">
           {c.steps.map((st, i) => { const Icon = CMS_ICONS[st.icon] ?? Radio; return (
-            <li key={st.id} className="relative overflow-hidden rounded-3xl border border-t-4 border-t-crimson bg-card p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-card animate-rise" style={{ animationDelay: `${i * 90}ms` }}>
+            <li key={st.id} className="relative rounded-3xl border border-t-4 border-t-crimson bg-card p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-card animate-rise" style={{ animationDelay: `${i * 90}ms` }}>
               <span className="font-display text-5xl font-extrabold text-crimson/15">0{i + 1}</span>
               <div className="mt-2 grid h-12 w-12 place-items-center rounded-2xl bg-crimson text-paper"><Icon className="h-6 w-6" /></div>
               <h3 className="mt-4 text-lg font-bold">{L(st.title)}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{L(st.text)}</p>
-              {i < c.steps.length - 1 && <ArrowRight className="absolute -right-3 top-1/2 hidden h-6 w-6 text-crimson md:block" />}
+              {i < c.steps.length - 1 && <ArrowRight className="absolute -right-7 top-1/2 z-10 hidden h-6 w-6 -translate-y-1/2 text-crimson md:block" />}
             </li>
           ); })}
         </ol>
