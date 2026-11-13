@@ -22,7 +22,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 pr-44 sm:px-6 sm:pr-60">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6">
           <Link to="/"><NurjaMark tagline taglineClassName="hidden sm:block" /></Link>
           <nav className="hidden flex-1 items-center gap-1 md:flex">
             {LINKS.map((l) => (
