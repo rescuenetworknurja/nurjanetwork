@@ -2,7 +2,7 @@ import { Slogan, useBi } from "@/lib/i18n";
 import { CMS_ICONS } from "@/components/nurja/cms-icons";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Radio, ShieldCheck, Users } from "lucide-react";
+import { ArrowRight, Radio, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteLayout } from "@/components/nurja/SiteLayout";
 import { VolunteerDialog } from "@/components/nurja/VolunteerDialog";
@@ -68,9 +68,6 @@ function Home() {
               <p className="flex items-center gap-2 text-xs font-bold uppercase text-crimson"><Radio className="h-3.5 w-3.5 animate-blink" /> Dispatch</p>
               <p className="mt-1 text-sm font-semibold">2 patrols · 1 fari · 1 station · 10 volunteers alerted</p>
               <p className="mt-1 text-xs text-muted-foreground">Nearest unit arriving in 3 min</p>
-            </div>
-            <div className="absolute -right-3 top-6 flex items-center gap-2 rounded-full bg-emerald px-3 py-1.5 text-xs font-bold text-paper shadow-lg">
-              <ShieldCheck className="h-4 w-4" /> KYC verified users
             </div>
           </div>
         </div>
