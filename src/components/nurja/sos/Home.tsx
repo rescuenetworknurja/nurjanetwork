@@ -240,7 +240,7 @@ function ActiveSos() {
                 <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeOpacity=".25" strokeWidth="3" />
                 <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray={94} strokeDashoffset={94 * (1 - hold / 100)} strokeLinecap="round" />
               </svg>
-              HOLD 3-5 SECONDS TO STOP SOS
+              HOLD TO STOP SOS
             </span>
           </button>
           <p className="mt-2 text-center text-[11px] text-muted-foreground">Your Security PIN will be required. Demo PIN: {d.user.pin}</p>
