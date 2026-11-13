@@ -27,8 +27,8 @@ export function PermissionPrompt() {
       let media = true;
       try {
         const [c, m, g] = await Promise.all((["camera", "microphone", "geolocation"] as PermissionName[]).map(n => navigator.permissions.query({ name: n })));
-        media = [c, m, g].some(p => p.state !== "granted");
-        if (g.state === "granted") navigator.geolocation.getCurrentPosition(rememberPosition, () => {}, { maximumAge: 60000 });
+        media = [c, m, g].some(p => p?.state !== "granted");
+        if (g?.state === "granted") navigator.geolocation.getCurrentPosition(rememberPosition, () => {}, { maximumAge: 60000 });
       } catch { media = !sessionStorage.getItem(KEY); }
       if (notif || media) {
         // Chrome allows asking right away; the card stays as a tap-to-allow fallback (needed on iPhone).
