@@ -26,3 +26,10 @@
 - Foreground pages refresh through Realtime and ten-second polling; closed-app/background push is not configured.
 - Browser camera/GPS require permission and may pause in the background; live video is not recorded automatically.
 - Police/volunteer accounts and real hazards must be entered/approved by the administrator; no invented operational data is preloaded.
+## Gap list follow-up (no heavy storage)
+- [x] Real distance/ETA in responder alert.
+- [x] Audible responder siren (generated, no file).
+- [x] Location every 3 s with in-memory resend of missed points.
+- [x] Volunteer ID collision retry.
+- [ ] Offline video, offline app, evidence video — skipped: large storage.
+- [ ] Nearby-5 SMS, push notifications — need SMS cost/push setup decision.

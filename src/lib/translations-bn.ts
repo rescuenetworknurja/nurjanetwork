@@ -289,7 +289,7 @@ export const BN: Record<string, string> = {
   "Choose a new PIN": "নতুন পিন দিন", "6 digits, used to stop SOS": "৬ ডিজিট, SOS বন্ধ করতে লাগে",
 
   // ---------- Rescue Network ----------
-  "Incoming SOS alert": "জরুরি SOS অ্যালার্ট!", "Victim distance": "ভুক্তভোগীর দূরত্ব", "Decline": "প্রত্যাখ্যান",
+  "Incoming SOS alert": "জরুরি SOS অ্যালার্ট!", "Victim distance": "ভুক্তভোগীর দূরত্ব", "Vehicle ~": "গাড়িতে ~", "On foot ~": "হেঁটে ~", "Location unavailable": "অবস্থান পাওয়া যায়নি", "Decline": "প্রত্যাখ্যান",
   "Accept / Respond": "এক্সেপ্ট ও রেসপন্ড করুন", "Area: Motijheel · Radius 3 km": "এলাকা: মতিঝিল · ব্যাসার্ধ ৩ কিমি",
   "Simulate Incoming SOS Alert": "SOS অ্যালার্ট সিমুলেট করুন", "Or trigger SOS from the NURJA app — it shows up here live.": "অথবা নুর্জা অ্যাপ থেকে SOS চালু করুন — এখানে লাইভ দেখা যাবে।",
   "MANDATORY DISPATCH — AUTO ACCEPTED": "বাধ্যতামূলক ডিসপ্যাচ — স্বয়ংক্রিয়ভাবে গৃহীত", "Distance to victim": "ভুক্তভোগীর দূরত্ব",

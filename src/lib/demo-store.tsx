@@ -154,9 +154,12 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     const id=state.sos?.userId===session.user?.id?state.sos?.id:undefined;
     const mine=state.responders.find(r=>r.id===state.responderId);
     if(!id && (!mine || mine.fixed || !state.responderOnline))return;
-    let last=0;
-    const watch=navigator.geolocation.watchPosition(p=>{if(Date.now()-last<10000)return;last=Date.now();void updateLiveLocation({data:{...(id?{incidentId:id}:{}),lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy}}).catch(()=>local({liveError:"Location update failed"}));},()=>local({liveError:"Location permission required"}),{enableHighAccuracy:true,maximumAge:5000});
-    return()=>navigator.geolocation.clearWatch(watch);
+    let last=0; const pending:{lat:number;lng:number;accuracy:number}[]=[];
+    const flush=async()=>{while(pending.length){const pt=pending[0];try{await updateLiveLocation({data:{...(id?{incidentId:id}:{}),...pt}});pending.shift();}catch{local({liveError:"Location update failed"});return;}}};
+    // Every 3 s; points missed while offline are kept (max 100, in memory only) and resent in order.
+    const watch=navigator.geolocation.watchPosition(p=>{if(Date.now()-last<3000)return;last=Date.now();pending.push({lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy});if(pending.length>100)pending.shift();void flush();},()=>local({liveError:"Location permission required"}),{enableHighAccuracy:true,maximumAge:2000});
+    const online=()=>void flush(); window.addEventListener("online",online);
+    return()=>{navigator.geolocation.clearWatch(watch);window.removeEventListener("online",online);};
   },[state.sos?.id,state.responderId,state.responderOnline,session.user?.id]);
   const run=async(task:()=>Promise<unknown>)=>{try{await task();await refresh();}catch(e){const msg=e instanceof Error&&e.message&&!e.message.startsWith("[")?e.message:"";toast.error(stateRef.current.lang==="bn"?"সংরক্ষণ করা যায়নি; আবার চেষ্টা করুন।":"Could not save; try again.",msg?{description:msg}:undefined);throw e;}};
   const set:Ctx["set"]=async input=>{

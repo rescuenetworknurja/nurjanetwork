@@ -1,3 +1,5 @@
+import { startSiren } from "@/lib/siren";
+import { estimateEta } from "@/lib/eta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, BadgeCheck, Building2, Car, CornerUpLeft, CornerUpRight, Eye, EyeOff, History, KeyRound, LogIn, LogOut, Map as MapIcon, Navigation, Phone, Radio, Shield, ShieldCheck, Siren, UserRound, Users, Video, X } from "lucide-react";
@@ -141,11 +143,20 @@ function Shell() {
     if (!d.responderOnline) void d.set({ responderOnline: true }).catch(() => {});
   }, [d.responderId]);
   const navigating = !!sos && (t1 || accepted === sos.id || sos.acceptedBy.includes(myCode));
+  const alarming = !!sos && !sos.acceptedBy.includes(myCode) && accepted !== sos.id;
+  useEffect(() => {
+    // Audible siren while an SOS awaits this responder; stops on accept/decline/end.
+    if (!alarming) return;
+    let stop = startSiren();
+    const retry = () => { stop(); stop = startSiren(); };
+    window.addEventListener("pointerdown", retry, { once: true }); // browsers may require a tap before sound
+    return () => { window.removeEventListener("pointerdown", retry); stop(); };
+  }, [alarming, sos?.id]);
 
 
 
   const alertCard = sos && !navigating && !t1 && (
-    <SosAlertCard sosId={sos.id} victim={sos.victim} area={sos.area} onDecline={() => setDismissed(sos.id)} onAccept={async () => { try {await d.acceptSos(myCode);setAccepted(sos.id);toast.success("Accepted. Navigation started.");}catch{} }} />
+    <SosAlertCard eta={estimateEta(mine, sos)} sosId={sos.id} victim={sos.victim} area={sos.area} onDecline={() => setDismissed(sos.id)} onAccept={async () => { try {await d.acceptSos(myCode);setAccepted(sos.id);toast.success("Accepted. Navigation started.");}catch{} }} />
   );
 
   return (
@@ -232,14 +243,14 @@ function Shell() {
 
 /* ---------------- Incoming SOS alert card (shared) ---------------- */
 
-function SosAlertCard({ sosId, victim, area, onDecline, onAccept }: { sosId: string; victim: string; area: string; onDecline: () => void; onAccept: () => void }) {
+function SosAlertCard({ eta, sosId, victim, area, onDecline, onAccept }: { eta: ReturnType<typeof estimateEta>; sosId: string; victim: string; area: string; onDecline: () => void; onAccept: () => void }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-crimson bg-card shadow-2xl animate-rise">
       <div className="flex items-center gap-2 bg-crimson px-4 py-2.5 text-paper"><Siren className="h-4 w-4 animate-blink" /><p className="flex-1 text-xs font-extrabold uppercase tracking-wider">Incoming SOS alert</p><span className="font-mono text-[11px]">{sosId}</span></div>
       <div className="space-y-3 p-4">
         <div className="flex items-end justify-between">
-          <div><p className="text-xs text-muted-foreground">Victim distance</p><p className="font-display text-4xl font-extrabold text-crimson">0.8 km away</p></div>
-          <p className="text-right text-xs text-muted-foreground">~3 min<br />on foot 9 min</p>
+          <div><p className="text-xs text-muted-foreground">Victim distance</p><p className="font-display text-4xl font-extrabold text-crimson">{eta ? `${eta.km < 10 ? eta.km.toFixed(1) : Math.round(eta.km)} km` : "—"}</p></div>
+          <p className="text-right text-xs text-muted-foreground">{eta ? <>Vehicle ~{eta.driveMin} min<br />On foot ~{eta.walkMin} min</> : "Location unavailable"}</p>
         </div>
         <p className="text-sm"><b>{victim.split(" ")[0]}</b> · {area}</p>
         <div className="grid grid-cols-[auto_1fr] gap-2">

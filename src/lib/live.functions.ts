@@ -292,8 +292,16 @@ export const approveLiveVolunteer = createServerFn({ method: "POST" }).middlewar
     if (!app || app.status !== "pending") throw new Error("Pending application required");
     const { data: p } = await supabaseAdmin.from("profiles").select("id").eq("phone", app.phone).maybeSingle();
     if (!p) throw new Error("This volunteer must first create a verified NURJA account");
-    const { generateVolunteerId } = await import("./ids"); const code = generateVolunteerId();
-    const { error: re } = await supabaseAdmin.from("responders").insert({ user_id: p.id, name: app.name, phone: app.phone, code, kind: "volunteer", area: app.address });
+    const { generateVolunteerId } = await import("./ids");
+    // Retry with a fresh ID when the generated code collides with an existing unit (unique violation 23505).
+    let code = ""; let re: { code?: string } | null = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      code = generateVolunteerId();
+      ({ error: re } = await supabaseAdmin.from("responders").insert({ user_id: p.id, name: app.name, phone: app.phone, code, kind: "volunteer", area: app.address }));
+      if (!re || re.code !== "23505") break;
+      const { data: dupe } = await supabaseAdmin.from("responders").select("id").eq("code", code).maybeSingle();
+      if (!dupe) break; // conflict was not the ID (e.g. account already a responder)
+    }
     if (re) throw new Error("Could not add responder; check existing account");
     const { error: roleError } = await supabaseAdmin.from("user_roles").upsert({ user_id: p.id, role: "responder" }, { onConflict: "user_id,role" });
     if (roleError) throw new Error("Role grant failed");
