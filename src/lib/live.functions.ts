@@ -33,6 +33,7 @@ export const getPublicRecords = createServerFn({ method: "GET" }).handler(async 
 
 export const getLiveSnapshot = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   const client = context.supabase;
+  try { const { purgeExpiredEvidence } = await import("./live.server"); await purgeExpiredEvidence(); } catch { /* retention cleanup must never block the snapshot */ }
   const [{ data: profile, error: pe }, { data: roles }, { data: records, error: re }, { data: incidents, error: ie }, { data: responders, error: ue }, { data: assignments }, { data: profiles }, { data: submissions }, { data: evidence }] = await Promise.all([
     client.from("profiles").select("*").eq("id", context.userId).single(),
     client.from("user_roles").select("role").eq("user_id", context.userId),
