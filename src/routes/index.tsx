@@ -54,10 +54,9 @@ function Home() {
               <InstallNurjaButton />
               <VolunteerDialog><Button size="lg" variant="outline" className="h-12 rounded-lg px-6">{L(c.hero.cta)} <ArrowRight /></Button></VolunteerDialog>
             </div>
-            <div className="grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-5">
+            <div className="grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
               <Stat label="Women protected" value={rescued.toLocaleString()} />
               <Stat label="Verified volunteers" value={volunteers.toLocaleString()} />
-              <Stat label="Police units connected" value={c.stats.police.toLocaleString()} />
               <Stat label="Avg. response" value={c.stats.response} />
               <Stat label="Live SOS now" value={String(sos ? 1 : 0)} live={!!sos} />
             </div>
