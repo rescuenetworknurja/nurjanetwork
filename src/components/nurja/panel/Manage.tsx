@@ -211,7 +211,7 @@ function UnitForm({ onDone }: { onDone: () => void }) {
         <div className="space-y-2 rounded-xl border p-4">
           <p className="flex items-center gap-2 text-sm font-bold"><MapPin className="h-4 w-4 text-navy dark:text-paper" /> Fixed location (স্থায়ী অবস্থান — Fixed GPS)</p>
           <p className="text-xs text-muted-foreground">Thana and Fari are stationary. Type the exact coordinates, paste a combined <span className="font-mono">23.6384699,90.4354191</span> string into either box, or click the map to drop the pin.</p>
-          <LiveMapLazy center={CHASHARA_CENTER} className="h-48 rounded-lg border" zones={d.zones} units={pos ? [{ id: "new", label: f.name || "New unit", kind, x: pos.x, y: pos.y, gps: "fixed" }] : []} onMapClick={pickOnMap} />
+          <LiveMapLazy center={CHASHARA_CENTER} className="h-48 rounded-lg border" zones={d.zones} units={pos ? [{ id: "new", label: f.name || "New unit", kind, x: pos.x, y: pos.y, gps: "fixed" }] : []} onMapClick={pickOnMap} focusPoint={isLat(geo.lat) && isLng(geo.lng) ? [+geo.lat, +geo.lng] : undefined} />
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>Latitude (অক্ষাংশ)</Label><Input required={fixed} inputMode="decimal" className="font-mono" value={geo.lat} onChange={(e) => onCoordChange("lat", e.target.value)} placeholder="23.6384699" /></div>
             <div className="space-y-1.5"><Label>Longitude (দ্রাঘিমাংশ)</Label><Input required={fixed} inputMode="decimal" className="font-mono" value={geo.lng} onChange={(e) => onCoordChange("lng", e.target.value)} placeholder="90.4354191" /></div>

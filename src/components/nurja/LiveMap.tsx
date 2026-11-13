@@ -77,6 +77,27 @@ function FitTo({ points, focus }: { points?: [number, number][] | undefined; foc
   return null;
 }
 
+// Leaflet measures its box once; maps opened inside animated dialogs need re-measuring
+// or tiles and pins drift apart from their real coordinates.
+function KeepSized() {
+  const map = useMap();
+  useEffect(() => {
+    const el = map.getContainer();
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(el);
+    const t = window.setTimeout(() => map.invalidateSize(), 350);
+    return () => { ro.disconnect(); window.clearTimeout(t); };
+  }, [map]);
+  return null;
+}
+
+function FocusPoint({ point }: { point?: [number, number] | undefined }) {
+  const map = useMap();
+  const k = point ? `${point[0].toFixed(6)},${point[1].toFixed(6)}` : "";
+  useEffect(() => { if (point) map.setView(point, Math.max(map.getZoom(), 16)); }, [k]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
 function ClickHandler({ onMapClick }: { onMapClick: (x: number, y: number) => void }) {
   useMapEvents({
     click: (e) => {
@@ -88,9 +109,9 @@ function ClickHandler({ onMapClick }: { onMapClick: (x: number, y: number) => vo
 }
 
 export default function LiveMap({
-  zones = [], victim, units = [], route, routeTone = "emerald", onMapClick, selectedZone, showLabels = false, path, me, endpoints, center,
+  zones = [], victim, units = [], route, routeTone = "emerald", onMapClick, selectedZone, showLabels = false, path, me, endpoints, center, focusPoint,
 }: {
-  center?: [number, number] | undefined;
+  center?: [number, number] | undefined; focusPoint?: [number, number] | undefined;
   path?: [number, number][] | undefined; me?: [number, number] | undefined; endpoints?: [[number, number], [number, number]] | undefined;
   zones?: Zone[] | undefined; victim?: { x: number; y: number } | undefined; units?: MapUnit[] | undefined;
   route?: [number, number][] | undefined; routeTone?: "emerald" | "crimson";
@@ -153,6 +174,8 @@ export default function LiveMap({
       )}
       {endpoints && <><Marker position={endpoints[0]} icon={pinIcon("#0f172a")} /><Marker position={endpoints[1]} icon={pinIcon("#10b981")} /></>}
       {me && <Marker position={me} icon={meIcon} zIndexOffset={2000} />}
+      <KeepSized />
+      <FocusPoint point={focusPoint} />
       <FitTo points={path} focus={me ?? (victim ? toLatLng(victim.x,victim.y) : units[0] ? toLatLng(units[0].x,units[0].y) : undefined)} />
     </MapContainer>
   );

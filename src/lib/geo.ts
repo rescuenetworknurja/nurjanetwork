@@ -26,7 +26,16 @@ export function geoToMap(lat: number, lng: number) {
 
 /** Splits a pasted "23.6384699,90.4354191" pair; returns null when invalid. */
 export function parseCoordPair(text: string): { lat: number; lng: number } | null {
-  const m = text.trim().match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);
+  // Google Maps DMS form: 23°38'18.5"N 90°26'07.5"E
+  const dms = [...text.matchAll(/(\d+(?:\.\d+)?)\s*°\s*(?:(\d+(?:\.\d+)?)\s*['′]\s*)?(?:(\d+(?:\.\d+)?)\s*["″]\s*)?([NSEW])/gi)];
+  if (dms.length === 2) {
+    const val = (m: RegExpMatchArray) => { const v = +m[1]! + (+(m[2] ?? 0)) / 60 + (+(m[3] ?? 0)) / 3600; return /[SW]/i.test(m[4]!) ? -v : v; };
+    const [a, b] = dms as [RegExpMatchArray, RegExpMatchArray];
+    const latM = /[NS]/i.test(a[4]!) ? a : b, lngM = latM === a ? b : a;
+    const lat = +val(latM).toFixed(7), lng = +val(lngM).toFixed(7);
+    if (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) return { lat, lng };
+  }
+  const m = text.trim().match(/^\(?\s*(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)\s*\)?$/);
   if (!m || m[1] === undefined || m[2] === undefined) return null;
   const lat = +m[1];
   const lng = +m[2];
