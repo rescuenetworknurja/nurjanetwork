@@ -10,7 +10,7 @@ async function toJpeg(src: string) {
   return canvas.toDataURL("image/jpeg", 0.85);
 }
 
-export type CaseSummary = { area?: string; date?: string; outcome?: string; duration?: string };
+export type CaseSummary = { area?: string | undefined; date?: string | undefined; outcome?: string | undefined; duration?: string | undefined };
 
 export async function buildEvidenceReport(incidentId: string, records: IncidentEvidence[], lang: "en" | "bn", victim: string, summary: CaseSummary = {}) {
   const { PDFDocument } = await import("pdf-lib");
