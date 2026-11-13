@@ -50,3 +50,4 @@ use the editor.
 - Responder briefings are incident_events rows (event='briefing') written by admins via server function and read by assigned responders through RLS, so no extra table or policy is needed.
 - Google Places usage is counted per day in live_records (collection places_usage) inside the search server function; searches past the daily limit fall back to OpenStreetMap.
 - Incident evidence images are purged after 7 days (EVIDENCE_RETENTION_DAYS) by a once-per-day check inside getLiveSnapshot, avoiding a cron job.
+- Password reset: /auth uses Supabase email reset links; NURJASOS uses Supabase phone OTP (signInWithOtp/verifyOtp) delivered by the project's BulkSMSBD Send SMS hook, after prepareSmsPasswordReset copies profiles.phone onto the auth user.

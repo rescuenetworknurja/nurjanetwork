@@ -42,6 +42,7 @@ function AuthPage() {
         <NurjaAuthForm
           initialMode="signin"
           lockMode
+          resetMethod="email"
           onDone={() => void navigate({ to: redirect as never })}
           onSignedUp={() => d.set({ appView: "onboarding" })}
         />

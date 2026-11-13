@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useDemo } from "@/lib/demo-store";
 import { supabase } from "@/integrations/supabase/client";
 import { isEmailInput, isValidBdPhone, normalizePhone, signInWithPhone, signUpWithPhone } from "@/lib/auth";
-import { resetPasswordWithOtp, sendPasswordResetOtp } from "@/lib/otp.functions";
+import { prepareSmsPasswordReset } from "@/lib/otp.functions";
 import { PinInput } from "@/components/nurja/sos/ui";
 import { cn } from "@/lib/utils";
 
@@ -17,8 +17,11 @@ export function NurjaAuthForm({
   lockMode = false,
   onDone,
   onSignedUp,
+  resetMethod = "sms",
 }: {
   initialMode?: "signin" | "signup";
+  /** "email": reset link by email (/auth). "sms": Supabase phone OTP via the BulkSMSBD auth hook (NURJASOS). */
+  resetMethod?: "email" | "sms";
   /** Hide the signin/signup toggle (e.g. the splash sheet is login-only; signup goes through the wizard). */
   lockMode?: boolean;
   onDone?: () => void;
@@ -56,7 +59,10 @@ export function NurjaAuthForm({
     fail: bn ? "সাইন ইন ব্যর্থ হয়েছে। নম্বর ও পাসওয়ার্ড যাচাই করুন।" : "Sign-in failed. Check your number and password.",
     forgot: bn ? "পাসওয়ার্ড ভুলে গেছেন?" : "Forgot password?",
     resetTitle: bn ? "পাসওয়ার্ড রিসেট" : "Reset password",
-    resetSub: bn ? "আপনার মোবাইল নম্বর দিন" : "Enter your mobile number",
+    resetSub: resetMethod === "email" ? (bn ? "আপনার ইমেইল দিন, রিসেট লিংক পাঠানো হবে" : "Enter your email to receive a reset link") : (bn ? "আপনার মোবাইল নম্বর দিন" : "Enter your mobile number"),
+    email: bn ? "ইমেইল" : "Email",
+    badEmail: bn ? "সঠিক ইমেইল দিন" : "Enter a valid email",
+    sendLink: bn ? "রিসেট লিংক পাঠান" : "Send reset link",
     sendOtp: bn ? "OTP পাঠান" : "Send OTP",
     otpTitle: bn ? "OTP যাচাই করুন" : "Verify OTP",
     otpSub: bn ? "আপনার মোবাইলে পাঠানো ৬ সংখ্যার কোডটি লিখুন" : "Enter the 6-digit code sent to your mobile",
@@ -90,8 +96,8 @@ export function NurjaAuthForm({
 
   async function submitResetPhone(e: React.FormEvent) {
     e.preventDefault();
-    if (isEmailInput(phone)) {
-      // Email accounts (e.g. admin) reset via an emailed link.
+    if (resetMethod === "email") {
+      if (!isEmailInput(phone)) { toast.error(t.badEmail); return; }
       setBusy(true);
       try {
         const { error } = await supabase.auth.resetPasswordForEmail(phone.trim().toLowerCase(), {
@@ -110,14 +116,14 @@ export function NurjaAuthForm({
     if (!isValidBdPhone(phone)) { toast.error(t.badPhone); return; }
     setBusy(true);
     try {
-      const r = await sendPasswordResetOtp({ data: { phone: normalizePhone(phone) } });
-      if (!r.ok) {
-        toast.error(r.error === "notfound" ? t.notFound : t.fail);
-        return;
-      }
+      const r = await prepareSmsPasswordReset({ data: { phone: normalizePhone(phone) } });
+      if (!r.ok) { toast.error(r.error === "notfound" ? t.notFound : t.fail); return; }
+      // Supabase sends the code through the configured SMS hook (BulkSMSBD).
+      const { error } = await supabase.auth.signInWithOtp({ phone: `+${normalizePhone(phone)}`, options: { shouldCreateUser: false } });
+      if (error) throw error;
       setResetOtp("");
       setResetStep("otp");
-      startResendTimer(r.resendIn);
+      startResendTimer(60);
     } catch {
       toast.error(t.fail);
     } finally {
@@ -128,9 +134,14 @@ export function NurjaAuthForm({
   async function submitResetOtp(e: React.FormEvent) {
     e.preventDefault();
     if (resetOtp.length !== 6) { toast.error(t.otpWrong); return; }
-    // The code is verified together with the password save; move to the
-    // password step here and let resetPasswordWithOtp reject a wrong code.
-    setResetStep("password");
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({ phone: `+${normalizePhone(phone)}`, token: resetOtp, type: "sms" });
+      if (error) { toast.error(/expired/i.test(error.message) ? t.otpExpired : t.otpWrong); return; }
+      setResetStep("password");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function submitNewPassword(e: React.FormEvent) {
@@ -139,16 +150,9 @@ export function NurjaAuthForm({
     if (newPass !== newPass2) { toast.error(t.passMismatch); return; }
     setBusy(true);
     try {
-      const r = await resetPasswordWithOtp({
-        data: { phone: normalizePhone(phone), code: resetOtp, password: newPass },
-      });
-      if (!r.ok) {
-        if (r.error === "wrong") { toast.error(t.otpWrong); setResetStep("otp"); }
-        else if (r.error === "expired") { toast.error(t.otpExpired); setResetStep("phone"); }
-        else if (r.error === "locked") { toast.error(t.otpLocked); setResetStep("phone"); }
-        else toast.error(t.fail);
-        return;
-      }
+      const { error } = await supabase.auth.updateUser({ password: newPass });
+      if (error) throw error;
+      await supabase.auth.signOut();
       toast.success(t.resetDone);
       setResetStep("done");
     } catch {
@@ -225,9 +229,10 @@ export function NurjaAuthForm({
                 className={inputCls}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder={t.phone}
-                inputMode="tel"
-                autoComplete="tel"
+                placeholder={resetMethod === "email" ? t.email : "01XXXXXXXXX"}
+                inputMode={resetMethod === "email" ? "email" : "tel"}
+                type={resetMethod === "email" ? "email" : "tel"}
+                autoComplete={resetMethod === "email" ? "email" : "tel"}
               />
             </div>
             <button
@@ -236,7 +241,7 @@ export function NurjaAuthForm({
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-crimson py-3 text-sm font-bold text-paper shadow-sos transition hover:brightness-110 disabled:opacity-60"
             >
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-              {t.sendOtp}
+              {resetMethod === "email" ? t.sendLink : t.sendOtp}
             </button>
             {backBtn}
           </form>
@@ -245,7 +250,7 @@ export function NurjaAuthForm({
             <PinInput value={resetOtp} onChange={setResetOtp} autoFocus />
             <button
               type="submit"
-              disabled={resetOtp.length !== 6}
+              disabled={resetOtp.length !== 6 || busy}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-crimson py-3 text-sm font-bold text-paper shadow-sos transition hover:brightness-110 disabled:opacity-60"
             >
               {t.verifyOtp}
@@ -414,7 +419,7 @@ export function AuthSheet({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <NurjaAuthForm key={initialMode} initialMode={initialMode} lockMode onDone={onClose} onSignedUp={onSignedUp} />
+        <NurjaAuthForm key={initialMode} initialMode={initialMode} lockMode resetMethod="sms" onDone={onClose} onSignedUp={onSignedUp} />
       </div>
     </div>
   );

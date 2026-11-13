@@ -138,3 +138,21 @@ export const registerVerifiedPhone = createServerFn({ method: "POST" })
     await supabaseAdmin.from("phone_otps").delete().eq("phone", data.phone);
     return { ok: true as const };
   });
+
+/**
+ * Prepares a registered account for Supabase phone OTP: copies the verified
+ * profile phone onto the auth user so the Supabase SMS hook (BulkSMSBD) can deliver the code.
+ */
+export const prepareSmsPasswordReset = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ phone: phoneSchema }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: prof } = await supabaseAdmin.from("profiles").select("id").eq("phone", data.phone).maybeSingle();
+    if (!prof) return { ok: false as const, error: "notfound" as const };
+    const { data: u } = await supabaseAdmin.auth.admin.getUserById(prof.id);
+    if (u.user?.phone !== data.phone) {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(prof.id, { phone: data.phone, phone_confirm: true });
+      if (error) return { ok: false as const, error: "failed" as const };
+    }
+    return { ok: true as const };
+  });
