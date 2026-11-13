@@ -355,7 +355,7 @@ export const BN: Record<string, string> = {
   "Volunteer / Officer — accept to respond": "ভলান্টিয়ার / অফিসার — গ্রহণ করে রেসপন্ড", "e.g. Patrol Unit DMP-21": "যেমন: পেট্রোল ইউনিট DMP-21",
   "Volunteer ID": "ভলান্টিয়ার আইডি", "TaskForce ID": "টাস্কফোর্স আইডি", "Unit code": "ইউনিট কোড", "Auto-generated (V-XXXXXX)": "স্বয়ংক্রিয়ভাবে তৈরি (V-XXXXXX)",
   "Auto if empty": "খালি রাখলে স্বয়ংক্রিয়", "Type 1": "টাইপ ১", "Type 2": "টাইপ ২", "New unsafe zone": "নতুন ঝুঁকিপূর্ণ জোন",
-  "Zone added — set its name and rating": "জোন যোগ হয়েছে — নাম ও মাত্রা দিন", "Safe Route Hazard Manager": "ঝুঁকিপূর্ণ জোন ম্যাপ",
+  "Zone added — set its name and rating": "জোন যোগ হয়েছে — নাম ও মাত্রা দিন", "Safe Route Hazard Manager": "ঝুঁকিপূর্ণ জোন ম্যাপ", "Radius (meters)": "ব্যাসার্ধ (মিটার)", "Between 10 m and 500 m · press Enter to save": "১০ মি থেকে ৫০০ মি · সংরক্ষণে Enter চাপুন", "Enter a value between 10 and 500 m": "১০ থেকে ৫০০ মি-এর মধ্যে মান দিন",
   "Click anywhere on the map to add an unsafe zone. Changes show in the NURJA Safe Route map instantly.": "ঝুঁকিপূর্ণ জোন যোগ করতে ম্যাপের যেকোনো জায়গায় ক্লিক করুন। পরিবর্তন সাথে সাথে নুর্জা নিরাপদ রুট ম্যাপে দেখা যাবে।",
   "Your story title": "গল্পের শিরোনাম", "Story text preview…": "গল্পের প্রিভিউ…", "NURJA Control": "নুর্জা কন্ট্রোল",
   "That YouTube link doesn't look right": "ইউটিউব লিংকটি সঠিক মনে হচ্ছে না", "NURJA app": "নুর্জা অ্যাপ", "Website blog": "ওয়েবসাইট ব্লগ", "Published": "প্রকাশিত",

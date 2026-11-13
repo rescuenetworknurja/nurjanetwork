@@ -2,7 +2,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Circle, MapContainer, Marker, Polyline, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { useEffect } from "react";
-import { MAP_CENTER, toLatLng, toXY, zoneRadiusMeters } from "@/lib/geo-map";
+import { MAP_CENTER, toLatLng, toXY, zoneMeters } from "@/lib/geo-map";
 import type { Zone } from "@/lib/mock-data";
 import type { MapUnit } from "./TacticalMap";
 
@@ -128,7 +128,7 @@ export default function LiveMap({
         <Circle
           key={z.id}
           center={toLatLng(z.x, z.y)}
-          radius={zoneRadiusMeters(z.r)}
+          radius={zoneMeters(z)}
           pathOptions={{
             color: selectedZone === z.id ? "var(--amber)" : zoneColor(z.rating),
             weight: selectedZone === z.id ? 2 : 1,

@@ -1,6 +1,6 @@
 /** Safety analysis for routes against marked risk zones. Pure + network helpers. */
 import type { Zone } from "./mock-data";
-import { toLatLng, zoneRadiusMeters } from "./geo-map";
+import { toLatLng, zoneMeters } from "./geo-map";
 import type { LatLng } from "./routing";
 
 export const HIGH_RISK = 4; // rating >= 4 must be avoided
@@ -34,7 +34,7 @@ export function analyzePath(path: LatLng[], zones: Zone[]): ZoneHit[] {
   return zones
     .filter((z) => z.rating >= CONCERN)
     .map((zone) => {
-      const d = pathDistance(path, toLatLng(zone.x, zone.y)) - zoneRadiusMeters(zone.r);
+      const d = pathDistance(path, toLatLng(zone.x, zone.y)) - zoneMeters(zone);
       return { zone, meters: Math.max(0, Math.round(d)), inside: d <= 0 };
     })
     .filter((h) => h.meters <= NEARBY_BUFFER_M)
@@ -59,7 +59,7 @@ export function rankRoutes(cands: Candidate[], zones: Zone[]): Scored[] {
 /** Two detour waypoints passing on either side of a zone, perpendicular to travel direction. */
 export function detourPoints(zone: Zone, from: LatLng, to: LatLng): LatLng[] {
   const c = toLatLng(zone.x, zone.y);
-  const off = (zoneRadiusMeters(zone.r) * 1.7) / 111000;
+  const off = (zoneMeters(zone) * 1.7) / 111000;
   const dy = to[0] - from[0], dx = (to[1] - from[1]) * Math.cos((c[0] * Math.PI) / 180);
   const len = Math.hypot(dx, dy) || 1;
   const px = -dy / len, py = dx / len; // perpendicular (unit, in lat-ish degrees)

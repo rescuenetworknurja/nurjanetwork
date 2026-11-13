@@ -29,6 +29,11 @@ export function toXY(lat: number, lng: number): { x: number; y: number } {
 export function zoneRadiusMeters(r: number): number {
   return Math.max(150, r * 200);
 }
+export const ZONE_MIN_METERS = 10, ZONE_MAX_METERS = 500;
+/** Admin-entered radius (10–500 m) when set; older zones fall back to the legacy scale. */
+export function zoneMeters(z: { r: number; meters?: number | undefined }): number {
+  return z.meters !== undefined ? Math.min(ZONE_MAX_METERS, Math.max(ZONE_MIN_METERS, z.meters)) : zoneRadiusMeters(z.r);
+}
 
 // Control panel maps open on Chashara, Narayanganj.
 export const CHASHARA_CENTER: [number, number] = [23.6236, 90.4999];

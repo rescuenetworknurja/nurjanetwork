@@ -9,3 +9,11 @@ describe("live map coordinates", () => {
     expect(lng).toBeCloseTo(91.7832, 8);
   });
 });
+import { zoneMeters } from "./geo-map";
+describe("zoneMeters", () => {
+  it("clamps admin radius to 10–500 m", () => {
+    expect(zoneMeters({ r: 1, meters: 5 })).toBe(10);
+    expect(zoneMeters({ r: 1, meters: 900 })).toBe(500);
+    expect(zoneMeters({ r: 1, meters: 120 })).toBe(120);
+  });
+});

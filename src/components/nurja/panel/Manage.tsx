@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useDemo } from "@/lib/demo-store";
 import { IMAGES, isType1, type Responder, type Zone } from "@/lib/mock-data";
 import { fmtCoord, isLat, isLng, parseCoordPair } from "@/lib/geo";
-import { toXY, toLatLng } from "@/lib/geo-map";
+import { toXY, toLatLng, zoneMeters, ZONE_MIN_METERS, ZONE_MAX_METERS } from "@/lib/geo-map";
 import { generateVolunteerId } from "@/lib/ids";
 import { getKycReview, listProfiles, setKycStatus } from "@/lib/profile.functions";
 import { cn } from "@/lib/utils";
@@ -463,6 +463,20 @@ export function NetworkSection() {
 
 const RATING_LABEL = ["", "Low", "Guarded", "Moderate", "High", "Extreme"];
 
+function RadiusInput({ meters, onSave }: { meters: number; onSave: (m: number) => void }) {
+  const [v, setV] = useState(String(Math.round(meters)));
+  const n = Number(v);
+  const valid = v.trim() !== "" && Number.isFinite(n) && n >= ZONE_MIN_METERS && n <= ZONE_MAX_METERS;
+  const commit = () => { if (valid && Math.round(n) !== Math.round(meters)) onSave(Math.round(n)); };
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor="zone-radius">Radius (meters)</Label>
+      <Input id="zone-radius" type="number" inputMode="numeric" min={ZONE_MIN_METERS} max={ZONE_MAX_METERS} value={v} onChange={(e) => setV(e.target.value)} onBlur={commit} onKeyDown={(e) => e.key === "Enter" && commit()} aria-invalid={!valid} />
+      <p className={cn("text-xs", valid ? "text-muted-foreground" : "text-crimson")}>{valid ? "Between 10 m and 500 m · press Enter to save" : "Enter a value between 10 and 500 m"}</p>
+    </div>
+  );
+}
+
 export function HazardSection() {
   const d = useDemo();
   const [sel, setSel] = useState<string | null>(d.zones[0]?.id ?? null);
@@ -470,7 +484,7 @@ export function HazardSection() {
   const update = (p: Partial<Zone>) => d.set((s) => ({ zones: s.zones.map((x) => (x.id === sel ? { ...x, ...p } : x)) }));
   const add = (x: number, y: number) => {
     const id = `z${Date.now()}`;
-    d.set((s) => ({ zones: [...s.zones, { id, name: "New unsafe zone", x, y, r: 6, rating: 3 }] }));
+    d.set((s) => ({ zones: [...s.zones, { id, name: "New unsafe zone", x, y, r: 6, rating: 3, meters: 100 }] }));
     setSel(id); toast("Zone added — set its name and rating");
   };
   return (
@@ -488,11 +502,11 @@ export function HazardSection() {
                 <div className="space-y-1.5"><Label>Name</Label><Input value={z.name} onChange={(e) => update({ name: e.target.value })} /></div>
                 <div className="space-y-2">
                   <div className="flex justify-between"><Label>Danger rating</Label><span className="text-sm font-bold">{z.rating} · {RATING_LABEL[z.rating]}</span></div>
-                  <Slider min={1} max={5} step={1} value={[z.rating]} onValueChange={([v]) => update({ rating: v as Zone["rating"] })} />
+                  <div className="grid grid-cols-5 gap-1.5">{([1, 2, 3, 4, 5] as const).map((n) => <Button key={n} type="button" variant={z.rating === n ? "default" : "outline"} className={cn("h-10 rounded-lg font-bold", z.rating === n && "bg-crimson hover:bg-crimson/90")} onClick={() => update({ rating: n })}>{n}</Button>)}</div>
                   <div className="h-2 rounded-full" style={{ background: "linear-gradient(90deg, var(--zone-1), var(--zone-3), var(--zone-5))" }} />
                   <div className="flex justify-between text-[10px] text-muted-foreground"><span>1 Light red</span><span>5 Dark red</span></div>
                 </div>
-                <div className="space-y-2"><Label>Radius</Label><Slider min={0.5} max={15} step={0.5} value={[z.r]} onValueChange={([v]) => update({ r: v ?? 6 })} /><p className="text-xs text-muted-foreground">{Math.round(z.r*200)} m</p></div>
+                <RadiusInput key={z.id} meters={zoneMeters(z)} onSave={(meters) => update({ meters })} />
                 <Button variant="outline" className="w-full text-crimson" onClick={() => { d.set((s) => ({ zones: s.zones.filter((x) => x.id !== sel) })); setSel(null); }}><Trash2 /> Delete zone</Button>
               </div>
             ) : <p className="text-sm text-muted-foreground">Select a zone or click the map to add one.</p>}

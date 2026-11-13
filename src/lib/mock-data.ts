@@ -10,7 +10,7 @@ export type Post = {
   tag: string; date: string; author: string; targets: { app: boolean; rescue: boolean; blog: boolean };
   titleBn?: string | undefined; excerptBn?: string | undefined; bodyBn?: string | undefined; published?: boolean;
 };
-export type Zone = { id: string; name: string; x: number; y: number; r: number; rating: 1 | 2 | 3 | 4 | 5 };
+export type Zone = { id: string; name: string; x: number; y: number; r: number; rating: 1 | 2 | 3 | 4 | 5; meters?: number | undefined };
 export type KycSubmission = {
   id: string; name: string; phone: string; dob: string; type: "adult" | "minor"; status: KycStatus; submittedAt: string;
   birthReg?: string; guardian?: { name: string; phone: string; relation: string };
