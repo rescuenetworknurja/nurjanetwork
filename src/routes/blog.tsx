@@ -145,7 +145,7 @@ function Blog() {
                     onClick={() => setSharePost(featured)}
                     className="inline-flex w-fit items-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold transition hover:bg-muted"
                   >
-                    <Share2 className="h-4 w-4" />{tr("Share as photocard", "পফোটোকার্ড হিসেবে শেয়র করুন")}
+                    <Share2 className="h-4 w-4" />{tr("Share as photocard", "ফটোকার্ড হিসেবে শেয়ার করুন")}
                   </button>
                 </div>
               </article>

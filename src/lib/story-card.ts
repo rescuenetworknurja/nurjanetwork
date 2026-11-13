@@ -143,12 +143,27 @@ async function loadImage(src: string): Promise<HTMLImageElement | null> {
   }
 }
 
-/** Cover-crop a photo into the card's top band. */
+/** Cover-crop a photo into the card's top band, clipped so it never spills below. */
 function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: number, h: number) {
   const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
   const dw = img.naturalWidth * scale;
   const dh = img.naturalHeight * scale;
-  ctx.drawImage(img, (w - dw) / 2, 0, dw, dh);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, w, h);
+  ctx.clip();
+  ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  ctx.restore();
+}
+
+/** Shorten text with a middle ellipsis until it fits `maxWidth`. */
+function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let out = text;
+  while (out.length > 8 && ctx.measureText(`${out}…`).width > maxWidth) {
+    out = out.slice(0, -1);
+  }
+  return `${out}…`;
 }
 
 async function ensureFonts(lang: Lang) {
@@ -177,11 +192,11 @@ async function paint(spec: StoryCardSpec, photo?: HTMLImageElement): Promise<Blo
   const photoH = 620;
   if (photo) {
     drawCover(ctx, photo, spec.width, photoH);
-    const fade = ctx.createLinearGradient(0, photoH - 190, 0, photoH);
+    const fade = ctx.createLinearGradient(0, photoH - 220, 0, photoH);
     fade.addColorStop(0, "rgba(15,23,42,0)");
     fade.addColorStop(1, NAVY);
     ctx.fillStyle = fade;
-    ctx.fillRect(0, photoH - 190, spec.width, 190);
+    ctx.fillRect(0, photoH - 220, spec.width, 220);
   } else {
     const band = ctx.createLinearGradient(0, 0, spec.width, photoH);
     band.addColorStop(0, CRIMSON);
@@ -267,7 +282,9 @@ async function paint(spec: StoryCardSpec, photo?: HTMLImageElement): Promise<Blo
   ctx.textAlign = "right";
   ctx.fillStyle = CRIMSON;
   ctx.font = `700 26px ${body}`;
-  ctx.fillText(spec.host || spec.url, spec.width - 64, 1288);
+  // Keep the link clear of the brand block on the left (icon + wordmark end ~x=340).
+  const link = fitText(ctx, spec.host || spec.url, spec.width - 64 - 360);
+  ctx.fillText(link, spec.width - 64, 1288);
   ctx.textAlign = "left";
 
   return new Promise<Blob>((resolve, reject) => {
