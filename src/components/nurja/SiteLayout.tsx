@@ -10,8 +10,8 @@ import { VolunteerDialog } from "./VolunteerDialog";
 
 const LINKS = [
   { to: "/", label: "Home" },
-  { to: "/our-story", label: "Our Story" },
-  { to: "/blog", label: "Blog" },
+  { to: "/our-story", label: "About us" },
+  { to: "/blog", label: "Stories" },
   { to: "/contact", label: "Contact Us" },
 ] as const;
 
