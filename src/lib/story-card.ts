@@ -12,7 +12,6 @@ const NAVY_SOFT = "#1E293B";
 const PAPER = "#F8FAFC";
 const MUTED = "#94A3B8";
 const CRIMSON = "#E11D48";
-const EMERALD = "#10B981";
 
 const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTHS_BN = [
@@ -77,7 +76,7 @@ export type StoryCardSpec = {
   excerpt: string;
   /** "Author · 8 Nov 2026" style byline. */
   byline: string;
-  /** Link printed on the card and shared with it. */
+  /** Link included in the share message, not printed on the card. */
   url: string;
   host: string;
   brand: string;
@@ -156,16 +155,6 @@ function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: numb
   ctx.restore();
 }
 
-/** Shorten text with a middle ellipsis until it fits `maxWidth`. */
-function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
-  if (ctx.measureText(text).width <= maxWidth) return text;
-  let out = text;
-  while (out.length > 8 && ctx.measureText(`${out}…`).width > maxWidth) {
-    out = out.slice(0, -1);
-  }
-  return `${out}…`;
-}
-
 async function ensureFonts(lang: Lang) {
   if (typeof document === "undefined" || !document.fonts) return;
   const faces =
@@ -205,20 +194,6 @@ async function paint(spec: StoryCardSpec, photo?: HTMLImageElement): Promise<Blo
     ctx.fillRect(0, 0, spec.width, photoH);
   }
 
-  // Verified badge sitting on the photo.
-  ctx.font = `700 26px ${body}`;
-  const badgeW = ctx.measureText(spec.badge).width + 74;
-  ctx.fillStyle = "rgba(15,23,42,0.78)";
-  roundRect(ctx, 64, 64, badgeW, 56, 12);
-  ctx.fill();
-  ctx.fillStyle = EMERALD;
-  ctx.beginPath();
-  ctx.arc(98, 92, 9, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = PAPER;
-  ctx.textBaseline = "middle";
-  ctx.fillText(spec.badge, 118, 94);
-
   ctx.fillStyle = CRIMSON;
   roundRect(ctx, 64, 676, 92, 8, 4);
   ctx.fill();
@@ -230,6 +205,7 @@ async function paint(spec: StoryCardSpec, photo?: HTMLImageElement): Promise<Blo
   roundRect(ctx, 64, 712, tagW, 52, 12);
   ctx.fill();
   ctx.fillStyle = PAPER;
+  ctx.textBaseline = "middle";
   ctx.fillText(spec.tag.toUpperCase(), 88, 740);
 
   // Headline.
@@ -259,32 +235,30 @@ async function paint(spec: StoryCardSpec, photo?: HTMLImageElement): Promise<Blo
   ctx.lineTo(spec.width - 64, 1212);
   ctx.stroke();
 
-  // Footer: mark + slogan + link.
+  // Footer: right-aligned brand and slogan, with no printed link.
+  const footerRight = spec.width - 64;
+  ctx.font = `800 34px ${display}`;
+  const markX = footerRight - ctx.measureText(spec.brand).width - 88;
   if (spec.icon) {
     const mark = await loadImage(spec.icon);
     if (mark) {
       ctx.save();
-      roundRect(ctx, 64, 1240, 72, 72, 16);
+      roundRect(ctx, markX, 1232, 72, 72, 16);
       ctx.clip();
       ctx.fillStyle = PAPER;
-      ctx.fillRect(64, 1240, 72, 72);
-      ctx.drawImage(mark, 64, 1240, 72, 72);
+      ctx.fillRect(markX, 1232, 72, 72);
+      ctx.drawImage(mark, markX, 1232, 72, 72);
       ctx.restore();
     }
   }
   ctx.fillStyle = PAPER;
   ctx.font = `800 34px ${display}`;
-  ctx.fillText(spec.brand, 152, 1276);
+  ctx.textAlign = "right";
+  ctx.fillText(spec.brand, footerRight, 1276);
   ctx.fillStyle = MUTED;
   ctx.font = `500 22px ${body}`;
   const slogan = wrapText(spec.slogan, (s) => ctx.measureText(s).width, 620, 1);
-  ctx.fillText(slogan[0] ?? spec.slogan, 152, 1306);
-  ctx.textAlign = "right";
-  ctx.fillStyle = CRIMSON;
-  ctx.font = `700 26px ${body}`;
-  // Keep the link clear of the brand block on the left (icon + wordmark end ~x=340).
-  const link = fitText(ctx, spec.host || spec.url, spec.width - 64 - 360);
-  ctx.fillText(link, spec.width - 64, 1288);
+  ctx.fillText(slogan[0] ?? spec.slogan, footerRight, 1330);
   ctx.textAlign = "left";
 
   return new Promise<Blob>((resolve, reject) => {
