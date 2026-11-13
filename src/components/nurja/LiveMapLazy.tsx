@@ -19,6 +19,7 @@ export type LiveMapProps = {
   path?: [number, number][] | undefined;
   me?: [number, number] | undefined;
   endpoints?: [[number, number], [number, number]] | undefined;
+  center?: [number, number] | undefined;
   children?: React.ReactNode;
 };
 

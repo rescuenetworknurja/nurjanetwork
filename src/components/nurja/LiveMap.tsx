@@ -88,15 +88,16 @@ function ClickHandler({ onMapClick }: { onMapClick: (x: number, y: number) => vo
 }
 
 export default function LiveMap({
-  zones = [], victim, units = [], route, routeTone = "emerald", onMapClick, selectedZone, showLabels = false, path, me, endpoints,
+  zones = [], victim, units = [], route, routeTone = "emerald", onMapClick, selectedZone, showLabels = false, path, me, endpoints, center,
 }: {
+  center?: [number, number] | undefined;
   path?: [number, number][] | undefined; me?: [number, number] | undefined; endpoints?: [[number, number], [number, number]] | undefined;
   zones?: Zone[] | undefined; victim?: { x: number; y: number } | undefined; units?: MapUnit[] | undefined;
   route?: [number, number][] | undefined; routeTone?: "emerald" | "crimson";
   onMapClick?: ((x: number, y: number) => void) | undefined; selectedZone?: string | undefined; showLabels?: boolean;
 }) {
   return (
-    <MapContainer center={MAP_CENTER} zoom={13} className="h-full w-full" style={{ height: "100%", width: "100%" }} attributionControl>
+    <MapContainer center={center ?? MAP_CENTER} zoom={center ? 14 : 13} className="h-full w-full" style={{ height: "100%", width: "100%" }} attributionControl>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"

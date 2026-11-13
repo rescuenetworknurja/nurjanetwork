@@ -5,6 +5,7 @@ import { useDemo } from "@/lib/demo-store";
 import { VICTIM_POS } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { LiveMapLazy } from "../LiveMapLazy";
+import { CHASHARA_CENTER } from "@/lib/geo-map";
 import { CameraFeed } from "../CameraFeed";
 import { useNetworkUnits, useNow } from "../sos/Home";
 import { toXY } from "@/lib/geo-map";
@@ -47,7 +48,7 @@ export function DashboardSection({ go }: { go: (s: string) => void }) {
       <div className="mt-4 grid gap-4 xl:grid-cols-[2fr_1fr]">
         <Card className="overflow-hidden p-0">
           <div className="flex items-center justify-between p-4"><p className="font-display font-bold">Live overview map</p><span className="flex items-center gap-1.5 text-xs text-emerald"><span className="h-2 w-2 rounded-full bg-emerald animate-blink" />Realtime</span></div>
-          <LiveMapLazy className="h-[420px]" zones={d.zones} victim={d.sos?.lat!==undefined&&d.sos.lng!==undefined?toXY(d.sos.lat,d.sos.lng):undefined} units={units} />
+          <LiveMapLazy center={CHASHARA_CENTER} className="h-[420px]" zones={d.zones} victim={d.sos?.lat!==undefined&&d.sos.lng!==undefined?toXY(d.sos.lat,d.sos.lng):undefined} units={units} />
         </Card>
         <Card>
           <p className="font-display font-bold">Activity feed</p>
@@ -96,7 +97,7 @@ export function IncidentSection() {
       <div className="mb-4 flex flex-wrap gap-2">{d.incidents.map(i=><Button key={i.id} variant={i.id===s.id?"default":"outline"} onClick={()=>d.selectIncident(i.id)}>{i.victim} · {i.id.slice(0,8)}</Button>)}</div>
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="overflow-hidden p-0">
-          <LiveMapLazy className="h-[520px]" victim={s.lat!==undefined&&s.lng!==undefined?toXY(s.lat,s.lng):undefined} units={units} zones={d.zones} />
+          <LiveMapLazy center={CHASHARA_CENTER} className="h-[520px]" victim={s.lat!==undefined&&s.lng!==undefined?toXY(s.lat,s.lng):undefined} units={units} zones={d.zones} />
           <div className="grid grid-cols-5 gap-px border-t bg-border text-center text-xs">
             {[{ l: "Patrol", v: units.filter(u=>u.kind==="patrol").length, i: Car }, { l: "Fari", v: units.filter(u=>u.kind==="fari").length, i: Siren }, { l: "Station", v: units.filter(u=>u.kind==="station").length, i: Building2 }, { l: "Volunteers", v: units.filter(u=>u.kind==="volunteer").length, i: User }, { l: "SMS sent", v: s.smsStatus==="sent"?1:0, i: Activity }].map((x) => (
               <div key={x.l} className="bg-card p-3"><x.i className="mx-auto h-4 w-4 text-muted-foreground" /><p className="font-display text-lg font-extrabold">{x.v}</p><p className="text-muted-foreground">{x.l}</p></div>

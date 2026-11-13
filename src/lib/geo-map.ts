@@ -29,3 +29,6 @@ export function toXY(lat: number, lng: number): { x: number; y: number } {
 export function zoneRadiusMeters(r: number): number {
   return Math.max(150, r * 200);
 }
+
+// Control panel maps open on Chashara, Narayanganj.
+export const CHASHARA_CENTER: [number, number] = [23.6236, 90.4999];
