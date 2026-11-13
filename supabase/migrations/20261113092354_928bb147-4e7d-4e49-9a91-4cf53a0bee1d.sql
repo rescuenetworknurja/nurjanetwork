@@ -1,0 +1,1 @@
+ALTER FUNCTION public.send_sms_bulksmsbd(jsonb) SET search_path = '';
