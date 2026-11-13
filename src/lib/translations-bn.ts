@@ -160,7 +160,7 @@ export const BN: Record<string, string> = {
   "Guardian NID — Front": "অভিভাবকের NID — সামনে", "Must match the guardian name above": "উপরের অভিভাবকের নামের সাথে মিলতে হবে",
   "Submit for verification": "যাচাইয়ের জন্য জমা দিন", "KYC submitted for review": "কেওয়াইসি পর্যালোচনার জন্য জমা হয়েছে",
   "SOS unlocks as soon as the Control Panel approves you.": "কন্ট্রোল প্যানেল অনুমোদন দিলেই SOS চালু হবে।",
-  "Enter a valid number like 01XXXXXXXXX": "সঠিক নাম্বার দিন, যেমন 01XXXXXXXXX", "Enter the 6-digit code": "৬ ডিজিটের কোড দিন",
+  "Enter a valid number like 01XXXXXXXXX": "সঠিক নাম্বার দিন, যেমন 01XXXXXXXXX", "Enter the 6-digit code": "৬ ডিজিটের কোড দিন", "Code sent by SMS": "এসএমএসে কোড পাঠানো হয়েছে", "Resend code": "আবার কোড পাঠান", "Wrong code. Try again.": "ভুল কোড। আবার চেষ্টা করুন।", "Too many wrong tries. Request a new code.": "অনেকবার ভুল হয়েছে। নতুন কোড নিন।", "Code expired. Request a new code.": "কোডের মেয়াদ শেষ। নতুন কোড নিন।", "Could not verify the code. Try again.": "কোড যাচাই করা যায়নি। আবার চেষ্টা করুন।", "Could not send the code. Check the number and try again.": "কোড পাঠানো যায়নি। নাম্বার দেখে আবার চেষ্টা করুন।", "Please wait a moment before requesting a new code.": "নতুন কোডের জন্য একটু অপেক্ষা করুন।", "Phone verification expired. Verify your number again.": "ফোন যাচাইয়ের মেয়াদ শেষ। আবার যাচাই করুন।",
   "Password must be at least 8 characters": "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে", "Passwords do not match": "পাসওয়ার্ড মেলেনি",
   "PIN must be 6 digits": "পিন ৬ ডিজিটের হতে হবে", "PINs do not match": "পিন মেলেনি", "Enter your full name": "আপনার পূর্ণ নাম দিন",
   "Pick your date of birth": "জন্মতারিখ নির্বাচন করুন", "Please check your date of birth": "জন্মতারিখ আবার দেখুন",

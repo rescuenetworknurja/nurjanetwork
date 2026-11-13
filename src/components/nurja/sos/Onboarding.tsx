@@ -1,6 +1,6 @@
 import { Slogan } from "@/lib/i18n";
 import { AuthSheet } from "@/components/nurja/AuthSheet";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Baby, Eye, EyeOff, KeyRound, Loader2, Lock, Phone, ShieldCheck, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,8 @@ import { LOGOS } from "../Brand";
 import { PinInput, UploadCard } from "./ui";
 import { useDemo } from "@/lib/demo-store";
 import { ageFromDob, isValidBdPhone } from "@/lib/ids";
-import { signUpWithPhone } from "@/lib/auth";
+import { normalizePhone, signInWithPhone } from "@/lib/auth";
+import { registerVerifiedPhone, sendRegistrationOtp, verifyRegistrationOtp } from "@/lib/otp.functions";
 import { cn } from "@/lib/utils";
 
 const RELATIONS = ["Mother", "Father", "Sister", "Brother", "Husband", "Guardian", "Friend"];
@@ -61,9 +62,52 @@ export function Onboarding() {
   const set = (p: Partial<typeof f>) => setF((x) => ({ ...x, ...p }));
 
   const back = () => (step === 7 && sub > 0 ? setSub(sub - 1) : step > 1 ? setStep(step - 1) : d.set({ appView: "main" }));
-  const next = () => {
+  const [resendIn, setResendIn] = useState(0);
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
+
+  const sendCode = async (): Promise<boolean> => {
+    setBusy(true);
+    try {
+      const r = await sendRegistrationOtp({ data: { phone: normalizePhone(f.phone) } });
+      if (!r.ok) {
+        toast.error(r.error === "exists" ? "This number already has an account. Log in instead." : "Please wait a moment before requesting a new code.");
+        return false;
+      }
+      setResendIn(r.resendIn);
+      toast.success("Code sent by SMS");
+      return true;
+    } catch {
+      toast.error("Could not send the code. Check the number and try again.");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const checkCode = async (): Promise<boolean> => {
+    setBusy(true);
+    try {
+      const r = await verifyRegistrationOtp({ data: { phone: normalizePhone(f.phone), code: f.otp } });
+      if (r.ok) return true;
+      toast.error(r.error === "wrong" ? "Wrong code. Try again." : r.error === "locked" ? "Too many wrong tries. Request a new code." : "Code expired. Request a new code.");
+      return false;
+    } catch {
+      toast.error("Could not verify the code. Try again.");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const next = async () => {
     const err = validate();
     if (err) return toast.error(err);
+    if (step === 1) { if (await sendCode()) setStep(2); return; }
+    if (step === 2) { if (await checkCode()) setStep(3); return; }
     if (step === 7) {
       if (sub < 2) return setSub(sub + 1);
       finish(); return;
@@ -92,13 +136,13 @@ export function Onboarding() {
     setBusy(true);
     try {
       // Create the real account first; only then enter the app.
-      const data = await signUpWithPhone({ phone: f.phone, password: f.password, fullName: f.name.trim() });
-      if (!data.session) {
-        // No session (email confirmation on): back to the splash so they can log in.
-        toast.success("Account created! Now log in with your phone and password.");
-        d.set({ appView: "main" });
-        return;
+      const phone = normalizePhone(f.phone);
+      const r = await registerVerifiedPhone({ data: { phone, password: f.password, fullName: f.name.trim() } });
+      if (!r.ok) {
+        if (r.error === "unverified") { toast.error("Phone verification expired. Verify your number again."); setStep(1); setSub(0); return; }
+        throw new Error(r.error === "exists" ? "already exists" : "failed");
       }
+      await signInWithPhone(phone, f.password);
       d.set((s) => ({
         appView: "main",
         user: { name: f.name, phone: f.phone, dob: f.dob, adult, emergencyName: f.gName || "Family contact", emergencyPhone: f.ePhone, relation: f.eRel, pin: f.pin },
@@ -145,8 +189,8 @@ export function Onboarding() {
           </div>
         )}
 
-        {step === 2 && <Head icon={ShieldCheck} title="Enter the code" text={`Sent to ${f.phone || "your phone"}. Demo: any 6 digits work.`} />}
-        {step === 2 && <><PinInput value={f.otp} onChange={(v) => set({ otp: v })} autoFocus /><p className="text-center text-sm text-muted-foreground">Didn't get it? <button className="font-semibold text-crimson" onClick={() => toast("New code sent")}>Resend in 0:45</button></p></>}
+        {step === 2 && <Head icon={ShieldCheck} title="Enter the code" text={`Sent by SMS to ${f.phone || "your phone"}.`} />}
+        {step === 2 && <><PinInput value={f.otp} onChange={(v) => set({ otp: v })} autoFocus /><p className="text-center text-sm text-muted-foreground">Didn't get it? <button className="font-semibold text-crimson disabled:text-muted-foreground" disabled={resendIn > 0 || busy} onClick={() => { set({ otp: "" }); void sendCode(); }}>{resendIn > 0 ? `Resend in 0:${String(resendIn).padStart(2, "0")}` : "Resend code"}</button></p></>}
 
         {step === 3 && <Head icon={Lock} title="Create a password" text="You'll use this to log in on a new device." />}
         {step === 3 && (

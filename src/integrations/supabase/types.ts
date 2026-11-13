@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      phone_otps: {
+        Row: {
+          attempts: number
+          code_hash: string
+          expires_at: string
+          phone: string
+          sent_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          expires_at: string
+          phone: string
+          sent_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          expires_at?: string
+          phone?: string
+          sent_at?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_status: string
