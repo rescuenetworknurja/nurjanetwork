@@ -24,6 +24,15 @@ export type StoryFilter = {
 
 export const DEFAULT_STORY_FILTER: StoryFilter = { topic: "All", range: "all", from: "", to: "", sort: "newest" };
 
+/** Paginate the filtered result, including the featured story in the page limit. */
+export function paginateStories(posts: Post[], requestedPage: number) {
+  const pageSize = 4;
+  const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+  const page = Math.min(totalPages, Math.max(1, Math.floor(requestedPage)));
+  const offset = (page - 1) * pageSize;
+  return { items: posts.slice(offset, offset + pageSize), page, totalPages };
+}
+
 /** Every distinct topic in the list, alphabetical, ready for filter chips. */
 export function storyTopics(posts: Post[]): string[] {
   return Array.from(new Set(posts.map((p) => p.tag))).sort();

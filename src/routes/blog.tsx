@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { CalendarDays, ChevronDown, Share2, X } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Share2, X } from "lucide-react";
 import { SiteLayout } from "@/components/nurja/SiteLayout";
 import { StoryShareDialog } from "@/components/nurja/StoryShareDialog";
 import { PostCard, PostMedia } from "@/components/nurja/PostCard";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDemo } from "@/lib/demo-store";
 import type { Post } from "@/lib/mock-data";
@@ -13,6 +14,7 @@ import {
   DATE_RANGES,
   DEFAULT_STORY_FILTER,
   filterStories,
+  paginateStories,
   storyFilterActive,
   storyTopics,
   type StoryDateRange,
@@ -28,6 +30,8 @@ export const Route = createFileRoute("/blog")({
       { name: "description", content: "Verified incident stories, safety awareness guides and videos from the NURJA Rescue Network. Filter by topic and publication date." },
       { property: "og:title", content: "Stories & Awareness — Incident Stories | NURJA" },
       { property: "og:description", content: "Verified incident stories, safety awareness guides and videos. Filter by topic and publication date." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Blog,
@@ -42,11 +46,19 @@ function Blog() {
   const topics = useMemo(() => ["All", ...storyTopics(all)], [all]);
 
   const [filter, setFilter] = useState<StoryFilter>(DEFAULT_STORY_FILTER);
-  const set = <K extends keyof StoryFilter>(key: K, value: StoryFilter[K]) =>
+  const [requestedPage, setPage] = useState(1);
+  const set = <K extends keyof StoryFilter>(key: K, value: StoryFilter[K]) => {
+    setPage(1);
     setFilter((f) => ({ ...f, [key]: value }));
+  };
 
   const list = useMemo(() => filterStories(all, filter), [all, filter]);
-  const [featured, ...rest] = list;
+  const { items, page, totalPages } = paginateStories(list, requestedPage);
+  const [featured, ...rest] = items;
+  const changePage = (next: number) => {
+    setPage(next);
+    document.getElementById("story-results")?.scrollIntoView({ block: "start" });
+  };
   const active = storyFilterActive(filter);
   const [sharePost, setSharePost] = useState<Post | null>(null);
 
@@ -113,14 +125,14 @@ function Blog() {
             </label>
 
             {active && (
-              <button type="button" onClick={() => setFilter(DEFAULT_STORY_FILTER)}
+              <button type="button" onClick={() => { setFilter(DEFAULT_STORY_FILTER); setPage(1); }}
                 className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-semibold hover:bg-muted">
                 <X className="h-3.5 w-3.5" />{tr("Clear filters")}
               </button>
             )}
 
             <p className="ml-auto text-sm text-muted-foreground">
-              {tr("Showing")} {num(list.length)} {tr("of")} {num(all.length)} {tr("stories")}
+              {tr("Showing")} {num(items.length)} {tr("of")} {num(list.length)} {tr("stories")}
             </p>
           </div>
         </div>
@@ -131,7 +143,7 @@ function Blog() {
             <p className="mt-1 text-sm text-muted-foreground">{tr("Try another topic or a wider date range.")}</p>
           </div>
         ) : (
-          <>
+          <div id="story-results" className="scroll-mt-24">
             {featured && (
               <article id={featured.id} className="mt-8 grid overflow-hidden rounded-3xl border bg-card shadow-card md:grid-cols-2">
                 <PostMedia post={featured} className="h-full" />
@@ -151,7 +163,20 @@ function Blog() {
               </article>
             )}
             <div className="mt-8 grid gap-6 md:grid-cols-3">{rest.map((p) => <PostCard key={p.id} post={p} id={p.id} onShare={() => setSharePost(p)} />)}</div>
-          </>
+            {totalPages > 1 && (
+              <nav aria-label={tr("Story pagination")} className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                <Button variant="outline" disabled={page === 1} onClick={() => changePage(page - 1)}>
+                  <ChevronLeft className="h-4 w-4" />{tr("Previous page")}
+                </Button>
+                <span aria-live="polite" className="text-sm font-semibold tabular-nums">
+                  {tr("Page")} {num(page)} {tr("of")} {num(totalPages)}
+                </span>
+                <Button variant="outline" disabled={page === totalPages} onClick={() => changePage(page + 1)}>
+                  {tr("Next page")}<ChevronRight className="h-4 w-4" />
+                </Button>
+              </nav>
+            )}
+          </div>
         )}
       </section>
       <StoryShareDialog post={sharePost} open={!!sharePost} onOpenChange={(v) => { if (!v) setSharePost(null); }} />

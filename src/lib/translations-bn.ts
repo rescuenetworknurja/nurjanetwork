@@ -396,6 +396,7 @@ export const BN: Record<string, string> = {
   "From": "থেকে", "To": "পরয়ন্ত", "Order": "ক্রম", "Newest first": "নতুন আগে", "Oldest first": "পুরনো আগে",
   "Clear filters": "ফিল্টার সরান", "Showing": "দেখাচ্ছ", "of": "এর মধ্যে", "stories": "টা গল্প",
   "No stories match these filters": "এই ফিল্টারে কোনো গল্প মেলেনি",
+  "Story pagination": "গল্পের পৃষ্ঠা নির্বাচন", "Previous page": "আগের পৃষ্ঠা", "Next page": "পরের পৃষ্ঠা", "Page": "পৃষ্ঠা",
   "Try another topic or a wider date range.": "অন্য বিষয় বা বড় সময়ের সীমা দেখুন।",
 };
 

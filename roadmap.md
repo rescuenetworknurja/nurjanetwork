@@ -3,3 +3,4 @@
 - [x] Add manifest and original app icons without offline caching.
 - [x] Keep install copy editable through Website CMS.
 - [x] Verify the installation button and fallback instructions.
+- [x] Add four-post Stories pagination and verify next/previous navigation and filter resets.
