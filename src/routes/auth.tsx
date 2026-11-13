@@ -25,7 +25,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { redirect, mode: initialMode } = Route.useSearch();
+  const { redirect } = Route.useSearch();
   const session = useSession();
   const d = useDemo();
 
@@ -40,8 +40,8 @@ function AuthPage() {
       <div className="absolute right-4 top-4"><LangToggle /></div>
       <div className="w-full max-w-sm">
         <NurjaAuthForm
-          key={initialMode ?? "signin"}
-          initialMode={initialMode ?? "signin"}
+          initialMode="signin"
+          lockMode
           onDone={() => void navigate({ to: redirect as never })}
           onSignedUp={() => d.set({ appView: "onboarding" })}
         />
