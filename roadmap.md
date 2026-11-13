@@ -18,6 +18,7 @@
 - [x] Store incident evidence and KYC files privately; retain report, tag and search workflows.
 - [x] Replace simulated victim camera with authenticated live-video integration and truthful unavailable states.
 - [x] Verify public mobile/desktop pages, contact persistence and automated rules; inspect server permissions.
+- [x] Resolve place search through Google Places with an OpenStreetMap fallback; keep map rendering unchanged.
 - [ ] Configure LiveKit relay credentials; blocked on owner's LiveKit project URL, key and secret and service approval.
 - [ ] Verify OTP delivery and signed-in multi-device SOS, responder, CMS and evidence workflows; external unmanaged authentication provides no test session.
 

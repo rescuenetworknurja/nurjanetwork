@@ -154,12 +154,12 @@ function UnitForm({ onDone }: { onDone: () => void }) {
     if (pair) { setGeo({ lat: fmtCoord(pair.lat), lng: fmtCoord(pair.lng) }); setPos(toXY(pair.lat, pair.lng)); return; }
     setSearching(true);
     try {
-      const { geocode } = await import("@/lib/routing");
-      const r = await geocode(q);
+      const { findPlace } = await import("@/lib/place-search");
+      const r = await findPlace(q);
       if (!r) { toast.error("Place not found"); return; }
       setGeo({ lat: fmtCoord(r.point[0]), lng: fmtCoord(r.point[1]) }); setPos(toXY(r.point[0], r.point[1]));
       toast.success("Pin placed", { description: r.label });
-    } catch { toast.error("Search failed. Try again."); } finally { setSearching(false); }
+    } catch (e) { toast.error(e instanceof Error && e.message ? e.message : "Search failed. Try again."); } finally { setSearching(false); }
   };
 
   /** Fill the coordinate boxes from a map click. */

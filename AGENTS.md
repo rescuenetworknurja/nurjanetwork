@@ -46,3 +46,4 @@ use the editor.
 - Live video tokens are incident-scoped: only the incident owner publishes, authorized responders/admins subscribe, and missing relay configuration shows an unavailable state.
 - Public CMS records load through the root query loader before hydration so first render matches persisted content.
 - Map coordinate transforms are reversible without clipping, preserving real locations outside the initial map bounds.
+- Place lookups resolve through Google Places (New) called from an authenticated server function via the connector gateway, falling back to OpenStreetMap geocoding when Google returns nothing; keep map rendering on the provider already in use so no browser Maps key is required and a custom domain cannot break search.

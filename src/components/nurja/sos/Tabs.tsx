@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { geocode, type LatLng } from "@/lib/routing";
+import { type LatLng } from "@/lib/routing";
+import { findPlace } from "@/lib/place-search";
 import { findSafeRoutes, type Scored } from "@/lib/safe-route";
 import { useTripShare, trackUrl } from "@/lib/trip-share";
 import { Radio, Share2, MessageSquare, ArrowUpDown, Circle, Clock, Fingerprint, KeyRound, LogOut, MapPin, Phone, Route as RouteIcon, ShieldCheck, ShieldAlert, Lock, UserRound, Users } from "lucide-react";
@@ -48,7 +49,7 @@ export function SafeRouteTab() {
 
   const resolve = async (q: string): Promise<LatLng | null> => {
     if (q.trim() === "" || q === MY_LOC) return me ?? null;
-    return (await geocode(q))?.point ?? null;
+    return (await findPlace(q, me))?.point ?? null;
   };
 
   const start = async () => {
@@ -66,8 +67,8 @@ export function SafeRouteTab() {
       setOpts({ ...r, ends: [a, b] }); setPick(0);
       if (r.ranked[0]!.crossings > 0) toast.warning("No safer alternative available — route passes a high-risk zone");
       else toast.success("Safe route found");
-    } catch {
-      toast.error("Route service unavailable, try again");
+    } catch (e) {
+      toast.error(e instanceof Error && e.message ? e.message : "Route service unavailable, try again");
     } finally { setBusy(false); }
   };
 
