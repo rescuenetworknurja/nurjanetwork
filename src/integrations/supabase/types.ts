@@ -625,6 +625,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      respond_to_incident: {
+        Args: { _id: string; _state: string }
+        Returns: undefined
+      }
       send_sms_bulksmsbd: { Args: { event: Json }; Returns: Json }
       start_incident: {
         Args: { _accuracy?: number; _lat: number; _lng: number }
