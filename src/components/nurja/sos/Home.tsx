@@ -127,7 +127,7 @@ export function HomeTab() {
         <p className="mt-6 max-w-[260px] text-center text-xs text-muted-foreground">Tapping starts a 3-second countdown, then alerts police and volunteers near you.</p>
       </div>
 
-      <div className="relative space-y-3 px-5 pb-4">
+      <div className="relative space-y-3 px-5 pb-28">
         <div className="grid grid-cols-3 gap-2">
           {[
             { I: Car, v: "2 Patrols", s: "0.6 km", c: "text-navy" },
