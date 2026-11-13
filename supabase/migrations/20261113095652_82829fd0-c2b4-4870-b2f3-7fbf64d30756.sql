@@ -1,0 +1,3 @@
+REVOKE EXECUTE ON FUNCTION public.can_access_incident(uuid) FROM anon; REVOKE EXECUTE ON FUNCTION public.start_incident(double precision,double precision,double precision) FROM anon; REVOKE EXECUTE ON FUNCTION public.complete_incident(uuid,text,text) FROM anon;
+CREATE POLICY security_service_only ON public.user_security FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY submission_service_only ON public.public_submission_limits FOR ALL TO service_role USING (true) WITH CHECK (true);
