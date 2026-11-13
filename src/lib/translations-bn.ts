@@ -3,6 +3,14 @@
  * Keys are the exact English text as rendered (whitespace-trimmed).
  */
 export const BN: Record<string, string> = {
+  "Allow emergency access": "জরুরি অনুমতি দিন",
+  "SOS needs these so responders can find and see you.": "রেসপন্ডাররা যেন আপনাকে খুঁজে ও দেখতে পান, সেজন্য SOS-এর এগুলো দরকার।",
+  "Microphone": "মাইক্রোফোন", "Later": "পরে", "Allow": "অনুমতি দিন",
+  "Location permission is blocked. Allow location for this site in browser settings, then try again.": "লোকেশনের অনুমতি বন্ধ আছে। ব্রাউজার সেটিংসে এই সাইটের লোকেশন চালু করে আবার চেষ্টা করুন।",
+  "Your location could not be found. Turn on GPS and try again. Call 999.": "আপনার লোকেশন পাওয়া যায়নি। GPS চালু করে আবার চেষ্টা করুন। ৯৯৯-এ কল করুন।",
+  "This browser cannot share location. Call 999.": "এই ব্রাউজার লোকেশন দিতে পারে না। ৯৯৯-এ কল করুন।",
+  "SOS could not be sent. Check internet. Call 999.": "SOS পাঠানো যায়নি। ইন্টারনেট দেখুন। ৯৯৯-এ কল করুন।",
+  "Notifications": "নোটিফিকেশন",
   "Edit": "সম্পাদনা",
   "Edit Police Unit": "পুলিশ ইউনিট সম্পাদনা",
   "Save changes": "পরিবর্তন সংরক্ষণ",

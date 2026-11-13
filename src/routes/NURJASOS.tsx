@@ -8,6 +8,7 @@ import { HomeTab } from "@/components/nurja/sos/Home";
 import { CommunityTab, ProfileTab, SafeRouteTab } from "@/components/nurja/sos/Tabs";
 import { useDemo } from "@/lib/demo-store";
 import { AuthGate } from "@/components/nurja/AuthGate";
+import { PermissionPrompt } from "@/components/nurja/sos/PermissionPrompt";
 import { useSession } from "@/lib/auth";
 import { getMyProfile } from "@/lib/profile.functions";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,7 @@ function NurjaApp() {
     <AuthGate redirectTo="/NURJASOS" signedOut={<SignedOutView />}>
     <PhoneFrame>
       <ProfileSync />
+      {!locked && d.appView !== "onboarding" && <PermissionPrompt />}
       {locked ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
           <span className="relative grid h-24 w-24 place-items-center rounded-full bg-crimson text-paper shadow-sos">

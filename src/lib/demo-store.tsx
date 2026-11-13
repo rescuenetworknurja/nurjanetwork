@@ -172,7 +172,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const ctx:Ctx={...state,set,refresh,selectIncident:id=>{selectedIncident.current=id;local({sos:state.incidents.find(i=>i.id===id)??null});},
     selfKyc:state.kyc.find(k=>k.id===state.selfKycId)?.status??"pending",setSelfKyc:status=>local({kyc:state.kyc.map(k=>k.id===state.selfKycId?{...k,status}:k)}),setAdult:()=>{},
     selfStatus:state.users.find(u=>u.id===state.selfKycId)?.status??"active",selfBanReason:state.users.find(u=>u.id===state.selfKycId)?.banReason,
-    triggerSos:async()=>{const p=await new Promise<GeolocationPosition>((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:15000,maximumAge:5000}));await run(()=>startLiveSos({data:{lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy}}));},
+    triggerSos:async()=>{const {getSosPosition}=await import("./device-location");const p=await getSosPosition();await run(()=>startLiveSos({data:{lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy}}));},
     stopSos:async(outcome,pin)=>{if(!state.sos)return;await run(()=>pin?cancelLiveSos({data:{id:state.sos?.id??"",pin}}):completeLiveSos({data:{id:state.sos?.id??"",status:"closed",outcome:outcome??"Closed by control room"}}));},
     markRescued:async()=>{if(state.sos)await run(()=>completeLiveSos({data:{id:state.sos?.id??"",status:"rescued",outcome:"Rescued safely — confirmed by control room"}}));},
     markArrived:async()=>{if(state.sos)await run(()=>respondToLiveSos({data:{id:state.sos?.id??"",state:"arrived"}}));},

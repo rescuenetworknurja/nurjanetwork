@@ -39,7 +39,7 @@ export function HomeTab() {
 
   useEffect(() => {
     if (count === null) return;
-    if (count === 0) { setCount(null); void d.triggerSos().catch(() => toast.error("SOS could not be sent. Check location permission and internet. Call 999.")); return; }
+    if (count === 0) { setCount(null); void d.triggerSos().catch((e: unknown) => { const m = e instanceof Error && e.message && !e.message.startsWith("[") ? e.message : ""; if (m.startsWith("Location") || m.startsWith("Your location") || m.startsWith("This browser")) toast.error(m); else toast.error("SOS could not be sent. Check internet. Call 999.", m ? { description: m } : undefined); }); return; }
     const t = setTimeout(() => setCount(count - 1), 1000);
     return () => clearTimeout(t);
   }, [count]); // eslint-disable-line react-hooks/exhaustive-deps
