@@ -70,7 +70,7 @@ function Splash() {
         <p className="mt-8 font-display text-2xl font-extrabold tracking-wide">Rescue Network</p>
         <Slogan className="mt-1 text-xs text-paper/60" />
         <Button size="lg" className="mt-8 h-13 w-full rounded-lg text-base font-bold" onClick={() => void d.set({ rescueAuth: "login" })}>
-          <ShieldCheck /> Proceed to Responder Login
+          <ShieldCheck /> Responder Login
         </Button>
         <p className="mt-4 text-[11px] text-paper/40">NURJA Emergency Response & Women Safety Ecosystem</p>
       </div>

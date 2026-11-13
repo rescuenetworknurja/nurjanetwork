@@ -412,7 +412,7 @@ export const BN: Record<string, string> = {
   "Latitude (অক্ষাংশ)": "অক্ষাংশ", "Longitude (দ্রাঘিমাংশ)": "দ্রাঘিমাংশ",
   "User Database": "ইউজার ডাটাবেজ",
   "Connecting to Central Dispatch & GPS Satellite…": "সেন্ট্রাল ডিসপ্যাচ ও GPS স্যাটেলাইটের সাথে সংযোগ হচ্ছে…",
-  "Proceed to Responder Login": "লগইন পেজে যান",
+  "Responder Login": "রেসপন্ডার লগইন",
   "NURJA Emergency Response & Women Safety Ecosystem": "নুর্জা জরুরি সাড়া ও নারী নিরাপত্তা ইকোসিস্টেম",
   "Rescue Network Login": "রেসকিউ নেটওয়ার্ক লগইন",
   "Duty phone / Unit code / Volunteer or TaskForce ID": "মোবাইল নাম্বার / ইউনিট কোড / ভলান্টিয়ার বা টাস্কফোর্স আইডি",
