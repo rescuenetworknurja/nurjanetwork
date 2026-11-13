@@ -50,7 +50,7 @@ export function InstallNurjaButton() {
 
   return (
     <>
-      <Button size="lg" variant="outline" className="h-12 rounded-lg px-6" disabled={busy} onClick={install}>
+      <Button size="lg" className="h-12 rounded-lg px-6 shadow-sos" disabled={busy} onClick={install}>
         <Download />{label ? L(label) : "NURJASOS"}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>

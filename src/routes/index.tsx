@@ -55,7 +55,7 @@ function Home() {
             </p>
             <div className="flex flex-wrap gap-3">
               <InstallNurjaButton />
-              <VolunteerDialog><Button size="lg" className="h-12 rounded-lg px-6 shadow-sos">{L(c.hero.cta)} <ArrowRight /></Button></VolunteerDialog>
+              <VolunteerDialog><Button size="lg" variant="outline" className="h-12 rounded-lg px-6">{L(c.hero.cta)} <ArrowRight /></Button></VolunteerDialog>
             </div>
             <div className="grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-5">
               <Stat label="Women protected" value={rescued.toLocaleString()} />
