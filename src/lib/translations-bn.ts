@@ -3,6 +3,12 @@
  * Keys are the exact English text as rendered (whitespace-trimmed).
  */
 export const BN: Record<string, string> = {
+  "Search": "খুঁজুন",
+  "Search a place on the map (e.g. Chashara, Narayanganj)": "ম্যাপে স্থান খুঁজুন (যেমন চাষাড়া, নারায়ণগঞ্জ)",
+  "Place not found": "স্থান পাওয়া যায়নি",
+  "Pin placed": "পিন বসানো হয়েছে",
+  "Search failed. Try again.": "খোঁজা ব্যর্থ হয়েছে। আবার চেষ্টা করুন।",
+  "Searching…": "খোঁজা হচ্ছে…",
   "Could not download frame": "ফ্রেম ডাউনলোড করা যায়নি",
   "Message sent": "বার্তা পাঠানো হয়েছে",
   "Connecting camera": "ক্যামেরা সংযুক্ত হচ্ছে",

@@ -146,6 +146,21 @@ function UnitForm({ onDone }: { onDone: () => void }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [geo, setGeo] = useState({ lat: "", lng: "" });
   const fixed = kind !== "patrol";
+  const [q, setQ] = useState("");
+  const [searching, setSearching] = useState(false);
+  const searchMap = async () => {
+    if (!q.trim()) return;
+    const pair = parseCoordPair(q);
+    if (pair) { setGeo({ lat: fmtCoord(pair.lat), lng: fmtCoord(pair.lng) }); setPos(toXY(pair.lat, pair.lng)); return; }
+    setSearching(true);
+    try {
+      const { geocode } = await import("@/lib/routing");
+      const r = await geocode(q);
+      if (!r) { toast.error("Place not found"); return; }
+      setGeo({ lat: fmtCoord(r.point[0]), lng: fmtCoord(r.point[1]) }); setPos(toXY(r.point[0], r.point[1]));
+      toast.success("Pin placed", { description: r.label });
+    } catch { toast.error("Search failed. Try again."); } finally { setSearching(false); }
+  };
 
   /** Fill the coordinate boxes from a map click. */
   const pickOnMap = (x: number, y: number) => {
@@ -211,7 +226,11 @@ function UnitForm({ onDone }: { onDone: () => void }) {
         <div className="space-y-2 rounded-xl border p-4">
           <p className="flex items-center gap-2 text-sm font-bold"><MapPin className="h-4 w-4 text-navy dark:text-paper" /> Fixed location (স্থায়ী অবস্থান — Fixed GPS)</p>
           <p className="text-xs text-muted-foreground">Thana and Fari are stationary. Type the exact coordinates, paste a combined <span className="font-mono">23.6384699,90.4354191</span> string into either box, or click the map to drop the pin.</p>
-          <LiveMapLazy center={CHASHARA_CENTER} className="h-48 rounded-lg border" zones={d.zones} units={pos ? [{ id: "new", label: f.name || "New unit", kind, x: pos.x, y: pos.y, gps: "fixed" }] : []} onMapClick={pickOnMap} focusPoint={isLat(geo.lat) && isLng(geo.lng) ? [+geo.lat, +geo.lng] : undefined} />
+          <div className="flex gap-2">
+            <Input value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void searchMap(); } }} placeholder="Search a place on the map (e.g. Chashara, Narayanganj)" />
+            <Button type="button" variant="outline" className="rounded-lg" disabled={searching} onClick={() => void searchMap()}>{searching ? "Searching…" : "Search"}</Button>
+          </div>
+          <LiveMapLazy center={CHASHARA_CENTER} className="h-64 rounded-lg border" zones={d.zones} units={pos ? [{ id: "new", label: f.name || "New unit", kind, x: pos.x, y: pos.y, gps: "fixed" }] : []} onMapClick={pickOnMap} focusPoint={isLat(geo.lat) && isLng(geo.lng) ? [+geo.lat, +geo.lng] : undefined} />
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>Latitude (অক্ষাংশ)</Label><Input required={fixed} inputMode="decimal" className="font-mono" value={geo.lat} onChange={(e) => onCoordChange("lat", e.target.value)} placeholder="23.6384699" /></div>
             <div className="space-y-1.5"><Label>Longitude (দ্রাঘিমাংশ)</Label><Input required={fixed} inputMode="decimal" className="font-mono" value={geo.lng} onChange={(e) => onCoordChange("lng", e.target.value)} placeholder="90.4354191" /></div>
