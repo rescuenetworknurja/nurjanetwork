@@ -47,3 +47,5 @@ use the editor.
 - Public CMS records load through the root query loader before hydration so first render matches persisted content.
 - Map coordinate transforms are reversible without clipping, preserving real locations outside the initial map bounds.
 - Place lookups resolve through Google Places (New) called from an authenticated server function via the connector gateway, falling back to OpenStreetMap geocoding when Google returns nothing; keep map rendering on the provider already in use so no browser Maps key is required and a custom domain cannot break search.
+- Responder briefings are incident_events rows (event='briefing') written by admins via server function and read by assigned responders through RLS, so no extra table or policy is needed.
+- Google Places usage is counted per day in live_records (collection places_usage) inside the search server function; searches past the daily limit fall back to OpenStreetMap.

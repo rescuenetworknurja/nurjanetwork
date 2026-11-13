@@ -7,6 +7,7 @@ import { LiveMapLazy } from "@/components/nurja/LiveMapLazy";
 import { VictimCamera } from "@/components/nurja/VictimCamera";
 import { IncidentEvidenceGallery } from "@/components/nurja/IncidentEvidenceGallery";
 import { PostCard } from "@/components/nurja/PostCard";
+import { BriefingView } from "@/components/nurja/IncidentBriefing";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -278,6 +279,7 @@ function SidePanel({ alert, navigating }: { alert: React.ReactNode; navigating: 
       {sos && (
         <>
           <VictimCamera camera={sos.camera} />
+          <BriefingView incidentId={sos.id} />
           <div className="rounded-2xl border bg-card p-4 text-sm">
             <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Victim & emergency contact</p>
             <p className="font-bold">{sos.victim}</p>

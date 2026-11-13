@@ -20,6 +20,8 @@ import { toXY, toLatLng } from "@/lib/geo-map";
 import { generateVolunteerId } from "@/lib/ids";
 import { listProfiles, setKycStatus } from "@/lib/profile.functions";
 import { cn } from "@/lib/utils";
+import { getPlacesUsage } from "@/lib/places.functions";
+import { PLACES_COST_PER_REQUEST, PLACES_DAILY_LIMIT, estimateCost, usageLevel } from "@/lib/places-usage";
 import { LiveMapLazy } from "../LiveMapLazy";
 import { CHASHARA_CENTER } from "@/lib/geo-map";
 import { PostCard } from "../PostCard";
@@ -139,12 +141,18 @@ const OnlineDot = ({ on }: { on: boolean }) => (
 );
 
 /** "+ Add Type 1 Police Unit" — fixed GPS for Thana/Fari, live GPS for Patrolling Units. */
-function UnitForm({ onDone }: { onDone: () => void }) {
+/** Next free code for a prefix, so a deleted/renamed unit never causes a duplicate. */
+function nextCode(existing: string[], prefix: string, start: number, pad: number) {
+  const nums = existing.filter((c) => c.startsWith(prefix)).map((c) => parseInt(c.slice(prefix.length), 10)).filter((n) => !Number.isNaN(n));
+  return `${prefix}${String(Math.max(start, ...nums) + 1).padStart(pad, "0")}`;
+}
+
+function UnitForm({ onDone, initial }: { onDone: () => void; initial?: Responder | undefined }) {
   const d = useDemo();
-  const [kind, setKind] = useState<"station" | "fari" | "patrol">("station");
-  const [f, setF] = useState({ name: "", nameBn: "", code: "", area: "", inCharge: "", rank: "", phone: "", password: "", vehicleNo: "", patrolZone: "" });
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const [geo, setGeo] = useState({ lat: "", lng: "" });
+  const [kind, setKind] = useState<"station" | "fari" | "patrol">((initial?.kind as "station" | "fari" | "patrol") ?? "station");
+  const [f, setF] = useState({ name: initial?.name ?? "", nameBn: initial?.nameBn ?? "", code: initial?.code ?? "", area: initial?.area ?? "", inCharge: initial?.inCharge ?? "", rank: initial?.rank ?? "", phone: initial?.phone ? initial.phone.replace(/^88/, "") : "", password: "", vehicleNo: initial?.vehicleNo ?? "", patrolZone: initial?.patrolZone ?? "" });
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(initial?.lat !== undefined && initial?.lng !== undefined ? toXY(initial.lat, initial.lng) : null);
+  const [geo, setGeo] = useState({ lat: initial?.lat !== undefined ? fmtCoord(initial.lat) : "", lng: initial?.lng !== undefined ? fmtCoord(initial.lng) : "" });
   const fixed = kind !== "patrol";
   const [q, setQ] = useState("");
   const [searching, setSearching] = useState(false);
@@ -185,9 +193,14 @@ function UnitForm({ onDone }: { onDone: () => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (fixed && !(isLat(geo.lat) && isLng(geo.lng))) { toast.error("Enter the fixed Latitude & Longitude or pick on the map"); return; }
-    const code = f.code || (kind === "station" ? `THANA-DHK-${String(d.responders.filter((r) => r.kind === "station").length + 1).padStart(2, "0")}` : kind === "fari" ? `FARI-NRG-${String(d.responders.filter((r) => r.kind === "fari").length + 1).padStart(2, "0")}` : `PATROL-${100 + d.responders.filter((r) => r.kind === "patrol").length + 1}`);
-    try { await d.addResponder({
-      name: f.name, nameBn: f.nameBn || undefined, kind, code, area: f.area, phone: f.phone, online: false,
+    if (!/^(?:\+?88)?01\d{9}$/.test(f.phone.replace(/[\s-]/g, ""))) { toast.error("Enter a valid phone number (01XXXXXXXXX)"); return; }
+    if ((!initial || f.password) && f.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
+    const codes = d.responders.filter((r) => r.id !== initial?.id).map((r) => r.code);
+    const code = f.code.trim() || (kind === "station" ? nextCode(codes, "THANA-DHK-", 0, 2) : kind === "fari" ? nextCode(codes, "FARI-NRG-", 0, 2) : nextCode(codes, "PATROL-", 100, 3));
+    if (codes.includes(code)) { toast.error(`Unit code ${code} is already used`); return; }
+    const save = (r: Omit<Responder, "id">) => initial ? d.updateResponder(initial.id, r) : d.addResponder(r);
+    try { await save({
+      name: f.name, nameBn: f.nameBn || undefined, kind, code, area: f.area, phone: f.phone, online: initial?.online ?? false,
       fixed, ...(pos?{x:pos.x,y:pos.y}:{}),
       lat: fixed && isLat(geo.lat) ? +geo.lat : undefined,
       lng: fixed && isLng(geo.lng) ? +geo.lng : undefined,
@@ -195,7 +208,7 @@ function UnitForm({ onDone }: { onDone: () => void }) {
       vehicleNo: kind === "patrol" ? f.vehicleNo || undefined : undefined,
       patrolZone: kind === "patrol" ? f.patrolZone || undefined : undefined,
     }); } catch {return;}
-    toast.success(`Police unit created: ${code}`, { description: `${KIND_LABEL[kind]} · ${fixed ? "Fixed GPS location saved" : "Live GPS from the Patrol App"}` });
+    toast.success(initial ? `Police unit updated: ${code}` : `Police unit created: ${code}`, { description: `${KIND_LABEL[kind]} · ${fixed ? "Fixed GPS location saved" : "Live GPS from the Patrol App"}` });
     onDone();
   };
 
@@ -219,7 +232,7 @@ function UnitForm({ onDone }: { onDone: () => void }) {
         <div className="space-y-1.5"><Label>In-charge officer name</Label><Input required value={f.inCharge} onChange={(e) => setF({ ...f, inCharge: e.target.value })} /></div>
         <div className="space-y-1.5"><Label>Rank</Label><Input value={f.rank} onChange={(e) => setF({ ...f, rank: e.target.value })} placeholder="e.g. Officer-in-Charge" /></div>
         <div className="space-y-1.5"><Label>Official duty phone (login number)</Label><Input required value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="01XXXXXXXXX" /></div>
-        <div className="space-y-1.5"><Label>Login password</Label><Input required type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>
+        <div className="space-y-1.5"><Label>{initial ? "New password (leave blank to keep)" : "Login password (min 8)"}</Label><Input required={!initial} minLength={8} type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>
       </div>
 
       {fixed ? (
@@ -248,7 +261,7 @@ function UnitForm({ onDone }: { onDone: () => void }) {
       )}
 
       <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">Dispatch rule: Type 1 units are mandatory auto-accept — the nearest 2 patrolling units, 1 Fari and 1 Station are dispatched on every SOS.</p>
-      <Button type="submit" className="w-full"><UserPlus /> Create police unit</Button>
+      <Button type="submit" className="w-full">{initial ? <><Save /> Save changes</> : <><UserPlus /> Create police unit</>}</Button>
     </form>
   );
 }
@@ -322,6 +335,7 @@ function ResponderForm({ onDone }: { onDone: () => void }) {
 export function NetworkSection() {
   const d = useDemo();
   const [dialog, setDialog] = useState<"unit" | "responder" | null>(null);
+  const [editing, setEditing] = useState<Responder | undefined>(undefined);
   const pending = d.volunteerApps.filter((a) => a.status === "pending");
   const type1 = d.responders.filter((r) => isType1(r.kind));
   const type2 = d.responders.filter((r) => !isType1(r.kind));
@@ -339,11 +353,11 @@ export function NetworkSection() {
         <TabsContent value="type1" className="mt-4 space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">Thana & Fari use 📍 fixed GPS; patrolling teams use 📡 live GPS from their vehicle device.</p>
-            <Button onClick={() => setDialog("unit")}><Plus /> Add Type 1 Police Unit</Button>
+            <Button onClick={() => { setEditing(undefined); setDialog("unit"); }}><Plus /> Add Type 1 Police Unit</Button>
           </div>
           <Card className="p-0">
             <Table>
-              <TableHeader><TableRow><TableHead>Unit</TableHead><TableHead>Code / call sign</TableHead><TableHead>Sub-type</TableHead><TableHead>Jurisdiction</TableHead><TableHead>In-charge</TableHead><TableHead>GPS</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Unit</TableHead><TableHead>Code / call sign</TableHead><TableHead>Sub-type</TableHead><TableHead>Jurisdiction</TableHead><TableHead>In-charge</TableHead><TableHead>GPS</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
               <TableBody>
                 {type1.map((r) => (
                   <TableRow key={r.id}>
@@ -354,9 +368,10 @@ export function NetworkSection() {
                     <TableCell className="text-xs">{r.inCharge}{r.rank && <span className="block text-muted-foreground">{r.rank}</span>}</TableCell>
                     <TableCell><GpsBadge fixed={!!r.fixed} />{r.fixed && r.lat !== undefined && r.lng !== undefined && <span className="mt-1 block font-mono text-[10px] text-muted-foreground">{fmtCoord(r.lat)}, {fmtCoord(r.lng)}</span>}</TableCell>
                     <TableCell><OnlineDot on={r.online} /></TableCell>
+                    <TableCell className="text-right"><Button size="sm" variant="outline" onClick={() => { setEditing(r); setDialog("unit"); }}>Edit</Button></TableCell>
                   </TableRow>
                 ))}
-                {!type1.length && <TableRow><TableCell colSpan={7} className="py-10 text-center text-muted-foreground">No police units yet</TableCell></TableRow>}
+                {!type1.length && <TableRow><TableCell colSpan={8} className="py-10 text-center text-muted-foreground">No police units yet</TableCell></TableRow>}
               </TableBody>
             </Table>
           </Card>
@@ -415,10 +430,10 @@ export function NetworkSection() {
       <Dialog open={dialog !== null} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display">{dialog === "unit" ? "Add Type 1 Police Unit" : "Add Type 2 Responder"}</DialogTitle>
+            <DialogTitle className="font-display">{dialog === "unit" ? (editing ? "Edit Police Unit" : "Add Type 1 Police Unit") : "Add Type 2 Responder"}</DialogTitle>
             <DialogDescription>{dialog === "unit" ? "থানা / ফাঁড়ি / পেট্রোল টিম — the account can sign in to the Rescue Network app." : "ভলান্টিয়ার / পুলিশ অফিসার — the account can sign in to the Rescue Network app."}</DialogDescription>
           </DialogHeader>
-          {dialog === "unit" ? <UnitForm onDone={() => setDialog(null)} /> : <ResponderForm onDone={() => setDialog(null)} />}
+          {dialog === "unit" ? <UnitForm key={editing?.id ?? "new"} initial={editing} onDone={() => setDialog(null)} /> : <ResponderForm onDone={() => setDialog(null)} />}
         </DialogContent>
       </Dialog>
     </>
@@ -521,5 +536,28 @@ export function PublisherSection() {
 }
 
 export function SettingsSection() {
-  return <><PageHead title="API & System Settings" sub="NURJA" /><Card><p className="text-sm text-muted-foreground">Private service credentials are managed securely outside this panel.</p></Card></>;
+  return <><PageHead title="API & System Settings" sub="NURJA" /><div className="space-y-4"><PlacesUsageCard /><Card><p className="text-sm text-muted-foreground">Private service credentials are managed securely outside this panel.</p></Card></div></>;
+}
+
+/** Approximate Google Places search usage and cost, with a warning near the daily limit. */
+export function PlacesUsageCard() {
+  const q = useQuery({ queryKey: ["places-usage"], queryFn: () => getPlacesUsage(), refetchInterval: 60000 });
+  const rows = q.data ?? [];
+  const today = rows.find((r) => r.day === new Date().toISOString().slice(0, 10))?.count ?? 0;
+  const month = rows.filter((r) => r.day.slice(0, 7) === new Date().toISOString().slice(0, 7)).reduce((a, r) => a + r.count, 0);
+  const level = usageLevel(today);
+  const pct = Math.min(100, Math.round((today / PLACES_DAILY_LIMIT) * 100));
+  return (
+    <Card className="space-y-3">
+      <p className="font-display font-bold">Google Places search usage</p>
+      {level !== "ok" && <p className={cn("rounded-lg p-3 text-sm font-semibold", level === "limit" ? "bg-crimson text-paper" : "bg-amber-soft text-amber")}>{level === "limit" ? "Daily Google search limit reached. Searches now use the free OpenStreetMap fallback until tomorrow." : `Warning: ${pct}% of today's Google search limit used.`}</p>}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border p-3"><p className="text-xs text-muted-foreground">Today</p><p className="font-display text-xl font-extrabold">{today} / {PLACES_DAILY_LIMIT}</p></div>
+        <div className="rounded-xl border p-3"><p className="text-xs text-muted-foreground">Estimated cost today</p><p className="font-display text-xl font-extrabold">${estimateCost(today).toFixed(2)}</p></div>
+        <div className="rounded-xl border p-3"><p className="text-xs text-muted-foreground">This month · estimated</p><p className="font-display text-xl font-extrabold">{month} · ${estimateCost(month).toFixed(2)}</p></div>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-muted"><div className={cn("h-full", level === "ok" ? "bg-emerald" : level === "warn" ? "bg-amber" : "bg-crimson")} style={{ width: `${pct}%` }} /></div>
+      <p className="text-xs text-muted-foreground">Estimate only: ${PLACES_COST_PER_REQUEST} per search at Google's list price, before any free monthly credit. Your Google bill is the final figure.</p>
+    </Card>
+  );
 }

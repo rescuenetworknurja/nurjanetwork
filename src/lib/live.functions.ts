@@ -124,8 +124,10 @@ export const createResponder = createServerFn({ method: "POST" }).middleware([re
   .handler(async ({ data, context }) => {
     const { requireAdmin } = await import("./live.server"); await requireAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: clash } = await supabaseAdmin.from("responders").select("code,phone").or(`code.eq.${data.code},phone.eq.${data.phone}`).limit(1);
+    if (clash?.length) throw new Error(clash[0]!.code === data.code ? `Unit code ${data.code} is already used` : "This phone number already has a responder account");
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({ email: `${data.phone}@phone.nurja.com`, password: data.password, email_confirm: true, user_metadata: { full_name: data.name, phone: data.phone } });
-    if (error || !created.user) throw new Error("Could not create account; check for an existing phone");
+    if (error || !created.user) throw new Error("This phone number already has an account");
     const id = created.user.id;
     const { error: roleError } = await supabaseAdmin.from("user_roles").upsert({ user_id: id, role: "responder" }, { onConflict: "user_id,role" });
     const { error: unitError } = await supabaseAdmin.from("responders").insert({ user_id: id, code: data.code, kind: data.kind, name: data.name, phone: data.phone, area: data.area, fixed: ["station", "fari"].includes(data.kind), lat: data.lat ?? null, lng: data.lng ?? null, details: (data.details ?? {}) as NonNullable<Database["public"]["Tables"]["responders"]["Insert"]["details"]> });
@@ -311,3 +313,46 @@ export const flagLiveIncident = createServerFn({ method: "POST" }).middleware([r
   });
 
 export type LiveRecordContent = Post | Zone | WebsiteContent | Inquiry;
+const unitInput = z.object({ name: z.string().min(1).max(120), phone: z.string().regex(/^8801\d{9}$/), code: z.string().min(1).max(80), kind: z.enum(["patrol", "fari", "station", "volunteer", "officer"]), area: z.string().max(500), lat: z.number().min(-90).max(90).optional(), lng: z.number().min(-180).max(180).optional(), details: z.record(z.string(), z.unknown()).optional() });
+
+/** Admin edit of an existing responder unit, including optional phone/password change for its login. */
+export const updateResponder = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => unitInput.extend({ id: z.string().uuid(), password: z.string().min(8).max(72).optional() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { requireAdmin } = await import("./live.server"); await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: unit } = await supabaseAdmin.from("responders").select("id,user_id,phone").eq("id", data.id).single();
+    if (!unit) throw new Error("Unit not found");
+    const { data: clash } = await supabaseAdmin.from("responders").select("code,phone").neq("id", data.id).or(`code.eq.${data.code},phone.eq.${data.phone}`).limit(1);
+    if (clash?.length) throw new Error(clash[0]!.code === data.code ? `Unit code ${data.code} is already used` : "This phone number already has a responder account");
+    if (unit.phone !== data.phone || data.password) {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(unit.user_id, { ...(unit.phone !== data.phone ? { email: `${data.phone}@phone.nurja.com`, email_confirm: true, user_metadata: { full_name: data.name, phone: data.phone } } : {}), ...(data.password ? { password: data.password } : {}) });
+      if (error) throw new Error("Login details could not be updated");
+      if (unit.phone !== data.phone) await supabaseAdmin.from("profiles").update({ phone: data.phone }).eq("id", unit.user_id);
+    }
+    const { error } = await supabaseAdmin.from("responders").update({ code: data.code, kind: data.kind, name: data.name, phone: data.phone, area: data.area, fixed: ["station", "fari"].includes(data.kind), lat: data.lat ?? null, lng: data.lng ?? null, details: (data.details ?? {}) as NonNullable<Database["public"]["Tables"]["responders"]["Update"]["details"]> }).eq("id", data.id);
+    if (error) throw new Error("Unit could not be saved");
+    return { ok: true };
+  });
+
+export type Briefing = { id: string; at: string; summary: string; notes: string; priority: "high" | "medium" | "low"; lat: number | null; lng: number | null; label: string };
+
+/** Operator briefing for responders on an incident: summary + selected map point. */
+export const postBriefing = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ incidentId: z.string().uuid(), summary: z.string().trim().min(3).max(280), notes: z.string().trim().max(2000), priority: z.enum(["high", "medium", "low"]), lat: z.number().min(-90).max(90).nullable(), lng: z.number().min(-180).max(180).nullable(), label: z.string().max(200) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { requireAdmin } = await import("./live.server"); await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { incidentId, ...details } = data;
+    const { error } = await supabaseAdmin.from("incident_events").insert({ incident_id: incidentId, actor_id: context.userId, event: "briefing", details });
+    if (error) throw new Error("Briefing could not be sent");
+    return { ok: true };
+  });
+
+export const listBriefings = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ incidentId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase.from("incident_events").select("id,created_at,details").eq("incident_id", data.incidentId).eq("event", "briefing").order("created_at", { ascending: false }).limit(20);
+    if (error) throw new Error("Briefings unavailable");
+    return (rows ?? []).map((r) => { const x = r.details as Record<string, unknown>; return { id: r.id, at: r.created_at, summary: String(x["summary"] ?? ""), notes: String(x["notes"] ?? ""), priority: (x["priority"] as Briefing["priority"]) ?? "medium", lat: typeof x["lat"] === "number" ? x["lat"] : null, lng: typeof x["lng"] === "number" ? x["lng"] : null, label: String(x["label"] ?? "") } satisfies Briefing; });
+  });

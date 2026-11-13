@@ -7,7 +7,7 @@ import { seedWebsite, type Inquiry, type WebsiteContent } from "./website-conten
 import { type IncidentEvidence } from "./evidence";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession, normalizePhone } from "./auth";
-import { getPublicRecords, getLiveSnapshot, saveRecord, submitPublicInquiry, submitVolunteerApplication, createResponder, approveLiveVolunteer, startLiveSos, completeLiveSos, respondToLiveSos, cancelLiveSos, setLiveCamera, setDutyStatus, updateLiveLocation, saveLiveEvidence, editLiveEvidenceTags } from "./live.functions";
+import { getPublicRecords, getLiveSnapshot, saveRecord, submitPublicInquiry, submitVolunteerApplication, createResponder, updateResponder, approveLiveVolunteer, startLiveSos, completeLiveSos, respondToLiveSos, cancelLiveSos, setLiveCamera, setDutyStatus, updateLiveLocation, saveLiveEvidence, editLiveEvidenceTags } from "./live.functions";
 import { setAccountStatus, setKycStatus as saveKycStatus } from "./profile.functions";
 import { toXY } from "./geo-map";
 import { toast } from "sonner";
@@ -88,6 +88,7 @@ type Ctx = DemoState & {
   approveVolunteer: (id: string) => Promise<string>;
   rejectVolunteer: (id: string) => void;
   addResponder: (r: Omit<Responder, "id">) => Promise<void>;
+  updateResponder: (id: string, r: Omit<Responder, "id">) => Promise<void>;
   submitInquiry: (q: Pick<Inquiry, "name" | "contact" | "subject" | "message">) => Promise<void>;
   selfStatus: AccountStatus;
   selfBanReason: string | undefined;
@@ -154,7 +155,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     const watch=navigator.geolocation.watchPosition(p=>{if(Date.now()-last<10000)return;last=Date.now();void updateLiveLocation({data:{...(id?{incidentId:id}:{}),lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy}}).catch(()=>local({liveError:"Location update failed"}));},()=>local({liveError:"Location permission required"}),{enableHighAccuracy:true,maximumAge:5000});
     return()=>navigator.geolocation.clearWatch(watch);
   },[state.sos?.id,state.responderId,state.responderOnline,session.user?.id]);
-  const run=async(task:()=>Promise<unknown>)=>{try{await task();await refresh();}catch(e){toast.error(stateRef.current.lang==="bn"?"সংরক্ষণ করা যায়নি; আবার চেষ্টা করুন।":"Could not save; try again.");throw e;}};
+  const run=async(task:()=>Promise<unknown>)=>{try{await task();await refresh();}catch(e){const msg=e instanceof Error&&e.message&&!e.message.startsWith("[")?e.message:"";toast.error(stateRef.current.lang==="bn"?"সংরক্ষণ করা যায়নি; আবার চেষ্টা করুন।":"Could not save; try again.",msg?{description:msg}:undefined);throw e;}};
   const set:Ctx["set"]=async input=>{
     const current=stateRef.current; const patch=typeof input==="function"?input(current):input;
     const localPatch={...patch};
@@ -184,6 +185,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     submitVolunteer:async a=>{await run(()=>submitVolunteerApplication({data:{name:a.name,phone:normalizePhone(a.phone),email:a.email,address:a.address,nid:a.nid,occupation:a.occupation,motivation:a.motivation,photo:a.photo}}));},
     approveVolunteer:async id=>{const result=await approveLiveVolunteer({data:{id}});await refresh();return result.code;},
     rejectVolunteer:id=>{const a=state.volunteerApps.find(a=>a.id===id);if(a)void set({volunteerApps:state.volunteerApps.map(v=>v.id===id?{...v,status:"rejected"}:v)});},
+    updateResponder:async (id,r)=>{const {password,online:_o,x:_x,y:_y,...details}=r as Responder;await run(()=>updateResponder({data:{id,name:r.name,phone:normalizePhone(r.phone),code:r.code,kind:r.kind,area:r.area,...(password?{password}:{}),...(r.lat!==undefined?{lat:r.lat}:{}),...(r.lng!==undefined?{lng:r.lng}:{}),details:{...details,id:undefined}}}));},
     addResponder:async r=>{if(!r.password)throw new Error("Password required"); const {password,...details}=r;await run(()=>createResponder({data:{name:r.name,phone:normalizePhone(r.phone),password,code:r.code,kind:r.kind,area:r.area,...(r.lat!==undefined?{lat:r.lat}:{}),...(r.lng!==undefined?{lng:r.lng}:{}),details}}));},
     setUserStatus:async(id,status,reason)=>{await run(()=>setAccountStatus({data:{userId:id,status,...(reason?{reason}:{})}}));},
     setUserKyc:async(id,status)=>{await run(()=>saveKycStatus({data:{userId:id,status}}));},

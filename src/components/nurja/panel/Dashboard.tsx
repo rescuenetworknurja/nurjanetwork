@@ -10,6 +10,7 @@ import { CameraFeed } from "../CameraFeed";
 import { useNetworkUnits, useNow } from "../sos/Home";
 import { toXY } from "@/lib/geo-map";
 import { IncidentEvidenceGallery } from "../IncidentEvidenceGallery";
+import { BriefingComposer } from "../IncidentBriefing";
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return <div className={cn("rounded-2xl border bg-card p-5 shadow-card", className)}>{children}</div>;
@@ -114,6 +115,7 @@ export function IncidentSection() {
               <Button size="lg" variant="outline" onClick={() => void d.refresh()}><RefreshCw /></Button>
             </div>
           </Card>
+          <Card><BriefingComposer key={s.id} incidentId={s.id} victim={s.lat!==undefined&&s.lng!==undefined?[s.lat,s.lng]:undefined} /></Card>
           <Card>
             <p className="flex items-center gap-2 font-display font-bold"><RouteIcon className="h-4 w-4" /> Live route summary</p>
             <dl className="mt-3 grid grid-cols-3 gap-3 text-sm">

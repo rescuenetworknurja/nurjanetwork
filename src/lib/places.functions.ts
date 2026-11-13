@@ -33,6 +33,9 @@ export const searchPlaces = createServerFn({ method: "POST" })
       };
     }
 
+    const { PLACES_DAILY_LIMIT } = await import("./places-usage");
+    const usage = await recordPlacesUsage();
+    if (usage > PLACES_DAILY_LIMIT) return { places: [] as PlaceHit[], error: "Daily Google search limit reached", usage };
     const res = await fetch(`${GATEWAY_URL}/places/v1/places:searchText`, {
       method: "POST",
       headers: {
@@ -74,5 +77,25 @@ export const searchPlaces = createServerFn({ method: "POST" })
         label: p.formattedAddress || p.displayName?.text || data.query,
       }));
 
-    return { places, error: null as string | null };
+    return { places, error: null as string | null, usage };
+  });
+
+/** Each Text Search is one billable Google request; count it per day (approximate, best-effort). */
+async function recordPlacesUsage(): Promise<number> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const day = new Date().toISOString().slice(0, 10);
+    const { data: row } = await supabaseAdmin.from("live_records").select("content").eq("collection", "places_usage").eq("id", day).maybeSingle();
+    const count = Number((row?.content as { count?: number } | null)?.count ?? 0) + 1;
+    await supabaseAdmin.from("live_records").upsert({ collection: "places_usage", id: day, content: { day, count }, published: false });
+    return count;
+  } catch (e) { console.error("Places usage not recorded", e); return 0; }
+}
+
+export const getPlacesUsage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { requireAdmin } = await import("./live.server"); await requireAdmin(context.supabase, context.userId);
+    const { data } = await context.supabase.from("live_records").select("id,content").eq("collection", "places_usage").order("id", { ascending: false }).limit(31);
+    return (data ?? []).map((r) => ({ day: r.id, count: Number((r.content as { count?: number }).count ?? 0) }));
   });
