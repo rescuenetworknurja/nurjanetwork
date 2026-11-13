@@ -6,10 +6,9 @@ import { VICTIM_POS } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { LiveMapLazy } from "../LiveMapLazy";
 import { CHASHARA_CENTER } from "@/lib/geo-map";
-import { CameraFeed } from "../CameraFeed";
 import { useNetworkUnits, useNow } from "../sos/Home";
 import { toXY } from "@/lib/geo-map";
-import { IncidentEvidenceGallery } from "../IncidentEvidenceGallery";
+import { VictimCamera } from "../VictimCamera";
 import { BriefingComposer } from "../IncidentBriefing";
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
@@ -107,7 +106,7 @@ export function IncidentSection() {
         </Card>
         <div className="space-y-4">
           <Card className="p-3">
-            <CameraFeed camera={s.camera} className="aspect-video" />
+            <VictimCamera camera={s.camera} />
             <div className="mt-3 flex flex-wrap gap-2">
               <Button size="lg" className="flex-1" onClick={async () => {try{await d.switchCamera();}catch{}}}>
                 <SwitchCamera /> Switch Victim Camera (Front ↔ Back)
@@ -137,7 +136,6 @@ export function IncidentSection() {
                 <span className="text-emerald">Arrived · {new Date(arrival.arrivedAt).toLocaleTimeString(d.lang === "bn" ? "bn-BD" : "en-GB")}</span>
               </div>
             ))}
-            <IncidentEvidenceGallery incidentId={s.id} />
             <Button className="mt-3 w-full bg-emerald hover:bg-emerald/90" onClick={async()=>{try{await d.markRescued();toast.success("Marked as rescued. Case archived.");}catch{}}}>Mark rescued</Button>
             <Button variant="ghost" className="mt-2 w-full text-muted-foreground" onClick={async()=>{try{await d.stopSos("Closed by control room");toast.success("Incident closed and archived");}catch{}}}>Close incident</Button>
           </Card>
