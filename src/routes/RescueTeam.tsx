@@ -69,11 +69,7 @@ function Splash() {
         <RescueMark label="" className="scale-[1.8]" />
         <p className="mt-8 font-display text-2xl font-extrabold tracking-wide">Rescue Network</p>
         <Slogan className="mt-1 text-xs text-paper/60" />
-        <p className="mt-8 flex items-center gap-2 rounded-full bg-paper/5 px-4 py-2 font-mono text-[11px] text-emerald">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald animate-blink" />
-          Rescue Network
-        </p>
-        <Button size="lg" className="mt-6 h-13 w-full rounded-lg text-base font-bold" onClick={() => void d.set({ rescueAuth: "login" })}>
+        <Button size="lg" className="mt-8 h-13 w-full rounded-lg text-base font-bold" onClick={() => void d.set({ rescueAuth: "login" })}>
           <ShieldCheck /> Proceed to Responder Login
         </Button>
         <p className="mt-4 text-[11px] text-paper/40">NURJA Emergency Response & Women Safety Ecosystem</p>
