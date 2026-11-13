@@ -14,6 +14,307 @@ export type Database = {
   }
   public: {
     Tables: {
+      dispatch_assignments: {
+        Row: {
+          arrived_at: string | null
+          created_at: string
+          distance_km: number
+          id: string
+          incident_id: string
+          responder_id: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          arrived_at?: string | null
+          created_at?: string
+          distance_km: number
+          id?: string
+          incident_id: string
+          responder_id: string
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          arrived_at?: string | null
+          created_at?: string
+          distance_km?: number
+          id?: string
+          incident_id?: string
+          responder_id?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_assignments_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatch_assignments_responder_id_fkey"
+            columns: ["responder_id"]
+            isOneToOne: false
+            referencedRelation: "responders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          details: Json
+          event: string
+          id: string
+          incident_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          event: string
+          id?: string
+          incident_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          event?: string
+          id?: string
+          incident_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_events_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_evidence: {
+        Row: {
+          camera: string
+          captured_at: string
+          created_at: string
+          id: string
+          incident_id: string
+          responder_id: string
+          responder_name: string
+          storage_path: string
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          camera: string
+          captured_at: string
+          created_at?: string
+          id?: string
+          incident_id: string
+          responder_id: string
+          responder_name: string
+          storage_path: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          camera?: string
+          captured_at?: string
+          created_at?: string
+          id?: string
+          incident_id?: string
+          responder_id?: string
+          responder_name?: string
+          storage_path?: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_evidence_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_locations: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          id: string
+          incident_id: string
+          lat: number
+          lng: number
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          id?: string
+          incident_id: string
+          lat: number
+          lng: number
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          id?: string
+          incident_id?: string
+          lat?: number
+          lng?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_locations_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          accuracy: number | null
+          area: string
+          camera: string
+          created_at: string
+          emergency_name: string | null
+          emergency_phone: string | null
+          ended_at: string | null
+          id: string
+          lat: number | null
+          lng: number | null
+          location_at: string | null
+          outcome: string | null
+          phone: string
+          sms_status: string
+          status: string
+          updated_at: string
+          user_id: string
+          victim: string
+        }
+        Insert: {
+          accuracy?: number | null
+          area?: string
+          camera?: string
+          created_at?: string
+          emergency_name?: string | null
+          emergency_phone?: string | null
+          ended_at?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          location_at?: string | null
+          outcome?: string | null
+          phone: string
+          sms_status?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          victim: string
+        }
+        Update: {
+          accuracy?: number | null
+          area?: string
+          camera?: string
+          created_at?: string
+          emergency_name?: string | null
+          emergency_phone?: string | null
+          ended_at?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          location_at?: string | null
+          outcome?: string | null
+          phone?: string
+          sms_status?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          victim?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incidents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kyc_submissions: {
+        Row: {
+          birth_reg: string | null
+          created_at: string
+          dob: string
+          documents: Json
+          guardian: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          birth_reg?: string | null
+          created_at?: string
+          dob: string
+          documents?: Json
+          guardian?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          birth_reg?: string | null
+          created_at?: string
+          dob?: string
+          documents?: Json
+          guardian?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kyc_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_records: {
+        Row: {
+          collection: string
+          content: Json
+          created_at: string
+          id: string
+          published: boolean
+          updated_at: string
+        }
+        Insert: {
+          collection: string
+          content: Json
+          created_at?: string
+          id: string
+          published?: boolean
+          updated_at?: string
+        }
+        Update: {
+          collection?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          published?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       phone_otps: {
         Row: {
           attempts: number
@@ -45,11 +346,16 @@ export type Database = {
         Row: {
           account_status: string
           created_at: string
+          dob: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
+          emergency_relation: string | null
+          false_count: number
           full_name: string
           id: string
           kyc_status: string
+          last_lat: number | null
+          last_lng: number | null
           nid_number: string | null
           phone: string | null
           status_reason: string | null
@@ -58,11 +364,16 @@ export type Database = {
         Insert: {
           account_status?: string
           created_at?: string
+          dob?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          emergency_relation?: string | null
+          false_count?: number
           full_name?: string
           id: string
           kyc_status?: string
+          last_lat?: number | null
+          last_lng?: number | null
           nid_number?: string | null
           phone?: string | null
           status_reason?: string | null
@@ -71,17 +382,99 @@ export type Database = {
         Update: {
           account_status?: string
           created_at?: string
+          dob?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          emergency_relation?: string | null
+          false_count?: number
           full_name?: string
           id?: string
           kyc_status?: string
+          last_lat?: number | null
+          last_lng?: number | null
           nid_number?: string | null
           phone?: string | null
           status_reason?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      public_submission_limits: {
+        Row: {
+          fingerprint: string
+          submitted_at: string
+        }
+        Insert: {
+          fingerprint: string
+          submitted_at?: string
+        }
+        Update: {
+          fingerprint?: string
+          submitted_at?: string
+        }
+        Relationships: []
+      }
+      responders: {
+        Row: {
+          area: string
+          code: string
+          created_at: string
+          details: Json
+          fixed: boolean
+          id: string
+          kind: string
+          lat: number | null
+          lng: number | null
+          location_at: string | null
+          name: string
+          online: boolean
+          phone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area?: string
+          code: string
+          created_at?: string
+          details?: Json
+          fixed?: boolean
+          id?: string
+          kind: string
+          lat?: number | null
+          lng?: number | null
+          location_at?: string | null
+          name: string
+          online?: boolean
+          phone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area?: string
+          code?: string
+          created_at?: string
+          details?: Json
+          fixed?: boolean
+          id?: string
+          kind?: string
+          lat?: number | null
+          lng?: number | null
+          location_at?: string | null
+          name?: string
+          online?: boolean
+          phone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "responders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_settings: {
         Row: {
@@ -167,11 +560,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_security: {
+        Row: {
+          attempts: number
+          created_at: string
+          locked_until: string | null
+          pin_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          locked_until?: string | null
+          pin_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          locked_until?: string | null
+          pin_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_security_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      can_access_incident: { Args: { _id: string }; Returns: boolean }
+      complete_incident: {
+        Args: { _id: string; _outcome?: string; _status: string }
+        Returns: undefined
+      }
       get_trip_share: {
         Args: { _id: string }
         Returns: {
@@ -193,6 +626,10 @@ export type Database = {
         Returns: boolean
       }
       send_sms_bulksmsbd: { Args: { event: Json }; Returns: Json }
+      start_incident: {
+        Args: { _accuracy?: number; _lat: number; _lng: number }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "responder" | "user"
